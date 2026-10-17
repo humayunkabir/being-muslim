@@ -23,6 +23,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -36,6 +37,8 @@ import app.beingmuslim.android.citycatalog.CityCatalog
 import app.beingmuslim.android.prayer.AsrJuristicMethod
 import app.beingmuslim.android.prayer.CalculationMethodChoice
 import app.beingmuslim.android.prayer.CalculationSettings
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * First-run setup: the user must choose a calculation method, an Asr juristic
@@ -55,8 +58,14 @@ fun SetupScreen(
     var query by remember { mutableStateOf("") }
     var showNotSure by remember { mutableStateOf(false) }
 
-    val cityResults = remember(query) {
-        if (query.isBlank()) emptyList() else catalog.search(query)
+    val cityResults by produceState(emptyList<City>(), query, catalog) {
+        // Scanning the catalog is cheap but not free; keep it off the main
+        // thread so typing never blocks a frame.
+        value = if (query.isBlank()) {
+            emptyList()
+        } else {
+            withContext(Dispatchers.Default) { catalog.search(query) }
+        }
     }
 
     Scaffold(modifier = modifier.fillMaxSize()) { innerPadding ->

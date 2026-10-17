@@ -87,6 +87,24 @@ class CityCatalogTest {
     }
 
     @Test
+    fun aPrefixMatchRankedLateStillOutranksEarlierSubstringMatches() {
+        // Every city but the last only *contains* "ha"; the prefix match sits
+        // last, past twice the limit, and must still come first.
+        val dhakaHa = "1185241\tDhaka\t\t23.7\t90.4\tBD\tAsia/Dhaka"
+        val bhairab = "1209000\tBhairab\t\t24.05\t90.98\tBD\tAsia/Dhaka"
+        val thakurgaon = "1336144\tThakurgaon\t\t26.03\t88.47\tBD\tAsia/Dhaka"
+        val shahjadpur = "1337176\tShahjadpur\t\t24.13\t89.60\tBD\tAsia/Dhaka"
+        val hazaribagh = "1340000\tHazaribagh\t\t23.74\t90.37\tBD\tAsia/Dhaka"
+
+        val catalog = catalogOf(dhakaHa, bhairab, thakurgaon, shahjadpur, hazaribagh)
+
+        assertEquals(
+            listOf("Hazaribagh", "Dhaka"),
+            catalog.search("ha", limit = 2).map { it.name },
+        )
+    }
+
+    @Test
     fun reportsTheCountriesPresentInTheCatalog() {
         assertEquals(listOf("BD", "KR"), catalogOf(dhaka, chattogram, seoul).countries())
     }
