@@ -13,8 +13,8 @@ platforms. Product scope and the product name are still not finalized; see
 ```text
 .
 ├── AGENTS.md, README.md, GLOSSARY.md     # engineering rules, entry point, vocabulary
-├── apps/ios/                             # Swift + SwiftUI (Xcode project)
-├── apps/android/                         # Kotlin + Jetpack Compose (Gradle)
+├── apps/ios/                             # Swift + SwiftUI (Xcode project); AGENTS.md
+├── apps/android/                         # Kotlin + Jetpack Compose (Gradle); AGENTS.md
 ├── docs/                                 # spec docs, decisions, agent config
 ├── .agents/, .opencode/                  # vendored agent skills + command wrappers
 ├── .githooks/                            # versioned git hooks (see "Git hooks")
@@ -74,31 +74,14 @@ Android:
 
 ## Build, test, lint
 
-### iOS
+Each app builds with its own native toolchain; the exact commands and platform
+conventions live next to the code, in `apps/ios/AGENTS.md` (Xcode /
+`xcodebuild`) and `apps/android/AGENTS.md` (Gradle: `assembleDebug`, `test`,
+`lint`).
 
-```sh
-open apps/ios/BeingMuslim.xcodeproj          # build and run in Xcode
-
-# Or from the CLI — swap `build` for `test` to run the tests:
-xcodebuild -project apps/ios/BeingMuslim.xcodeproj \
-  -scheme BeingMuslim \
-  -destination 'platform=iOS Simulator,name=iPhone 17' build
-```
-
-### Android
-
-Run from `apps/android`:
-
-```sh
-./gradlew assembleDebug     # build
-./gradlew test              # JVM unit tests
-./gradlew lint              # Android Lint
-```
-
-Android Lint runs as part of `./gradlew lint` and currently reports no issues.
 Formatter tooling is not set up yet on either platform (no
 `swift-format`/SwiftLint, no `ktlint`/`detekt`); add it when the app has code
-worth formatting, and document the commands here.
+worth formatting.
 
 ## Documentation
 
@@ -116,6 +99,8 @@ worth formatting, and document the commands here.
 - `docs/agents/` — configuration the engineering skills read: issue tracker,
   triage labels, domain docs.
 - `AGENTS.md` — engineering rules for contributors and coding agents.
+- `apps/ios/AGENTS.md`, `apps/android/AGENTS.md` — per-app platform conventions
+  and build/test/lint commands, loaded when work touches each app.
 
 Each of the three specification documents opens with a short header naming what
 it owns and what it defers to the others; when a rule looks duplicated, the

@@ -1,0 +1,37 @@
+# Android app — engineering rules
+
+Kotlin + Jetpack Compose guidance for `apps/android/`. OpenCode loads this file
+when work touches this directory; the repository rules in the root `AGENTS.md`
+still apply and govern anything cross-cutting.
+
+## Conventions
+
+- Kotlin + Jetpack Compose by default, Views only when a native requirement
+  justifies them; Android Jetpack libraries and Gradle.
+- Material Design and official Kotlin conventions. Respect insets, font
+  scaling, native navigation, and system settings.
+- Structured concurrency with lifecycle-aware collection and immutable state
+  (`val`); no `GlobalScope`, no blocking the main thread, no state shared across
+  unrelated components. Details: `docs/ARCHITECTURE.md` §4.
+- Module directories are kebab-case (`app/`; when needed `core/`,
+  `design-system/`, `build-logic/`) and Kotlin packages are lowercase. The
+  design system is **per app** — extract `design-system/` once a repeated
+  pattern exists, never speculatively (`docs/ARCHITECTURE.md` §2.1–§2.2,
+  `docs/DESIGN_STANDARDS.md` §2/§4).
+- Accessibility bar: `docs/DESIGN_STANDARDS.md` §7 (screen readers, text
+  scaling, contrast, target sizes, reduced motion).
+
+## Build, test, lint
+
+Run from `apps/android`:
+
+```sh
+./gradlew assembleDebug     # build
+./gradlew test              # JVM unit tests
+./gradlew lint              # Android Lint
+```
+
+Android Lint runs as part of `./gradlew lint` and currently reports no issues.
+Toolchain (JDK, SDK packages, API levels, `ANDROID_HOME`): `README.md`
+§Prerequisites. Formatter tooling (`ktlint`/`detekt`) is not set up yet — add it
+when the app has code worth formatting, and record the command here.

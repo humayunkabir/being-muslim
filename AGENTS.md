@@ -37,10 +37,9 @@ Three documents are authoritative within their own scope, and each declares what
 
 ## Platform standards
 
-- **iOS:** Swift + SwiftUI by default (UIKit only for a concrete native need); Apple's Human Interface Guidelines and Swift API Design Guidelines; respect Dynamic Type, safe areas, semantic colors, system appearance, and navigation; structured concurrency with explicit task lifetimes and `MainActor` for UI updates; no force-unwrapping in production paths, no unsafe shared mutable state.
-- **Android:** Kotlin + Compose by default (Views only when a native requirement justifies them); Material Design and official Kotlin conventions; respect insets, font scaling, navigation, and system settings; structured concurrency, lifecycle-aware collection, immutable state (`val`); no `GlobalScope`, no blocking the main thread, no state shared across unrelated components.
+Platform conventions and build/test commands sit next to the code, in `apps/ios/AGENTS.md` (Swift + SwiftUI) and `apps/android/AGENTS.md` (Kotlin + Jetpack Compose). OpenCode loads each of those only when work touches that directory, so anything that must apply everywhere belongs here in the root file instead.
 
-Concurrency and state details: `docs/ARCHITECTURE.md` §4. UI, tokens, typography, and interaction: `docs/DESIGN_STANDARDS.md`. Share product intent and behavior, not UI implementation; platform navigation, typography, controls, gestures, and motion may differ when that improves native usability.
+Share product intent and behavior, not UI implementation; platform navigation, typography, controls, gestures, and motion may differ when that improves native usability.
 
 ## Quality requirements
 

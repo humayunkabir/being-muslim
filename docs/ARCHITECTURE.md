@@ -16,8 +16,11 @@ repository/
 ├── .gitignore, .editorconfig
 ├── .githooks/                      # versioned git hooks (see README)
 ├── .agents/, .opencode/            # vendored agent skills + command wrappers
-├── apps/ios/                       # Swift + SwiftUI: BeingMuslim.xcodeproj, App/, Resources/, Tests/
-├── apps/android/                   # Kotlin + Compose: settings.gradle.kts, build.gradle.kts, gradle/, app/, gradlew
+├── apps/
+│   ├── ios/                        # Swift + SwiftUI: BeingMuslim.xcodeproj, App/, Resources/, Tests/
+│   │   └── AGENTS.md               # iOS conventions + build/test commands
+│   └── android/                    # Kotlin + Compose: Gradle root, app/, gradlew
+│       └── AGENTS.md               # Android conventions + build/test commands
 ├── shared/                         # (when needed) contracts/, design-tokens/, documentation/
 ├── docs/                           # spec docs, AGENT_SKILLS.md, agents/, DECISIONS/
 └── tools/                          # (when needed) reproducible tooling only
@@ -83,7 +86,7 @@ For decisions that are difficult or costly to reverse, add a short record in `do
 ## 10. Build and repository hygiene
 
 - Keep iOS buildable through Xcode and Android through Gradle, independently.
-- Establish formatter, lint, and test commands early and document them in the README.
+- Establish formatter, lint, and test commands early and document them next to the code (`apps/ios/AGENTS.md`, `apps/android/AGENTS.md`).
 - Commit appropriate lockfiles and wrapper files.
 - Exclude build output, local caches, machine-specific files, and secrets.
 - Verify each app independently before adding extra tooling.
