@@ -55,7 +55,7 @@ Never bypass these checks to push a real secret; rotate the credential instead.
 
 ### Local tooling caches
 
-`graft/` and `.codegraph/` are locally generated, gitignored indexes read by the agent tooling (`AGENTS.md`, `docs/agents/graft.md`). Regenerate them per clone with `graft build` and `codegraph init`.
+`graft/` and `.codegraph/` are locally generated, gitignored indexes read by the agent tooling (`AGENTS.md`). Regenerate them per clone with `graft build` and `codegraph init`; `graft check` fails when the `graft/` graph is stale (for CI).
 
 ## Prerequisites
 
@@ -113,8 +113,8 @@ worth formatting, and document the commands here.
 - `docs/DECISIONS/` — architecture decision records.
 - `docs/AGENT_SKILLS.md` — vendored agent skills: provenance, layout, update
   procedure.
-- `docs/agents/` — configuration the engineering skills read (issue tracker,
-  triage labels, domain docs) and how to use the `graft` context graph.
+- `docs/agents/` — configuration the engineering skills read: issue tracker,
+  triage labels, domain docs.
 - `AGENTS.md` — engineering rules for contributors and coding agents.
 
 Each of the three specification documents opens with a short header naming what
