@@ -2,16 +2,14 @@
 
 ## Mission and platform choices
 
-Build a high-quality Islamic mobile product as a Git monorepo with two independently buildable, fully native applications:
+Build a high-quality Islamic mobile product as a Git monorepo with two independently buildable, fully native apps:
 
-- **iOS:** Swift, SwiftUI, native Apple frameworks, and Swift Package Manager where appropriate.
-- **Android:** Kotlin, Jetpack Compose, Android Jetpack libraries, and Gradle.
-- **UI:** Separate native implementations; do not force pixel-identical layouts or interactions.
-- **Shared assets:** Product requirements, terminology, API/data contracts, design-token source definitions, and documentation only where sharing has a concrete benefit.
+- **iOS:** Swift + SwiftUI, native Apple frameworks, Swift Package Manager where appropriate.
+- **Android:** Kotlin + Jetpack Compose, Android Jetpack libraries, Gradle.
+- **UI:** separate native implementations; do not force pixel-identical layouts or interactions.
+- **Shared:** product requirements, terminology, API/data contracts, design-token sources, and docs — only where sharing has a concrete benefit.
 
-Do not introduce Flutter, React Native, Kotlin Multiplatform, or another cross-platform UI framework without explicit approval from the project owner.
-
-The product name and final feature scope are intentionally not fixed in these engineering rules.
+Do not introduce Flutter, React Native, Kotlin Multiplatform, or another cross-platform UI framework without explicit approval from the project owner. The product name and final feature scope are intentionally not fixed here.
 
 ## Non-negotiable rules
 
@@ -26,67 +24,41 @@ The product name and final feature scope are intentionally not fixed in these en
 9. Never claim a build, test, lint, or validation passed unless it was actually run successfully.
 10. Treat Islamic content accuracy and source attribution as product-critical; follow `docs/PRODUCT_REQUIREMENTS.md`.
 
-## Repository and build expectations
+## Specification documents
 
-Use the structure in `docs/ARCHITECTURE.md` as a guide, not a mandate to create every directory immediately.
+Three documents are authoritative within their own scope, and each declares what it owns and defers: `docs/PRODUCT_REQUIREMENTS.md` (product behavior, content provenance, release gates), `docs/DESIGN_STANDARDS.md` (UI, accessibility, permission UX), and `docs/ARCHITECTURE.md` (code structure and boundaries). Use them to guide structure, not as a mandate to create every directory immediately.
 
-- Keep iOS independently buildable with Xcode and Android independently buildable with Gradle.
-- Use normal native project layouts and build workflows.
-- Add a directory or module only when it has a defined responsibility or is required by the native toolchain.
+## Build and repository expectations
+
+- Keep iOS buildable with Xcode and Android buildable with Gradle, each independently, using normal native project layouts and workflows.
+- Add a directory or module only when it has a defined responsibility or the native toolchain requires it.
 - Keep secrets, signing credentials, local machine settings, generated output, and caches out of version control.
-- Do not introduce a custom build orchestrator when standard Xcode and Gradle workflows are sufficient.
+- Do not introduce a custom build orchestrator while standard Xcode and Gradle workflows suffice.
 
-## Native implementation standards
+## Platform standards
 
-### iOS
+- **iOS:** Swift + SwiftUI by default (UIKit only for a concrete native need); Apple's Human Interface Guidelines and Swift API Design Guidelines; respect Dynamic Type, safe areas, semantic colors, system appearance, and navigation; structured concurrency with explicit task lifetimes and `MainActor` for UI updates; no force-unwrapping in production paths, no unsafe shared mutable state.
+- **Android:** Kotlin + Compose by default (Views only when a native requirement justifies them); Material Design and official Kotlin conventions; respect insets, font scaling, navigation, and system settings; structured concurrency, lifecycle-aware collection, immutable state (`val`); no `GlobalScope`, no blocking the main thread, no state shared across unrelated components.
 
-- Use Swift and SwiftUI by default; use UIKit when a native capability or concrete limitation warrants it.
-- Follow Apple's Human Interface Guidelines and Swift API Design Guidelines.
-- Respect Dynamic Type, safe areas, semantic colors, accessibility, system appearance, and expected navigation behavior.
-- Prefer structured concurrency, explicit task lifetimes, and appropriate actor isolation. Keep UI updates on `MainActor` when required.
-- Avoid force-unwrapping in ordinary production paths and unsafe shared mutable state.
-
-### Android
-
-- Use Kotlin and Jetpack Compose by default; use Android Views when justified by a native integration or concrete limitation.
-- Follow Material Design guidance and official Kotlin coding conventions.
-- Respect system insets, font scaling, accessibility, navigation, and system settings.
-- Prefer structured concurrency, explicit coroutine scopes, lifecycle-aware collection, and immutable state (`val` by default).
-- Avoid `GlobalScope`, unnecessary blocking calls, and mutable state shared across unrelated components.
-
-### Cross-platform consistency
-
-Share product intent and behavior, not UI implementation. Platform-specific navigation, typography, controls, gestures, and transitions may differ when that improves native usability.
+Concurrency and state details: `docs/ARCHITECTURE.md` §4. UI, tokens, typography, and interaction: `docs/DESIGN_STANDARDS.md`. Share product intent and behavior, not UI implementation; platform navigation, typography, controls, gestures, and motion may differ when that improves native usability.
 
 ## Quality requirements
 
-- Validate untrusted input and handle expected failures explicitly.
-- Never log credentials, tokens, private user content, or sensitive payloads.
-- Use platform-appropriate secure storage and least privilege.
+- Validate untrusted input; handle expected failures explicitly.
+- Never log credentials, tokens, private user content, or sensitive payloads. Use platform-appropriate secure storage and least privilege.
 - Keep expensive work off the UI thread.
-- Support screen readers, text scaling, adequate contrast, usable target sizes, and relevant reduced-motion preferences.
-- Write deterministic tests for important business rules, parsing, state transitions, failure paths, and integration boundaries.
-- Avoid real network access in ordinary unit tests; use controlled dependencies.
-- Evaluate dependency maintenance, compatibility, security, licensing, and transitive dependencies before adding packages.
-- Do not suppress warnings or weaken tests merely to hide a problem.
+- Meet the accessibility bar in `docs/DESIGN_STANDARDS.md` §7 (screen readers, text scaling, contrast, target sizes, reduced motion).
+- Write deterministic tests for business rules, parsing, state transitions, failure paths, and integration boundaries; no live network in ordinary unit tests.
+- Before adding a dependency, evaluate maintenance, compatibility, security, licensing, and transitive cost.
+- Do not suppress warnings or weaken tests to hide a problem.
 
 ## OpenCode workflow
 
-Before changing code:
+Before changing code: (1) inspect the repo and read applicable `AGENTS.md` files; (2) identify the target platform, existing conventions, and relevant requirements across the three specification documents; (3) inspect the APIs and dependencies involved; (4) make the smallest complete change.
 
-1. Inspect the repository and read applicable `AGENTS.md` files.
-2. Identify the target platform, existing conventions, and relevant requirements.
-3. Inspect the APIs and dependencies involved.
-4. Make the smallest complete change.
+After changing code: (1) review the full diff for unintended changes; (2) run relevant formatter, lint/static-analysis, tests, and native build checks where practical; (3) report exactly which checks ran and their outcomes; (4) state failures and unverified assumptions plainly.
 
-After changing code:
-
-1. Review the full diff for unintended changes.
-2. Run relevant formatter, lint/static-analysis, tests, and native build checks where practical.
-3. Report exactly which checks ran and their outcomes.
-4. State failures and unverified assumptions plainly.
-
-Ask for clarification before making a material product or architecture decision that cannot be safely inferred. Do not turn a request for one change into unrelated cleanup.
+Ask for clarification before a material product or architecture decision that cannot be safely inferred. Do not turn a request for one change into unrelated cleanup.
 
 ## Definition of done
 
@@ -100,56 +72,10 @@ Ask for clarification before making a material product or architecture decision 
 
 ## Agent skills
 
-### Issue tracker
+- **Issue tracker:** GitHub issues in `humayunkabir/being-muslim`, driven with the `gh` CLI. See `docs/agents/issue-tracker.md`.
+- **Triage labels:** the five canonical roles, verbatim: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+- **Domain docs:** single-context — one `GLOSSARY.md` at the repo root, extended by `/domain-modeling` as terms are resolved; ADRs stay in `docs/DECISIONS/`. See `docs/agents/domain.md`.
 
-Issues and specs live as GitHub issues in `humayunkabir/being-muslim`, driven with the `gh` CLI. See `docs/agents/issue-tracker.md`.
-
-### Triage labels
-
-The five canonical triage roles, labelled verbatim: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
-
-### Domain docs
-
-Single-context: one `GLOSSARY.md` at the repo root; ADRs stay in `docs/DECISIONS/`. See `docs/agents/domain.md`.
-
-<!-- graft:start -->
 ## Graft — repo context graph
 
-This repo is indexed in `graft/`: small linked markdown nodes that explain each
-system and carry exact file:line spans, kept in sync with the code through git.
-
-For ANY task here — understanding how something works, finding where code lives,
-or scoping a change — get context from the graph before grepping or opening
-source files. Re-ask freely (it's cheap) and reuse literal identifiers you
-already have (symbol, error string, file name) as the query. New to this repo?
-Run `graft map` first — a token-budgeted orientation (dir clusters, hubs,
-hotspots), no LLM, no key.
-
-- Run `graft ask "<your question>" --source` → ranked nodes with the relevant
-  code spans inlined (each hit's ≤8-line crux by default; `--full` for whole
-  definitions when the crux isn't enough). Match the tool to the task shape:
-  for understanding or editing, the top node IS the answer — cite its
-  `covers:` file:line spans and edit straight from `--source`. For
-  exhaustive tasks ("every occurrence / every caller of this pattern"), ranked
-  results are top-N, not complete — run `graft grep "<literal>"` instead
-  (exhaustive over indexed files, grouped by enclosing symbol), falling back
-  to raw `grep -rn` only for unindexed files.
-- `graft skeleton <file>` → every definition's signature + span, ~10× cheaper
-  than reading the file; use it to skim an API surface.
-- `graft callers <symbol>` gives precomputed, exact edges — who calls this.
-  Add `--direction out` for what it calls, or `--depth N` to walk
-  transitively for the full blast radius. For structural questions, skip
-  ranking and use this directly.
-- Or browse: `graft/INDEX.md` lists every node; follow the links.
-- Monorepos and folders of multiple repos rank fairly across sub-projects —
-  hits carry `[scope/]` labels naming which one they're from. Narrow with
-  `graft ask "<task>" --in <scope>/` once you know where you're working.
-
-If a returned span is truncated ("+N more lines"), open the file at that exact
-range before finalizing. Only open source files when a node genuinely lacks a
-needed detail, and then at the exact file:line the node points to — never
-re-read whole files.
-
-After big code changes, refresh the graph with `graft build` (deterministic,
-no API key, $0).
-<!-- graft:end -->
+Indexed by `graft` (local, regenerable, uncommitted cache). Get context from the graph before grepping or opening source files; usage rules in `docs/agents/graft.md`. After big code changes, run `graft build`.

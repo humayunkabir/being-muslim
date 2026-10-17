@@ -27,6 +27,9 @@ ADRs use this repo's existing convention, not upstream's `docs/adr/`: a
 `<NNNN>-<slug>.md` file in `docs/DECISIONS/`. `docs/ARCHITECTURE.md` §9 requires
 **status**, **context**, **decision**, **alternatives considered** and
 **consequences**; the existing entry also records a **date**. Follow its shape.
+New ADRs typically come from a decision hardened in
+`docs/PRODUCT_REQUIREMENTS.md` §14 or an architectural choice in
+`docs/ARCHITECTURE.md`.
 
 This repo is single-context by decision: iOS and Android are two implementations of
 one product that deliberately share terminology, not two domains. There is no

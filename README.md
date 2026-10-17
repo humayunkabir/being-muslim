@@ -12,30 +12,16 @@ platforms. Product scope and the product name are still not finalized; see
 
 ```text
 .
-├── AGENTS.md              # engineering rules and workflow expectations
-├── apps/
-│   ├── ios/               # Swift + SwiftUI (Xcode project)
-│   │   ├── BeingMuslim.xcodeproj
-│   │   ├── App/           # app entry point and screens
-│   │   ├── Resources/     # asset catalog
-│   │   └── Tests/         # XCTest unit tests
-│   └── android/           # Kotlin + Jetpack Compose (Gradle)
-│       ├── app/           # application module
-│       ├── gradle/        # version catalog + wrapper
-│       └── gradlew
-├── docs/                  # product, architecture, design standards, decisions
-├── .agents/skills/        # vendored agent skills (provenance: docs/AGENT_SKILLS.md)
-├── .opencode/commands/    # /slash wrappers that load those skills
-├── .githooks/             # versioned git hooks (see "Git hooks" below)
-└── .gitignore
+├── AGENTS.md, README.md, GLOSSARY.md     # engineering rules, entry point, vocabulary
+├── apps/ios/                             # Swift + SwiftUI (Xcode project)
+├── apps/android/                         # Kotlin + Jetpack Compose (Gradle)
+├── docs/                                 # spec docs, decisions, agent config
+├── .agents/, .opencode/                  # vendored agent skills + command wrappers
+├── .githooks/                            # versioned git hooks (see "Git hooks")
+└── .gitignore, .editorconfig
 ```
 
-Directories listed in `docs/ARCHITECTURE.md` §2 as `Core/`, `design-system/`,
-`build-logic/`, and `shared/` are **not** created yet: they are added when a
-concrete boundary exists (`AGENTS.md` rules 1 and 6).
-
-The identifiers are placeholders and are recorded in
-`docs/DECISIONS/0001-repository-layout-and-identifiers.md`.
+The full target tree, naming conventions, and per-app design system are in `docs/ARCHITECTURE.md` §2. Directories it marks *(when needed)* — `Core/`, `design-system/`, `build-logic/`, `shared/` — are not created yet; add them when a concrete boundary exists (`AGENTS.md` rules 1 and 6, `docs/ARCHITECTURE.md` §2.1–§2.2). Generated output (`apps/android/app/build/`) and the local `graft/`/`.codegraph/` caches are gitignored. Identifiers are placeholders (`docs/DECISIONS/0001-repository-layout-and-identifiers.md`).
 
 ## Getting started
 
@@ -67,35 +53,24 @@ GitHub secret scanning and push protection are also enabled on the repository.
 Deliberate exceptions use `git commit --no-verify` or `git push --no-verify`.
 Never bypass these checks to push a real secret; rotate the credential instead.
 
+### Local tooling caches
+
+`graft/` and `.codegraph/` are locally generated, gitignored indexes read by the agent tooling (`AGENTS.md`, `docs/agents/graft.md`). Regenerate them per clone with `graft build` and `codegraph init`.
+
 ## Prerequisites
 
 iOS:
 
-- macOS with Xcode 27.1 or later (iOS 27 SDK). No other tooling is required;
-  packages are resolved with Swift Package Manager when they are added.
-- Deployment target: iOS 18.0.
-- Running on a **physical iPhone** additionally requires a signing identity and
-  a Development Team selected in the target's *Signing & Capabilities* tab. The
-  committed project has `CODE_SIGN_STYLE = Automatic` and **no** team, so it
-  builds for the simulator out of the box but not for a device. See
-  `docs/DECISIONS/0001-repository-layout-and-identifiers.md`.
+- macOS with Xcode 27.1 or later (iOS 27 SDK); deployment target iOS 18.0. No other tooling — packages resolve via Swift Package Manager when they are added.
+- A **physical iPhone** also needs a signing identity and a Development Team selected in *Signing & Capabilities*. The committed project has `CODE_SIGN_STYLE = Automatic` and **no** team, so it builds for the simulator but not a device (`docs/DECISIONS/0001-repository-layout-and-identifiers.md`).
 
 Android:
 
-- JDK 17 or later. AGP 9 requires JDK 17; JDK 21 is fine.
-- Android SDK containing, at minimum:
-  - `platforms;android-37.0` (API 37 uses minor versions, so there is no
-    plain `platforms;android-37` package),
-  - `build-tools;36.0.0`,
-  - `platform-tools`.
-- `ANDROID_HOME` (or `ANDROID_SDK_ROOT`) pointing at the SDK, or
-  `apps/android/local.properties` with `sdk.dir=...`. `local.properties` is
-  machine-specific and not committed.
-- The Gradle wrapper (9.8.1) is committed; a separate Gradle install is not
-  needed.
-- API levels: `compileSdk`/`targetSdk` 37, `minSdk` 26.
-- Release builds apply R8 and resource shrinking and produce an **unsigned**
-  APK; a release signing config is intentionally not committed.
+- JDK 17 or later (AGP 9 requires 17; JDK 21 is fine).
+- Android SDK with, at minimum, `platforms;android-37.0` (API 37 uses minor versions, so there is no plain `platforms;android-37`), `build-tools;36.0.0`, and `platform-tools`.
+- `ANDROID_HOME` (or `ANDROID_SDK_ROOT`) pointing at the SDK, or `apps/android/local.properties` with `sdk.dir=...` — machine-specific and not committed.
+- The Gradle wrapper (9.8.1) is committed; no separate Gradle install needed.
+- API levels: `compileSdk`/`targetSdk` 37, `minSdk` 26. Release builds apply R8 and resource shrinking and produce an **unsigned** APK; a release signing config is intentionally not committed.
 
 ## Build, test, lint
 
@@ -103,20 +78,11 @@ Android:
 
 ```sh
 open apps/ios/BeingMuslim.xcodeproj          # build and run in Xcode
-```
 
-```sh
+# Or from the CLI — swap `build` for `test` to run the tests:
 xcodebuild -project apps/ios/BeingMuslim.xcodeproj \
   -scheme BeingMuslim \
-  -destination 'platform=iOS Simulator,name=iPhone 17' \
-  build
-```
-
-```sh
-xcodebuild -project apps/ios/BeingMuslim.xcodeproj \
-  -scheme BeingMuslim \
-  -destination 'platform=iOS Simulator,name=iPhone 17' \
-  test
+  -destination 'platform=iOS Simulator,name=iPhone 17' build
 ```
 
 ### Android
@@ -142,16 +108,19 @@ worth formatting, and document the commands here.
   configuration and secrets, testing strategy.
 - `docs/DESIGN_STANDARDS.md` — design intent, semantic tokens, typography,
   accessibility, content integrity.
+- `GLOSSARY.md` — the canonical product vocabulary shared by both apps and the
+  specification documents.
 - `docs/DECISIONS/` — architecture decision records.
 - `docs/AGENT_SKILLS.md` — vendored agent skills: provenance, layout, update
   procedure.
-- `docs/agents/` — configuration the vendored engineering skills read (issue
-  tracker, triage labels, domain docs).
+- `docs/agents/` — configuration the engineering skills read (issue tracker,
+  triage labels, domain docs) and how to use the `graft` context graph.
 - `AGENTS.md` — engineering rules for contributors and coding agents.
+
+Each of the three specification documents opens with a short header naming what
+it owns and what it defers to the others; when a rule looks duplicated, the
+owning document is authoritative.
 
 ## Secrets
 
-Credentials, signing material, and local environment files are never committed.
-Secrets belong in Keychain or Android Keystore-backed storage on device, and
-platform-native secure storage or local untracked files during development.
-Assume every client binary and client-side configuration value can be inspected.
+Never commit credentials, signing material, or local environment files — the hooks above block them. On device, secrets belong in Keychain or Android Keystore-backed storage; during development, in platform-native secure storage or local untracked files. Assume every client binary and its configuration can be inspected. See `docs/ARCHITECTURE.md` §7.

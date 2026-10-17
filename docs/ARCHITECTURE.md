@@ -1,161 +1,95 @@
 # Architecture and Repository Structure
 
+**Status:** Baseline — last reviewed 2026-10-17. Product scope and name are still open (`PRODUCT_REQUIREMENTS.md` §14). **Owns:** repository layout, naming, module boundaries, dependency direction, concurrency and state, data/backend boundaries, configuration and secrets, testing strategy, ADRs, build hygiene. **Defers:** product behavior and content → `PRODUCT_REQUIREMENTS.md`; visual and permission UX → `DESIGN_STANDARDS.md`.
+
 ## 1. Architectural goals
 
-The repository contains two independently buildable native apps that implement one coherent product:
+The repository holds two independently buildable native apps implementing one coherent product: iOS in Swift + SwiftUI, Android in Kotlin + Jetpack Compose, plus documentation, platform-neutral contracts, and design-token sources where sharing has a concrete benefit. Optimize for independent native development, testability, clear dependency direction, and a maintainable delivery pace — not for hypothetical future scale.
 
-- iOS: Swift + SwiftUI.
-- Android: Kotlin + Jetpack Compose.
-- Shared repository: product specifications, platform-neutral contracts, design-token source definitions, and documentation where useful.
+## 2. Repository layout
 
-The architecture should enable independent native development, testability, clear dependency direction, and a maintainable pace of delivery. It should not optimize for hypothetical future scale.
-
-## 2. Suggested repository layout
+A **target** layout, not a checklist. Anything marked *(when needed)* does not exist yet and is added only when its boundary is real (`AGENTS.md` rules 1 and 6, ADR 0001).
 
 ```text
 repository/
 ├── AGENTS.md
 ├── README.md
-├── .gitignore
-├── .editorconfig
+├── GLOSSARY.md
+├── .gitignore, .editorconfig
+├── .githooks/                    # versioned git hooks (see README)
+├── .agents/, .opencode/          # vendored agent skills + command wrappers
 ├── apps/
-│   ├── ios/
-│   │   ├── <Xcode project or workspace>
-│   │   ├── App/
-│   │   ├── Core/                 # Create only when shared native app concerns exist
-│   │   ├── DesignSystem/         # Extract when repeated UI patterns justify it
-│   │   └── Tests/
-│   └── android/
-│       ├── settings.gradle.kts
-│       ├── build.gradle.kts
-│       ├── app/
-│       ├── core/                 # Create only when a real boundary exists
-│       ├── design-system/        # Extract when repeated UI patterns justify it
-│       └── build-logic/          # Only if convention plugins become worthwhile
-├── shared/
-│   ├── contracts/                # Platform-neutral API/event contracts, if needed
-│   ├── design-tokens/             # Source definitions only when useful to both apps
-│   └── documentation/
-├── docs/
-│   ├── ARCHITECTURE.md
-│   ├── DESIGN_STANDARDS.md
-│   ├── PRODUCT_REQUIREMENTS.md
-│   └── DECISIONS/
-└── tools/                         # Reproducible tooling only
+│   ├── ios/  BeingMuslim.xcodeproj, App/, Resources/, Tests/
+│   │                             # (+ Core/, DesignSystem/ when needed)
+│   └── android/  settings.gradle.kts, build.gradle.kts, gradle/, app/, gradlew
+│                                 # (+ core/, design-system/, build-logic/ when needed)
+├── shared/                       # (when needed) contracts/, design-tokens/, documentation/
+├── docs/                         # ARCHITECTURE/DESIGN_STANDARDS/PRODUCT_REQUIREMENTS,
+│                                 # AGENT_SKILLS.md, agents/, DECISIONS/
+└── tools/                        # (when needed) reproducible tooling only
 ```
 
-This is a target map, not a requirement to create empty folders. Use standard Xcode and Gradle layouts inside the native app directories. Do not create a custom build orchestrator unless ordinary platform tooling becomes insufficient.
+Use standard Xcode and Gradle layouts inside the app directories; do not add a custom build orchestrator while ordinary platform tooling suffices. Generated output (e.g. `apps/android/app/build/`) and local caches (`graft/`, `.codegraph/`) are ignored, never committed.
+
+### 2.1 Naming
+
+Naming follows the host platform, so one concept appears under different casing:
+
+- **iOS source folders:** PascalCase (`App/`, `Resources/`, `Core/`, `DesignSystem/`).
+- **Android module directories:** kebab-case (`app/`, `core/`, `design-system/`); Kotlin packages lowercase.
+- **`shared/`:** lowercase kebab-case (`contracts/`, `design-tokens/`).
+
+### 2.2 Design system and shared tokens
+
+The design system is **per app**: `apps/ios/DesignSystem/` and `apps/android/design-system/`, each mapping design intent to its own native resources (`DESIGN_STANDARDS.md` §2). `shared/design-tokens/` holds only the platform-neutral **source definitions** for values both apps must keep in agreement; when it exists it is the source of truth and native resources are derived from it. Token categories and intent: `DESIGN_STANDARDS.md` §4. Create none of these speculatively — extract a per-app design system once a repeated pattern exists, and shared tokens only when both apps must agree on the same values.
 
 ## 3. Dependency direction
 
-Use these conceptual responsibilities where they are useful:
+Conceptual responsibilities, used where they are useful: **presentation** (screens, UI state, navigation, interaction), **domain** (business rules, types, use cases needing isolation or reuse), **data** (remote/local retrieval, serialization, persistence, caching, repositories), and **platform integration** (notifications, location, background work, secure storage, widgets, OS lifecycle).
 
-- **Presentation:** screens, UI state, navigation, and user interaction.
-- **Domain:** meaningful business rules, domain types, and use cases that need isolation or reuse.
-- **Data:** remote/local data retrieval, serialization, persistence, caching, and repository implementations.
-- **Platform integration:** notifications, location, background work, secure storage, widgets, and OS lifecycle integration.
-
-Not every feature needs four layers. Small features may remain within the app target or existing feature package until complexity makes a boundary valuable.
-
-Rules:
-
-- Avoid circular dependencies.
-- UI code must not own low-level networking or persistence implementations.
-- Keep transport and database representations from leaking across the app without a reason.
-- Prefer dependency injection through constructors or native mechanisms when it improves testability.
-- Do not introduce a DI framework, service locator, database, cache, or networking library before there is a concrete requirement.
-- Do not split every type or feature into its own module.
-- Keep platform-specific code in its native app.
+Not every feature needs four layers; small features may stay in the app target or an existing package until complexity makes a boundary valuable. Rules: avoid circular dependencies; UI must not own low-level networking or persistence; don't leak transport/database representations across the app without reason; prefer constructor or native dependency injection when it improves testability; don't add a DI framework, service locator, database, cache, or networking library before a concrete requirement; don't split every type or feature into its own module; keep platform-specific code in its native app.
 
 ## 4. Native concurrency and state
 
-### iOS
-
-Prefer Swift structured concurrency (`async`/`await`) and explicit task lifetimes. Use appropriate actor isolation and keep UI-bound mutations on `MainActor` when required. Avoid unstructured tasks without a clear lifecycle owner.
-
-### Android
-
-Prefer Kotlin coroutines and structured concurrency. Use lifecycle-aware collection of `Flow`/`StateFlow` where appropriate. Avoid `GlobalScope`, blocking work on the main thread, and state with ambiguous ownership.
-
-### Both platforms
-
-- Make state ownership and transitions explicit.
-- Separate transient UI state from durable settings or user data.
-- Avoid multiple sources of truth.
-- Handle cancellation, lifecycle changes, retries, and offline/failure states where applicable.
-- Use controlled clocks and schedulers in tests for time-dependent behavior.
+- **iOS:** Swift structured concurrency (`async`/`await`) with explicit task lifetimes; appropriate actor isolation; UI-bound mutations on `MainActor`; no unstructured tasks without a clear lifecycle owner.
+- **Android:** Kotlin coroutines and structured concurrency; lifecycle-aware collection of `Flow`/`StateFlow`; no `GlobalScope`, no blocking the main thread, no state with ambiguous ownership.
+- **Both:** make state ownership and transitions explicit; separate transient UI state from durable settings or user data; one source of truth; handle cancellation, lifecycle changes, retries, and offline/failure states; use controlled clocks and schedulers in time-dependent tests.
 
 ## 5. Data and backend boundaries
 
-The mobile apps should depend on documented contracts rather than assumptions about backend internals.
+Depend on documented contracts, not assumptions about backend internals. When a backend is introduced, document: authentication/authorization expectations; API versioning and error format; pagination and filtering; time-zone and locale handling; data ownership, retention, deletion, and export; retry and idempotency for writes; offline and synchronization behavior if supported.
 
-When a backend is introduced, document:
-
-- Authentication and authorization expectations.
-- API versioning and error format.
-- Pagination and filtering behavior where applicable.
-- Time zone and locale handling.
-- Data ownership, retention, deletion, and export behavior.
-- Retry and idempotency rules for write operations.
-- Offline and synchronization behavior, if supported.
-
-Never place private server credentials or privileged API keys in either mobile application. Assume client binaries and client-side configuration can be inspected.
+Never place private server credentials or privileged API keys in either app; assume clients and their configuration can be inspected. *Which* data may be collected, retained, or exported is a product decision (`PRODUCT_REQUIREMENTS.md` §10); this section and §7 cover only how it is wired and stored.
 
 ## 6. Islamic content and calculation boundaries
 
-Religious content and religiously significant calculations must not be treated as generic display strings. Follow `PRODUCT_REQUIREMENTS.md` for provenance, review, calculation configuration, localization, and correction processes.
+Religious content and religiously significant calculations are not generic display strings. Provenance, review, calculation configuration, localization, and correction: `PRODUCT_REQUIREMENTS.md` §3–§7, §12. Here: keep these independently testable where implemented — Quran text and translation source metadata; Hadith text, collection/reference, grading metadata when applicable, and attribution; prayer-time calculation method and parameters; qibla direction calculation and location-permission behavior; Hijri calendar source or conversion convention; user-selected language, locale, calculation method, and juristic settings.
 
-Keep these concerns separately testable where implemented:
-
-- Quran text and translation source metadata.
-- Hadith text, collection/reference, grading metadata when applicable, and attribution.
-- Prayer-time calculation method and relevant parameters.
-- Qibla direction calculation and location permission behavior.
-- Hijri calendar source or conversion convention.
-- User-selected language, locale, calculation method, and juristic settings.
-
-Do not silently substitute a source, calculation convention, or translation. Do not imply religious authority or scholarly endorsement without evidence.
+Do not silently substitute a source, calculation convention, or translation, and do not imply religious authority or scholarly endorsement without evidence.
 
 ## 7. Configuration, secrets, and persistence
 
 - Separate development, test, and production configuration.
-- Keep signing credentials, tokens, private keys, and local environment files out of version control.
-- Use Keychain on Apple platforms and Android Keystore-backed mechanisms for secrets as appropriate.
-- Minimize collection and retention of location and other personal data.
-- Document migrations for durable schema changes.
-- Define cache invalidation and offline semantics when caching is introduced.
+- Keep signing credentials, tokens, private keys, and local environment files out of version control (enforced by `.githooks/`; see `README.md`).
+- Use Keychain on Apple platforms and Android Keystore-backed mechanisms, with least privilege.
+- Document migrations for durable schema changes; define cache-invalidation and offline semantics when caching is introduced.
 - Do not add persistence simply because it might be useful later.
+- Never store or log credentials, tokens, private user content, or precise location (`PRODUCT_REQUIREMENTS.md` §10).
 
 ## 8. Testing strategy
 
-Use the native test frameworks first. Add specialized libraries only when a clear need exists.
+Use the native test frameworks first; add specialized libraries only when a clear need exists. Prioritize: religious-content parsing and source/reference integrity; prayer-time and qibla boundaries including location/time-zone edge cases; domain rules and state transitions; serialization and API error handling; persistence migrations and synchronization if present; permission-denied, no-location, offline, empty, and failure states; accessibility and critical journeys.
 
-Prioritize tests for:
-
-- Religious content parsing and source/reference integrity.
-- Prayer-time and Qibla calculation boundaries, including location/time-zone edge cases.
-- Domain rules and state transitions.
-- Serialization and API error handling.
-- Persistence migrations and synchronization, if present.
-- Permission-denied, no-location, offline, empty, and failure states.
-- Accessibility and critical user journeys.
-
-Unit tests should be deterministic and should not require live network access. Use fixtures whose source and version are recorded for religious content.
+Tests are deterministic with no live network access. Religious-content fixtures record their source and version; fixture review and versioning follow `PRODUCT_REQUIREMENTS.md` §12–§13.
 
 ## 9. Architecture decision records
 
-For decisions that are difficult or costly to reverse, create a short record in `docs/DECISIONS/`, for example:
-
-```text
-docs/DECISIONS/0001-native-apps.md
-```
-
-Include status, context, decision, alternatives considered, and consequences. Record a decision when it is made; do not create speculative records for decisions not yet needed.
+For decisions that are difficult or costly to reverse, add a short record in `docs/DECISIONS/` (e.g. `0001-repository-layout-and-identifiers.md`) with status, context, decision, alternatives considered, and consequences — the existing entry also records a date. Record a decision when it is made; do not write speculative records. `docs/agents/domain.md` covers how the agent skills consume these.
 
 ## 10. Build and repository hygiene
 
-- Keep iOS buildable through Xcode and Android buildable through Gradle independently.
-- Establish formatter, lint, and test commands early and document them in the repository README.
+- Keep iOS buildable through Xcode and Android through Gradle, independently.
+- Establish formatter, lint, and test commands early and document them in the README.
 - Commit appropriate lockfiles and wrapper files.
 - Exclude build output, local caches, machine-specific files, and secrets.
-- Verify each native app independently before adding extra tooling.
+- Verify each app independently before adding extra tooling.
