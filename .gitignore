@@ -47,3 +47,9 @@ secrets.properties
 
 # Logs
 *.log
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+/graft/
+
+# codegraph's local graph cache — regenerable, not committed (run `codegraph init`).
+/.codegraph/
