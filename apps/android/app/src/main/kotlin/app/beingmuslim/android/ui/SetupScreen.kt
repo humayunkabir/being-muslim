@@ -1,5 +1,6 @@
 package app.beingmuslim.android.ui
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,7 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,11 +53,15 @@ fun SetupScreen(
     onComplete: (cityId: Long, settings: CalculationSettings) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var method by remember { mutableStateOf<CalculationMethodChoice?>(null) }
-    var asrMethod by remember { mutableStateOf<AsrJuristicMethod?>(null) }
-    var city by remember { mutableStateOf<City?>(null) }
-    var query by remember { mutableStateOf("") }
-    var showNotSure by remember { mutableStateOf(false) }
+    var method by rememberSaveable { mutableStateOf<CalculationMethodChoice?>(null) }
+    var asrMethod by rememberSaveable { mutableStateOf<AsrJuristicMethod?>(null) }
+    // The city is held by id so the choice survives a configuration change; the
+    // City itself is looked up from the catalog.
+    var selectedCityId by rememberSaveable { mutableStateOf<Long?>(null) }
+    var query by rememberSaveable { mutableStateOf("") }
+    var showNotSure by rememberSaveable { mutableStateOf(false) }
+
+    val city = selectedCityId?.let(catalog::byId)
 
     val cityResults by produceState(emptyList<City>(), query, catalog) {
         // Scanning the catalog is cheap but not free; keep it off the main
@@ -154,7 +159,7 @@ fun SetupScreen(
             )
             city?.let {
                 Text(
-                    text = stringResource(R.string.setup_city_selected, it.name),
+                    text = stringResource(R.string.setup_city_selected, it.displayName()),
                     style = MaterialTheme.typography.bodyMedium,
                 )
             }
@@ -167,11 +172,11 @@ fun SetupScreen(
             Column(Modifier.selectableGroup()) {
                 cityResults.forEach { candidate ->
                     SelectableRow(
-                        label = candidate.name,
+                        label = candidate.displayName(),
                         description = candidate.countryCode,
-                        selected = city?.id == candidate.id,
+                        selected = selectedCityId == candidate.id,
                         onSelect = {
-                            city = candidate
+                            selectedCityId = candidate.id
                             query = ""
                         },
                     )
@@ -200,7 +205,7 @@ fun SetupScreen(
 }
 
 @Composable
-private fun SectionHeading(resId: Int) {
+private fun SectionHeading(@StringRes resId: Int) {
     Text(
         text = stringResource(resId),
         style = MaterialTheme.typography.titleMedium,

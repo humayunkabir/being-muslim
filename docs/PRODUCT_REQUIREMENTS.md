@@ -45,8 +45,9 @@ Feature-level acceptance criteria for the MVP. The full user-story set and the p
 
 **Prayer times**
 - Today's five times are shown for the chosen city and method, computed offline, and match the documented reference cases within the agreed tolerance.
-- The chosen calculation method and Asr juristic method are visible on the times screen and never change silently; tomorrow's times are available too.
+- The chosen calculation method and Asr juristic method are visible on the times screen and never change silently.
 - Every displayed time is reproducible from recorded inputs — method, parameters, location, timezone, date and offsets.
+- Tomorrow's times are available, and the city and method can be changed after setup (issue #5).
 
 **Qibla direction**
 - The bearing is computed from the chosen city's coordinates with no permission required, and is relative to true north.

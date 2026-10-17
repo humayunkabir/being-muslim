@@ -44,11 +44,34 @@ class PrayerTimeCalculatorTest {
         countryCode = "SJ", timezone = "Arctic/Longyearbyen",
     )
 
+    // Coordinates are the reference files' own, so the comparison is like for like.
+    private val singapore = City(
+        id = 1880252L, name = "Singapore", bengaliName = null,
+        latitude = 1.283333, longitude = 103.833333,
+        countryCode = "SG", timezone = "Asia/Singapore",
+    )
+    private val dubai = City(
+        id = 292223L, name = "Dubai", bengaliName = null,
+        latitude = 25.263056, longitude = 55.297222,
+        countryCode = "AE", timezone = "Asia/Dubai",
+    )
+    private val kuwaitCity = City(
+        id = 285787L, name = "Kuwait City", bengaliName = null,
+        latitude = 29.370865, longitude = 47.979139,
+        countryCode = "KW", timezone = "Asia/Kuwait",
+    )
+    private val doha = City(
+        id = 290030L, name = "Doha", bengaliName = null,
+        latitude = 25.283897, longitude = 51.52877,
+        countryCode = "QA", timezone = "Asia/Riyadh",
+    )
+
     private fun assertTimesOn(
         city: City,
         date: LocalDate,
         settings: CalculationSettings,
         expected: Map<Prayer, LocalTime>,
+        tolerance: Long = REFERENCE_TOLERANCE_MINUTES,
     ) {
         val times = PrayerTimeCalculator.forDate(city, date, settings)
         assertEquals("no times computed for $city on $date", expected.keys, times!!.times.keys)
@@ -57,7 +80,7 @@ class PrayerTimeCalculatorTest {
             val drift = abs(Duration.between(wallTime, actual).toMinutes())
             assertTrue(
                 "${city.name} $date $prayer: expected ~$wallTime but was $actual",
-                drift <= REFERENCE_TOLERANCE_MINUTES,
+                drift <= tolerance,
             )
         }
     }
@@ -119,6 +142,59 @@ class PrayerTimeCalculatorTest {
                 Prayer.ASR to LocalTime.of(15, 36),
                 Prayer.MAGHRIB to LocalTime.of(19, 1),
                 Prayer.ISHA to LocalTime.of(20, 31),
+            ),
+        )
+    }
+
+    @Test
+    fun matchesTheRemainingMethodReferenceCases() {
+        // Singapore, Gulf (Dubai), Kuwait and Qatar, each from its own reference
+        // file; tolerances are the files' own variances (Kuwait allows 2 minutes).
+        val singaporeSettings = CalculationSettings(CalculationMethodChoice.SINGAPORE, AsrJuristicMethod.STANDARD)
+        val dubaiSettings = CalculationSettings(CalculationMethodChoice.DUBAI, AsrJuristicMethod.STANDARD)
+        val kuwaitSettings = CalculationSettings(CalculationMethodChoice.KUWAIT, AsrJuristicMethod.STANDARD)
+        val qatarSettings = CalculationSettings(CalculationMethodChoice.QATAR, AsrJuristicMethod.STANDARD)
+        val date = LocalDate.of(2016, 1, 1)
+
+        assertTimesOn(
+            singapore, date, singaporeSettings,
+            mapOf(
+                Prayer.FAJR to LocalTime.of(5, 43),
+                Prayer.DHUHR to LocalTime.of(13, 9),
+                Prayer.ASR to LocalTime.of(16, 33),
+                Prayer.MAGHRIB to LocalTime.of(19, 9),
+                Prayer.ISHA to LocalTime.of(20, 24),
+            ),
+        )
+        assertTimesOn(
+            dubai, date, dubaiSettings,
+            mapOf(
+                Prayer.FAJR to LocalTime.of(5, 42),
+                Prayer.DHUHR to LocalTime.of(12, 25),
+                Prayer.ASR to LocalTime.of(15, 24),
+                Prayer.MAGHRIB to LocalTime.of(17, 44),
+                Prayer.ISHA to LocalTime.of(19, 3),
+            ),
+        )
+        assertTimesOn(
+            kuwaitCity, date, kuwaitSettings,
+            mapOf(
+                Prayer.FAJR to LocalTime.of(5, 18),
+                Prayer.DHUHR to LocalTime.of(11, 51),
+                Prayer.ASR to LocalTime.of(14, 42),
+                Prayer.MAGHRIB to LocalTime.of(17, 1),
+                Prayer.ISHA to LocalTime.of(18, 23),
+            ),
+            tolerance = 2,
+        )
+        assertTimesOn(
+            doha, date, qatarSettings,
+            mapOf(
+                Prayer.FAJR to LocalTime.of(4, 58),
+                Prayer.DHUHR to LocalTime.of(11, 37),
+                Prayer.ASR to LocalTime.of(14, 35),
+                Prayer.MAGHRIB to LocalTime.of(16, 55),
+                Prayer.ISHA to LocalTime.of(18, 25),
             ),
         )
     }

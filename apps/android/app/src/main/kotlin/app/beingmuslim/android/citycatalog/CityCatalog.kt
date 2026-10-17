@@ -12,7 +12,7 @@ import java.util.Locale
  * pure data and lookup, and is expected to be loaded once and shared.
  *
  * Cities are held in the order the asset supplies them — most populated first —
- * so that both [search] and [citiesIn] return the most significant place first.
+ * so that [search] returns the most significant place first.
  *
  * The asset format is documented in `docs/CITY_CATALOG.md`:
  *
@@ -27,23 +27,16 @@ class CityCatalog private constructor(
 ) {
 
     private val byId: Map<Long, City> = cities.associateBy(City::id)
-    private val countryCodes: List<String> = cities.map(City::countryCode).distinct().sorted()
 
-    /** The number of cities in the catalog. */
-    fun size(): Int = cities.size
-
-    /** Every city, in catalog order. */
+    /**
+     * Every city, in catalog order. Exposed for whole-catalog checks — the
+     * bundled asset is validated through it — and for the tests; the app itself
+     * looks cities up with [byId] and [search].
+     */
     fun all(): List<City> = cities
 
     /** The city with [id], or null when the catalog does not contain it. */
     fun byId(id: Long): City? = byId[id]
-
-    /** The ISO 3166-1 alpha-2 country codes represented in the catalog. */
-    fun countries(): List<String> = countryCodes
-
-    /** The cities in [countryCode], in catalog order. */
-    fun citiesIn(countryCode: String): List<City> =
-        cities.filter { it.countryCode == countryCode }
 
     /**
      * Cities whose English or Bengali name matches [query], most significant
