@@ -18,9 +18,6 @@ and govern anything cross-cutting.
   `DesignSystem/`). The design system is **per app** — extract `DesignSystem/`
   once a repeated pattern exists, never speculatively
   (`docs/ARCHITECTURE.md` §2.1–§2.2, `docs/DESIGN_STANDARDS.md` §2/§4).
-- Accessibility bar: `docs/DESIGN_STANDARDS.md` §7 (screen readers, text
-  scaling, contrast, target sizes, reduced motion).
-
 ## Build, test, lint
 
 ```sh

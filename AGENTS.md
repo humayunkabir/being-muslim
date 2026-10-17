@@ -30,10 +30,7 @@ Three documents are authoritative within their own scope, and each declares what
 
 ## Build and repository expectations
 
-- Keep iOS buildable with Xcode and Android buildable with Gradle, each independently, using normal native project layouts and workflows.
-- Add a directory or module only when it has a defined responsibility or the native toolchain requires it.
-- Keep secrets, signing credentials, local machine settings, generated output, and caches out of version control.
-- Do not introduce a custom build orchestrator while standard Xcode and Gradle workflows suffice.
+Keep secrets, signing credentials, local machine settings, generated output, and caches out of version control — this must hold on every change. Independent Xcode and Gradle builds, repository layout, and build hygiene are otherwise owned by `docs/ARCHITECTURE.md` §1–§2 and §10.
 
 ## Platform standards
 
@@ -46,8 +43,8 @@ Share product intent and behavior, not UI implementation; platform navigation, t
 - Validate untrusted input; handle expected failures explicitly.
 - Never log credentials, tokens, private user content, or sensitive payloads. Use platform-appropriate secure storage and least privilege.
 - Keep expensive work off the UI thread.
-- Meet the accessibility bar in `docs/DESIGN_STANDARDS.md` §7 (screen readers, text scaling, contrast, target sizes, reduced motion).
-- Write deterministic tests for business rules, parsing, state transitions, failure paths, and integration boundaries; no live network in ordinary unit tests.
+- Meet the accessibility bar in `docs/DESIGN_STANDARDS.md` §7.
+- Write deterministic tests — no live network in ordinary unit tests. Priorities: `docs/ARCHITECTURE.md` §8.
 - Before adding a dependency, evaluate maintenance, compatibility, security, licensing, and transitive cost.
 - Do not suppress warnings or weaken tests to hide a problem.
 
@@ -71,9 +68,9 @@ Ask for clarification before a material product or architecture decision that ca
 
 ## Agent skills
 
-- **Issue tracker:** GitHub issues in `humayunkabir/being-muslim`, driven with the `gh` CLI. See `docs/agents/issue-tracker.md`.
-- **Triage labels:** the five canonical roles, verbatim: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
-- **Domain docs:** single-context — one `GLOSSARY.md` at the repo root, extended by `/domain-modeling` as terms are resolved; ADRs stay in `docs/DECISIONS/`. See `docs/agents/domain.md`.
+- **Issue tracker:** GitHub (`humayunkabir/being-muslim`) via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+- **Triage labels:** the five canonical roles. See `docs/agents/triage-labels.md`.
+- **Domain docs:** single-context. See `docs/agents/domain.md`.
 
 <!-- graft:start -->
 ## Graft — repo context graph
