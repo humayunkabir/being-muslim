@@ -93,6 +93,8 @@ worth formatting.
   accessibility, content integrity.
 - `GLOSSARY.md` — the canonical product vocabulary shared by both apps and the
   specification documents.
+- `docs/CITY_CATALOG.md` — the bundled city catalog's source, license, format,
+  and coverage limits.
 - `docs/DECISIONS/` — architecture decision records.
 - `docs/AGENT_SKILLS.md` — vendored agent skills: provenance, layout, update
   procedure.

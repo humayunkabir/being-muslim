@@ -218,4 +218,3 @@ Track these explicitly rather than letting implementation choices become acciden
 
 - **Final product name and brand.** The working name "Being Muslim" and the `app.beingmuslim.*` identifier namespace are provisional (`DECISIONS/0001`).
 - **Launch markets, store accounts, and release signing** for the first public Android release.
-- **The city catalog's source, license, and coverage.** The rights-clear source must be confirmed before the catalog is bundled; if none clears that bar, the curated launch-market fallback and its coverage limitation are recorded instead (issue #3, `DECISIONS/0004`).
