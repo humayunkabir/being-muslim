@@ -95,6 +95,8 @@ worth formatting.
   specification documents.
 - `docs/CITY_CATALOG.md` — the bundled city catalog's source, license, format,
   and coverage limits.
+- `docs/PRAYER_TIMES.md` — the prayer-time library, methods, parameters, and
+  reference cases.
 - `docs/DECISIONS/` — architecture decision records.
 - `docs/AGENT_SKILLS.md` — vendored agent skills: provenance, layout, update
   procedure.
