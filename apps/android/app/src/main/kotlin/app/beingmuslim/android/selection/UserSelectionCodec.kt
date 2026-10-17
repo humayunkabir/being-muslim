@@ -33,13 +33,12 @@ object UserSelectionCodec {
 
     fun decode(values: Map<String, String?>): UserSelection? {
         val cityId = values[CITY_ID]?.toLongOrNull() ?: return null
-        val method = values[METHOD]
-            ?.let { name -> CalculationMethodChoice.entries.firstOrNull { it.name == name } }
-            ?: return null
-        val asrJuristicMethod = values[ASR_METHOD]
-            ?.let { name -> AsrJuristicMethod.entries.firstOrNull { it.name == name } }
-            ?: return null
+        val method = enumOrNull<CalculationMethodChoice>(values[METHOD]) ?: return null
+        val asrJuristicMethod = enumOrNull<AsrJuristicMethod>(values[ASR_METHOD]) ?: return null
 
         return UserSelection(cityId, CalculationSettings(method, asrJuristicMethod))
     }
+
+    private inline fun <reified T : Enum<T>> enumOrNull(name: String?): T? =
+        name?.let { stored -> enumValues<T>().firstOrNull { it.name == stored } }
 }

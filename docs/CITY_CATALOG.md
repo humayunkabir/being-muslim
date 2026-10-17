@@ -53,9 +53,10 @@ the app must display, in an About/data-sources surface:
 
 > City data from GeoNames (https://www.geonames.org/), licensed under CC BY 4.0.
 
-Showing it in the UI is a release gate (`docs/PRODUCT_REQUIREMENTS.md` §13). The
-string and its surface are added with the city picker (issue #4); it is not yet
-in the app.
+The string ships as `city_catalog_attribution` and is shown in the app today at
+the foot of the times screen (issue #4). A dedicated About/data-sources surface
+is still to be added, and doing so remains a release gate
+(`docs/PRODUCT_REQUIREMENTS.md` §13).
 
 ## How it is generated
 

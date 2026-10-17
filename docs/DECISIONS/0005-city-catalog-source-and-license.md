@@ -31,8 +31,9 @@ exists is valuable but not always available from a rights-clear source.
   most significant place; population is not stored.
 - **Attribution is required to ship**: the app must display
   "City data from GeoNames (https://www.geonames.org/), licensed under CC BY 4.0"
-  in an About/data-sources surface before release; the string and surface are
-  added with the city picker (issue #4).
+  in an About/data-sources surface before release. It is shown today at the foot
+  of the times screen (issue #4); a dedicated data-sources surface is still to be
+  added.
 - Cities are **not religious content** and are not held to
   `docs/DECISIONS/0004`'s review-owner bar, but their **license to redistribute**
   is held to the same standard.

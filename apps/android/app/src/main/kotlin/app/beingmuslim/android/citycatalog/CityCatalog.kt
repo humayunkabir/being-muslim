@@ -61,14 +61,18 @@ class CityCatalog private constructor(
         val startsWith = ArrayList<City>()
         val contains = ArrayList<City>()
         for (index in cities.indices) {
-            when {
-                nameKeys[index].startsWith(key) || bengaliKeys[index]?.startsWith(key) == true ->
-                    startsWith += cities[index]
+            // Prefix matches outrank substring matches, so the only safe early
+            // exit is having enough of them; scanning must otherwise continue so
+            // a prefix match ranked later still displaces a substring match.
+            if (startsWith.size >= limit) break
 
-                nameKeys[index].contains(key) || bengaliKeys[index]?.contains(key) == true ->
-                    contains += cities[index]
+            if (nameKeys[index].startsWith(key) || bengaliKeys[index]?.startsWith(key) == true) {
+                startsWith += cities[index]
+            } else if (contains.size < limit &&
+                (nameKeys[index].contains(key) || bengaliKeys[index]?.contains(key) == true)
+            ) {
+                contains += cities[index]
             }
-            if (startsWith.size + contains.size >= limit * 2) break
         }
         return (startsWith + contains).take(limit)
     }
