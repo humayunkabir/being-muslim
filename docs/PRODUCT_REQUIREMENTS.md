@@ -114,7 +114,7 @@ If prayer times are included:
 - Do not promise exact notification delivery times the OS cannot guarantee.
 - Validate against documented reference cases from the provider and compare representative locations/dates with trusted local sources before release.
 
-Code-level separation and test boundaries: `ARCHITECTURE.md` §6, §8. Acceptance tests: multiple methods, time zones, daylight-saving boundaries, high-latitude cases, and permission-denied/manual-location paths.
+Code-level separation and test boundaries: `ARCHITECTURE.md` §6, §8. Library, version, license, the offered methods and their parameters, and the reference cases and tolerance: `docs/PRAYER_TIMES.md`. Acceptance tests: multiple methods, time zones, daylight-saving boundaries, high-latitude cases, and permission-denied/manual-location paths.
 
 ## 6. Qibla and location
 
