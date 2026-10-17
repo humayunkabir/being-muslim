@@ -24,6 +24,8 @@ platforms. Product scope and the product name are still not finalized; see
 │       ├── gradle/        # version catalog + wrapper
 │       └── gradlew
 ├── docs/                  # product, architecture, design standards, decisions
+├── .agents/skills/        # vendored agent skills (provenance: docs/AGENT_SKILLS.md)
+├── .opencode/commands/    # /slash wrappers that load those skills
 ├── .githooks/             # versioned git hooks (see "Git hooks" below)
 └── .gitignore
 ```
@@ -141,6 +143,10 @@ worth formatting, and document the commands here.
 - `docs/DESIGN_STANDARDS.md` — design intent, semantic tokens, typography,
   accessibility, content integrity.
 - `docs/DECISIONS/` — architecture decision records.
+- `docs/AGENT_SKILLS.md` — vendored agent skills: provenance, layout, update
+  procedure.
+- `docs/agents/` — configuration the vendored engineering skills read (issue
+  tracker, triage labels, domain docs).
 - `AGENTS.md` — engineering rules for contributors and coding agents.
 
 ## Secrets

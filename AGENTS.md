@@ -98,6 +98,20 @@ Ask for clarification before making a material product or architecture decision 
 - Documentation is updated when behavior or architecture changes.
 - No secrets, unrelated changes, or unexplained warnings are introduced.
 
+## Agent skills
+
+### Issue tracker
+
+Issues and specs live as GitHub issues in `humayunkabir/being-muslim`, driven with the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five canonical triage roles, labelled verbatim: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one `GLOSSARY.md` at the repo root; ADRs stay in `docs/DECISIONS/`. See `docs/agents/domain.md`.
+
 <!-- graft:start -->
 ## Graft — repo context graph
 
