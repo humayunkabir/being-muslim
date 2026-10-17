@@ -3,10 +3,12 @@
 Native iOS and Android applications for an Islamic mobile product, built as a
 single repository with two independently buildable apps.
 
-**Status:** Early. The repository holds the engineering and product
-documentation baseline, repository hygiene setup, and empty app shells for both
-platforms. The MVP scope is recorded in `docs/PRODUCT_REQUIREMENTS.md` §2
-(Android ships first); the product name is still not finalized (§14).
+**Status:** Early. The Android app implements the first MVP path — first-run
+setup and today's offline prayer times for a chosen city and method. iOS remains
+a shell, parity following the Android product
+(`docs/DECISIONS/0002-android-first-release-order.md`). The MVP scope is recorded
+in `docs/PRODUCT_REQUIREMENTS.md` §2; the product name is still not finalized
+(§14).
 
 ## Repository layout
 

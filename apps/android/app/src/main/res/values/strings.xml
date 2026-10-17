@@ -1,5 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Being Muslim</string>
-    <string name="root_placeholder">The app shell is running. Features are added as product scope is finalized.</string>
+
+    <!-- First-run setup (issue #4) -->
+    <string name="setup_title">Set up prayer times</string>
+    <string name="setup_intro">Choose how your times are calculated. Nothing is chosen for you, and you can change any of this later.</string>
+    <string name="setup_method_heading">Calculation method</string>
+    <string name="setup_method_help">Each method sets how dawn (Fajr) and night (Isha) are judged. Different communities follow different methods, so times can differ by a few minutes.</string>
+    <string name="setup_not_sure">Not sure which to choose?</string>
+    <string name="setup_not_sure_body">If you do not know which method your community follows, ask your local masjid. You can change it here later, and the app will never change it for you. To continue now, you can start with the Muslim World League method and confirm it later.</string>
+    <string name="setup_not_sure_use">Start with Muslim World League</string>
+    <string name="setup_asr_heading">Juristic method for Asr</string>
+    <string name="setup_asr_help">This sets how the afternoon (Asr) prayer is worked out, and can move Asr later in the day.</string>
+    <string name="setup_city_heading">City</string>
+    <string name="setup_city_help">Times are calculated for one city. Search the offline list below — no location permission is needed.</string>
+    <string name="setup_city_search_hint">Search a city</string>
+    <string name="setup_city_no_results">No city matches that name.</string>
+    <string name="setup_city_selected">Selected city: %1$s</string>
+    <string name="setup_continue">Continue</string>
+
+    <!-- Calculation methods -->
+    <string name="method_muslim_world_league">Muslim World League</string>
+    <string name="method_muslim_world_league_description">Fajr 18°, Isha 17°. Used widely in Europe and by many communities.</string>
+    <string name="method_karachi">University of Islamic Sciences, Karachi</string>
+    <string name="method_karachi_description">Fajr 18°, Isha 18°. Common in South Asia, including Bangladesh and Pakistan.</string>
+    <string name="method_umm_al_qura">Umm al-Qura, Makkah</string>
+    <string name="method_umm_al_qura_description">Fajr 18.5°, Isha 90 minutes after Maghrib. Used in Saudi Arabia.</string>
+    <string name="method_egyptian">Egyptian General Authority of Survey</string>
+    <string name="method_egyptian_description">Fajr 19.5°, Isha 17.5°. Used in Egypt and parts of Africa.</string>
+    <string name="method_moonsighting_committee">Moonsighting Committee</string>
+    <string name="method_moonsighting_committee_description">Fajr 18°, Isha 18°, with a seasonal adjustment at high latitudes. Used by some communities in the UK and North America.</string>
+    <string name="method_dubai">Gulf Region (Dubai)</string>
+    <string name="method_dubai_description">Fajr and Isha 18.2°. Used in the Gulf region.</string>
+    <string name="method_kuwait">Kuwait</string>
+    <string name="method_kuwait_description">Fajr 18°, Isha 17.5°. Used in Kuwait.</string>
+    <string name="method_qatar">Qatar</string>
+    <string name="method_qatar_description">Fajr 18°, Isha 90 minutes after Maghrib. Used in Qatar.</string>
+    <string name="method_singapore">Singapore</string>
+    <string name="method_singapore_description">Fajr 20°, Isha 18°. Used in Singapore and parts of Southeast Asia.</string>
+    <string name="method_north_america">North America (ISNA)</string>
+    <string name="method_north_america_description">Fajr 15°, Isha 15°. Used by some communities in North America.</string>
+
+    <!-- Juristic method for Asr -->
+    <string name="asr_standard">Standard (Shafi\'i, Maliki, Hanbali)</string>
+    <string name="asr_standard_description">Shadow length 1×.</string>
+    <string name="asr_hanafi">Hanafi</string>
+    <string name="asr_hanafi_description">Shadow length 2×, which places Asr later in the day.</string>
+
+    <!-- Prayer times -->
+    <string name="times_title">Today\'s prayer times</string>
+    <string name="times_method">Calculation method: %1$s</string>
+    <string name="times_asr_method">Asr method: %1$s</string>
+    <string name="times_unavailable">Times cannot be calculated for %1$s on this date: at this latitude and time of year the sun neither rises nor sets.</string>
+    <string name="prayer_fajr">Fajr</string>
+    <string name="prayer_dhuhr">Dhuhr</string>
+    <string name="prayer_asr">Asr</string>
+    <string name="prayer_maghrib">Maghrib</string>
+    <string name="prayer_isha">Isha</string>
+
+    <!-- Loading and failure states -->
+    <string name="state_loading">Loading…</string>
+    <string name="state_catalog_unavailable">The city list could not be read. Reinstall the app, or report the problem.</string>
+
+    <!-- Required by the bundled city catalog\'s CC BY 4.0 license (docs/CITY_CATALOG.md). -->
+    <string name="city_catalog_attribution">City data from GeoNames (https://www.geonames.org/), licensed under CC BY 4.0.</string>
 </resources>
