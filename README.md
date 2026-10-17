@@ -21,7 +21,7 @@ platforms. Product scope and the product name are still not finalized; see
 └── .gitignore, .editorconfig
 ```
 
-The full target tree, naming conventions, and per-app design system are in `docs/ARCHITECTURE.md` §2. Directories it marks *(when needed)* — `Core/`, `design-system/`, `build-logic/`, `shared/` — are not created yet; add them when a concrete boundary exists (`AGENTS.md` rules 1 and 6, `docs/ARCHITECTURE.md` §2.1–§2.2). Generated output (`apps/android/app/build/`) and the local `graft/`/`.codegraph/` caches are gitignored. Identifiers are placeholders (`docs/DECISIONS/0001-repository-layout-and-identifiers.md`).
+The full target tree, naming conventions, and per-app design system are in `docs/ARCHITECTURE.md` §2. Directories it marks *(when needed)* — iOS `Core/`/`DesignSystem/`, Android `core/`/`design-system/`/`build-logic/`, and `shared/` — are not created yet; add them when a concrete boundary exists (`AGENTS.md` rules 1 and 6, `docs/ARCHITECTURE.md` §2.1–§2.2). Generated output (`apps/android/app/build/`) and the local `graft/`/`.codegraph/` caches are gitignored. Identifiers are placeholders (`docs/DECISIONS/0001-repository-layout-and-identifiers.md`).
 
 ## Getting started
 

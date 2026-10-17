@@ -12,24 +12,18 @@ A **target** layout, not a checklist. Anything marked *(when needed)* does not e
 
 ```text
 repository/
-├── AGENTS.md
-├── README.md
-├── GLOSSARY.md
+├── AGENTS.md, README.md, GLOSSARY.md
 ├── .gitignore, .editorconfig
-├── .githooks/                    # versioned git hooks (see README)
-├── .agents/, .opencode/          # vendored agent skills + command wrappers
-├── apps/
-│   ├── ios/  BeingMuslim.xcodeproj, App/, Resources/, Tests/
-│   │                             # (+ Core/, DesignSystem/ when needed)
-│   └── android/  settings.gradle.kts, build.gradle.kts, gradle/, app/, gradlew
-│                                 # (+ core/, design-system/, build-logic/ when needed)
-├── shared/                       # (when needed) contracts/, design-tokens/, documentation/
-├── docs/                         # ARCHITECTURE/DESIGN_STANDARDS/PRODUCT_REQUIREMENTS,
-│                                 # AGENT_SKILLS.md, agents/, DECISIONS/
-└── tools/                        # (when needed) reproducible tooling only
+├── .githooks/                      # versioned git hooks (see README)
+├── .agents/, .opencode/            # vendored agent skills + command wrappers
+├── apps/ios/                       # Swift + SwiftUI: BeingMuslim.xcodeproj, App/, Resources/, Tests/
+├── apps/android/                   # Kotlin + Compose: settings.gradle.kts, build.gradle.kts, gradle/, app/, gradlew
+├── shared/                         # (when needed) contracts/, design-tokens/, documentation/
+├── docs/                           # spec docs, AGENT_SKILLS.md, agents/, DECISIONS/
+└── tools/                          # (when needed) reproducible tooling only
 ```
 
-Use standard Xcode and Gradle layouts inside the app directories; do not add a custom build orchestrator while ordinary platform tooling suffices. Generated output (e.g. `apps/android/app/build/`) and local caches (`graft/`, `.codegraph/`) are ignored, never committed.
+Within the apps, the iOS `Core/` and `DesignSystem/`, the Android `core/`, `design-system/`, and `build-logic/`, and the whole `shared/` tree are *(when needed)* and are added only when their boundary is real. Use standard Xcode and Gradle layouts inside the app directories; do not add a custom build orchestrator while ordinary platform tooling suffices. Generated output (e.g. `apps/android/app/build/`) and local caches (`graft/`, `.codegraph/`) are ignored, never committed.
 
 ### 2.1 Naming
 
