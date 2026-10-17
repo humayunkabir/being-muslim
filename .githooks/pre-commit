@@ -1,0 +1,49 @@
+#!/bin/sh
+# pre-commit: refuse commits containing sensitive file types, ignored
+# files that were force-added, or credential-looking content.
+#
+# Activate once per clone:  git config core.hooksPath .githooks
+# Deliberate exception:     git commit --no-verify
+set -u
+
+HOOK_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+. "$HOOK_DIR/common.sh"
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR) || exit 1
+[ -z "$staged" ] && exit 0
+
+problems=""
+
+check_one() {
+    if is_sensitive_path "$1"; then
+        problems="$problems
+  - $1 (sensitive file type: credential/keystore)"
+    elif is_ignored_path "$1"; then
+        problems="$problems
+  - $1 (matches .gitignore — was it force-added with git add -f?)"
+    elif git show ":$1" 2>/dev/null | content_has_secret; then
+        problems="$problems
+  - $1 (content looks like a secret)"
+    fi
+}
+
+set -f
+old_ifs=$IFS
+IFS='
+'
+for path in $staged; do
+    [ -n "$path" ] && check_one "$path"
+done
+IFS=$old_ifs
+set +f
+
+if [ -n "$problems" ]; then
+    printf '%s\n' \
+        "pre-commit: BLOCKED — staged changes contain sensitive or ignored files:" \
+        "$problems" >&2
+    printf '%s\n' \
+        "Fix: unstage them (git restore --staged <file>) or correct .gitignore." \
+        "Deliberate exception (NOT for real secrets): git commit --no-verify" >&2
+    exit 1
+fi
+exit 0

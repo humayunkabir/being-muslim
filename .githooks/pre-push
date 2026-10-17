@@ -1,0 +1,62 @@
+#!/bin/sh
+# pre-push: scan the commits being pushed for sensitive files or
+# credential-looking content. Catches bypasses of pre-commit
+# (--no-verify) and files committed before these hooks existed.
+#
+# Activate once per clone:  git config core.hooksPath .githooks
+# Deliberate exception:     git push --no-verify
+set -u
+
+HOOK_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+. "$HOOK_DIR/common.sh"
+
+zero40=0000000000000000000000000000000000000000
+zero64=0000000000000000000000000000000000000000000000000000000000000000
+status=0
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+    # Deleting the ref locally: nothing to push.
+    case "$local_sha" in "$zero40"|"$zero64") continue ;; esac
+
+    if [ "$remote_sha" = "$zero40" ] || [ "$remote_sha" = "$zero64" ] || [ -z "$remote_sha" ]; then
+        # New remote ref: scan the whole tree at local_sha.
+        files=$(git ls-tree -r --name-only "$local_sha") || continue
+    else
+        # Existing ref: scan only the changes being pushed.
+        files=$(git diff --name-only --diff-filter=ACMR "$remote_sha..$local_sha") || {
+            printf 'pre-push: warning: could not diff %s..%s\n' "$remote_sha" "$local_sha" >&2
+            continue
+        }
+    fi
+    [ -z "$files" ] && continue
+
+    set -f
+    old_ifs=$IFS
+    IFS='
+'
+    for path in $files; do
+        [ -z "$path" ] && continue
+        reason=""
+        if is_sensitive_path "$path"; then
+            reason="sensitive file type"
+        elif is_ignored_path "$path"; then
+            reason="matches .gitignore"
+        elif git show "$local_sha:$path" 2>/dev/null | content_has_secret; then
+            reason="content looks like a secret"
+        fi
+        if [ -n "$reason" ]; then
+            printf 'pre-push: BLOCKED — %s (%s) in %s\n' "$path" "$reason" "$local_ref" >&2
+            status=1
+        fi
+    done
+    IFS=$old_ifs
+    set +f
+done
+
+if [ "$status" -ne 0 ]; then
+    printf '%s\n' \
+        "pre-push: remove the files above from the pushed commits" \
+        "(e.g. git rm --cached <file> + amend/rebase), or if this is a" \
+        "deliberate exception: git push --no-verify" >&2
+fi
+exit "$status"

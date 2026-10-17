@@ -1,0 +1,49 @@
+# macOS
+.DS_Store
+
+# Xcode / Swift
+build/
+DerivedData/
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+.swiftpm/
+*.swiftpm/
+.build/
+*.dSYM.zip
+*.dSYM
+*.ipa
+*.xcresult
+
+# Android / Gradle
+.gradle/
+local.properties
+.kotlin/
+.cxx/
+.externalNativeBuild/
+captures/
+*.apk
+*.aab
+*.hprof
+
+# Secrets, signing credentials, and local environment files
+*.keystore
+*.jks
+*.p12
+*.pem
+*.pfx
+*.p8
+*.mobileprovision
+keystore.properties
+secrets.properties
+.env
+.env.*
+!.env.example
+
+# IDEs (machine-specific settings)
+.idea/
+*.iml
+.vscode/
+
+# Logs
+*.log
