@@ -11,8 +11,12 @@ import app.beingmuslim.android.prayer.DailyPrayerTimes
 import app.beingmuslim.android.prayer.PrayerTimeCalculator
 import app.beingmuslim.android.selection.SelectionStore
 import app.beingmuslim.android.selection.UserSelection
+import java.time.Duration
 import java.time.Instant
+import java.time.ZoneId
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -47,6 +51,11 @@ sealed interface AppUiState {
  * selection, and calculates today's times. All real logic lives in the domain
  * (catalog, calculation, [SelectionStore]); this only wires it to the UI and
  * keeps heavy work off the main thread.
+ *
+ * "Today" is the city's local date, and it moves: times are recomputed when the
+ * app returns to the foreground ([refreshToday]) and again at the city's next
+ * local midnight, so a session is never left showing yesterday's times under
+ * today's heading.
  */
 class AppViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -55,6 +64,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     val state: StateFlow<AppUiState> = _state.asStateFlow()
 
     private var catalog: CityCatalog? = null
+    private var selection: UserSelection? = null
+    private var rolloverJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -66,11 +77,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 return@launch
             }
             catalog = loaded
-            val selection = store.load()
-            _state.value = if (selection == null) {
-                AppUiState.Setup(loaded)
+            val stored = store.load()
+            if (stored == null) {
+                _state.value = AppUiState.Setup(loaded)
             } else {
-                stateFor(selection, loaded)
+                showTimes(stored, loaded)
             }
         }
     }
@@ -79,18 +90,50 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun completeSetup(cityId: Long, settings: CalculationSettings) {
         val loaded = catalog ?: return
         viewModelScope.launch {
-            store.save(UserSelection(cityId, settings))
-            _state.value = stateFor(UserSelection(cityId, settings), loaded)
+            val chosen = UserSelection(cityId, settings)
+            store.save(chosen)
+            showTimes(chosen, loaded)
         }
     }
 
-    private suspend fun stateFor(selection: UserSelection, catalog: CityCatalog): AppUiState {
+    /**
+     * Recomputes today's times for the current selection. The UI calls this when
+     * the app returns to the foreground, so a session resumed after midnight
+     * shows the new day rather than yesterday's times.
+     */
+    fun refreshToday() {
+        val loaded = catalog ?: return
+        val current = selection ?: return
+        viewModelScope.launch { showTimes(current, loaded) }
+    }
+
+    private suspend fun showTimes(chosen: UserSelection, catalog: CityCatalog) {
         // A city id that is no longer in the catalog falls back to setup rather
         // than showing nothing (a catalog change is a data migration).
-        val city = catalog.byId(selection.cityId) ?: return AppUiState.Setup(catalog)
-        val today = withContext(Dispatchers.Default) {
-            PrayerTimeCalculator.forInstant(city, Instant.now(), selection.settings)
+        val city = catalog.byId(chosen.cityId) ?: run {
+            _state.value = AppUiState.Setup(catalog)
+            return
         }
-        return AppUiState.Times(city, selection.settings, today)
+        selection = chosen
+        _state.value = AppUiState.Times(city, chosen.settings, todayAt(city, chosen.settings))
+        scheduleRollover(city, chosen.settings)
+    }
+
+    private suspend fun todayAt(city: City, settings: CalculationSettings): DailyPrayerTimes? =
+        withContext(Dispatchers.Default) {
+            PrayerTimeCalculator.forInstant(city, Instant.now(), settings)
+        }
+
+    /** Recomputes at the city's next local midnight so an open app rolls over. */
+    private fun scheduleRollover(city: City, settings: CalculationSettings) {
+        // Runs in viewModelScope, so it is cancelled with the ViewModel.
+        rolloverJob?.cancel()
+        rolloverJob = viewModelScope.launch {
+            val zone = ZoneId.of(city.timezone)
+            val now = Instant.now()
+            val nextMidnight = now.atZone(zone).toLocalDate().plusDays(1).atStartOfDay(zone).toInstant()
+            delay(Duration.between(now, nextMidnight).toMillis().coerceAtLeast(0))
+            refreshToday()
+        }
     }
 }

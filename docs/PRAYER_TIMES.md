@@ -55,9 +55,13 @@ implying a neutral truth (§5).
 
 ### High-latitude rule
 
-Currently the Adhan default, `MIDDLE_OF_THE_NIGHT`, is applied and is **not yet
-user-selectable or disclosed** — that is issue #7. The rule decides how Fajr and
-Isha are bounded where true dawn or dusk is undefined.
+The Adhan default, `MIDDLE_OF_THE_NIGHT`, is passed for every method and is **not
+yet user-selectable or disclosed** — that is issue #7. It bounds Fajr and Isha
+where true dawn or dusk is undefined.
+
+This is **not uniform across methods**: the Moonsighting Committee method does not
+use the rule at all — Adhan applies its own seasonal twilight adjustment for that
+method instead. Any future disclosure of the rule (#7) must say so.
 
 ### Offsets
 
@@ -84,10 +88,17 @@ shown separately from the raw result, never folded into it.
 Tests compare against the reference cases BatoulApps ships with the library
 (`Shared/Times/*.json`), which the library validates against the official
 timetables they were taken from (moonsighting.com for London, ummulqura.org.sa for
-Makkah) to **±1 minute** — the tolerance reused in
-`PrayerTimeCalculatorTest`. Covered shapes: two methods, both Asr conventions, a
-DST date and a standard-time date, a large UTC offset (Asia/Riyadh), a date
-rollover (Asia/Dhaka), and an unavailable polar date.
+Makkah) to **±1 minute** — the tolerance reused in `PrayerTimeCalculatorTest`
+(Kuwait's own file allows 2). Covered: **six methods** — Moonsighting Committee,
+Umm al-Qura, Singapore, Gulf (Dubai), Kuwait and Qatar — across both Asr
+conventions, a DST date and a standard-time date, large UTC offsets
+(Asia/Riyadh, Asia/Dubai), a date rollover (Asia/Dhaka), and an unavailable polar
+date.
+
+Not yet covered: the **launch market's own method**, Karachi. It is exercised
+(the Hanafi-vs-Standard Asr check uses it) but not against a documented
+timetable, because no BatoulApps reference file exists for a South Asian city —
+that comparison needs the human check below.
 
 ## Open items
 

@@ -50,7 +50,7 @@
     <!-- Prayer times -->
     <string name="times_title">Today\'s prayer times</string>
     <string name="times_method">Calculation method: %1$s</string>
-    <string name="times_asr_method">Asr method: %1$s</string>
+    <string name="times_asr_method">Juristic method for Asr: %1$s</string>
     <string name="times_unavailable">Times cannot be calculated for %1$s on this date: at this latitude and time of year the sun neither rises nor sets.</string>
     <string name="prayer_fajr">Fajr</string>
     <string name="prayer_dhuhr">Dhuhr</string>

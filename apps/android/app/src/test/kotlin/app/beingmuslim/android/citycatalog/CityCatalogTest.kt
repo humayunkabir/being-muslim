@@ -26,7 +26,7 @@ class CityCatalogTest {
     fun parsesCityCoordinatesAndTimezone() {
         val catalog = catalogOf(dhaka)
 
-        assertEquals(1, catalog.size())
+        assertEquals(1, catalog.all().size)
         assertEquals(
             City(
                 id = 1185241L,
@@ -50,7 +50,7 @@ class CityCatalogTest {
     fun ignoresTheHeaderAndBlankLines() {
         val catalog = CityCatalog.parse(sequenceOf(header, "", dhaka, "   ", seoul))
 
-        assertEquals(2, catalog.size())
+        assertEquals(2, catalog.all().size)
     }
 
     @Test
@@ -102,18 +102,6 @@ class CityCatalogTest {
             listOf("Hazaribagh", "Dhaka"),
             catalog.search("ha", limit = 2).map { it.name },
         )
-    }
-
-    @Test
-    fun reportsTheCountriesPresentInTheCatalog() {
-        assertEquals(listOf("BD", "KR"), catalogOf(dhaka, chattogram, seoul).countries())
-    }
-
-    @Test
-    fun listsTheCitiesOfACountryInCatalogOrder() {
-        val catalog = catalogOf(dhaka, seoul, chattogram)
-
-        assertEquals(listOf("Dhaka", "Chattogram"), catalog.citiesIn("BD").map { it.name })
     }
 
     @Test(expected = IllegalArgumentException::class)

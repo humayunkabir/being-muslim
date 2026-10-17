@@ -28,7 +28,7 @@ class BundledCityCatalogAssetTest {
 
     @Test
     fun theCatalogLoadsTheFullBundledCityList() {
-        assertTrue("expected a global catalog, got ${catalog.size()}", catalog.size() > 30_000)
+        assertTrue("expected a global catalog, got ${catalog.all().size}", catalog.all().size > 30_000)
     }
 
     @Test

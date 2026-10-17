@@ -1,5 +1,6 @@
 package app.beingmuslim.android.ui
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,6 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.beingmuslim.android.R
@@ -26,6 +29,9 @@ import app.beingmuslim.android.prayer.CalculationSettings
  */
 @Composable
 fun AppRoot(viewModel: AppViewModel = viewModel()) {
+    // Recompute on return to the foreground so times roll over with the date.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refreshToday() }
+
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     when (val current = state) {
@@ -42,7 +48,7 @@ fun AppRoot(viewModel: AppViewModel = viewModel()) {
 }
 
 @Composable
-private fun MessageScreen(messageRes: Int, modifier: Modifier = Modifier) {
+private fun MessageScreen(@StringRes messageRes: Int, modifier: Modifier = Modifier) {
     Scaffold(modifier = modifier.fillMaxSize()) { innerPadding ->
         Column(
             modifier = Modifier

@@ -46,7 +46,7 @@ fun TimesScreen(state: AppUiState.Times, modifier: Modifier = Modifier) {
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text(
-                text = state.city.name,
+                text = state.city.displayName(),
                 style = MaterialTheme.typography.headlineSmall,
             )
             Text(
