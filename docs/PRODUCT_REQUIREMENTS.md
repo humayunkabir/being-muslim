@@ -1,8 +1,8 @@
 # Product Requirements — Islamic Mobile App
 
-**Status:** Initial requirements baseline — last reviewed 2026-10-17. Product scope and name are not finalized. **Owns:** product principles, feature scope, content provenance and calculation rules, localization of content, AI content, data/account obligations, notification behavior, content governance, release gates. **Defers:** how content and permissions are presented → `DESIGN_STANDARDS.md`; module layout and secure storage → `ARCHITECTURE.md`.
+**Status:** MVP scope recorded — last reviewed 2026-10-18. The MVP feature set and status are in §2; the product name and brand remain open (§14). **Owns:** product principles, feature scope, content provenance and calculation rules, localization of content, AI content, data/account obligations, notification behavior, content governance, release gates. **Defers:** how content and permissions are presented → `DESIGN_STANDARDS.md`; module layout and secure storage → `ARCHITECTURE.md`.
 
-This records product-specific quality requirements for an Islamic mobile app. It does not commit any feature to the roadmap: confirm scope before implementing, and mark requirements accepted, deferred, or out of scope.
+This records product-specific quality requirements for an Islamic mobile app. The MVP scope is decided in §2, and the decisions behind it are hardened into ADRs where they are costly to reverse (`docs/DECISIONS/`). Requirements below are accepted for the MVP, deferred, or out of scope as each row and section states.
 
 ## 1. Product principles
 
@@ -16,22 +16,65 @@ This records product-specific quality requirements for an Islamic mobile app. It
 
 ## 2. Scope and feature status
 
-Every row is a **candidate** — none is committed until scope is explicitly decided. Do not add a feature just because it is common in other Islamic apps. Status vocabulary: **Candidate — not scoped**, **MVP**, **Later**, **Out of scope**.
+The MVP scope and the decisions behind it are recorded in the MVP specification (GitHub issue #1) and hardened into ADRs where they are costly to reverse (`docs/DECISIONS/`). Status vocabulary: **MVP**, **Later**, **Out of scope**. Do not add a feature just because it is common in other Islamic apps.
 
-| Feature | User problem | Status | Platforms | Content / calculation source | Data & permissions | Review owner |
-| --- | --- | --- | --- | --- | --- | --- |
-| Quran reading | Read the Arabic text with reliable attribution | Candidate — not scoped | Both | TBD, see §3 | Bundled or downloaded content; no account | TBD |
-| Translations | Understand the Quran in a chosen language | Candidate — not scoped | Both | TBD, see §3 | Content only | TBD (translator + language reviewer) |
-| Prayer times | Know when to pray for a location | Candidate — not scoped | Both | TBD provider, see §5 | Location; notifications | TBD |
-| Qibla direction | Face the qibla | Candidate — not scoped | Both | TBD, see §6 | Location; device sensors | TBD |
-| Duas | Access reported supplications with sources | Candidate — not scoped | Both | TBD, see §4 | Content only | TBD |
-| Hadith | Read hadith with grading and attribution | Candidate — not scoped | Both | TBD, see §4 | Content only | TBD |
-| Hijri calendar | Track Hijri dates | Candidate — not scoped | Both | TBD, see §7 | Date source | TBD |
-| Reminders | Be prompted to observe a practice | Candidate — not scoped | Both | Local scheduling, see §11 | Notification permission | TBD |
-| Bookmarks | Return to saved content | Candidate — not scoped | Both | Local storage | Local data only | — |
-| Settings | Control language, locale, and calculation method | Candidate — not scoped | Both | — | Local preferences | — |
+The MVP is **Android first, iOS following** (`DECISIONS/0002`), and its core works **fully offline and without an account** (`DECISIONS/0003`). **No religious content ships** in this version: every content row below is deferred, and anything that ships later must first clear the content policy (`DECISIONS/0004`). Calculation sources are named and their parameters disclosed; no convention is imposed silently (§5).
 
-Before a row moves off "Candidate — not scoped", record: the user problem; MVP/later/out-of-scope status with platforms and locales; content provider or calculation source; data and permission requirements; acceptance criteria and tests; and a review owner for religious or linguistic content where appropriate.
+| Feature | User problem | Status | Platforms | Content / calculation source | Data & permissions | Deferral reason | Review owner |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Prayer times | Know when to pray for a chosen location | MVP | Android first; iOS follows | BatoulApps *Adhan* (MIT), offline; calculation method and Asr juristic method chosen by the user, parameters per §5 | City chosen from the bundled offline catalog; no permission required; device location optional | — | Maintainer (calculation reference cases) |
+| Qibla direction | Face the qibla | MVP | Android first; iOS follows | Great-circle bearing from the city's coordinates (§6); live device compass optional | City coordinates; original heading from device sensors when present; no network | — | Maintainer |
+| Hijri calendar | Track Hijri dates | MVP | Android first; iOS follows | Platform Umm al-Qura conversion, labelled *calculated*; user ±1-day offset (§7) | Date only; no permission | — | Maintainer |
+| Reminders | Be prompted to observe a practice | MVP | Android first; iOS follows | Local scheduling only, no push infrastructure (§11) | Notification permission, requested in context; no account | — | Maintainer |
+| Tasbih | Count dhikr without the app attributing content to a source | MVP | Android first; iOS follows | User-entered label and target; count only, no dhikr corpus | Local storage only; no permission | — | Maintainer |
+| Settings | Control language, location, calculation method, and offsets | MVP | Android first; iOS follows | — | Local preferences; settings sync only if an optional account is used | — | Maintainer |
+| Account & sync (optional) | Carry settings and the tasbih total across devices | MVP (optional) | Android first; iOS follows | Appwrite Cloud; Apple and Google sign-in (§10) | OAuth identity; settings and tasbih total only — no location and no devotional timestamps | — | Maintainer |
+| Report a problem | Report a wrong time or other problem with the context attached | MVP | Android first; iOS follows | User-initiated report carrying location, method and date (§5) | User-initiated only; no background collection | — | Maintainer |
+| Quran reading | Read the Arabic text with reliable attribution | Later | Both | Source not identified, see §3 | Bundled or downloaded content; no account | No publisher, edition, license, attribution and named reviewer have yet cleared `DECISIONS/0004` | TBD (named Arabic reviewer required) |
+| Translations | Understand the Quran in a chosen language | Later | Both | Source not identified, see §3 | Content only | As Quran reading; a translation also needs a language reviewer | TBD (translator + language reviewer) |
+| Duas | Access reported supplications with sources | Later | Both | Source not identified, see §4 | Content only | As Quran reading; wordings must stay separate (§4) | TBD (named reviewer required) |
+| Hadith | Read hadith with grading and attribution | Later | Both | Source not identified, see §4 | Content only | As Quran reading; grading rules per §4 | TBD (named reviewer required) |
+| Audio (recitation, adhan) | Listen to a recitation or adhan | Later | Both | Recording source not identified | Bundled or streamed audio; storage | No rights-clear recording source; recorded adhan audio is also deferred | TBD (named reviewer required) |
+| Bookmarks | Return to saved content | Out of scope | Both | — | Local data only | Depends on content that does not ship in the MVP | — |
+
+Deferred and excluded **without their own row**, for the record: AI-generated content (§9), social/community features, mosque finder, Zakat calculator, 99 Names, AR qibla, streaks or other engagement mechanics, ads, and paid tiers — all excluded by the MVP decision (issue #1, "Out of scope"). Locales beyond Bengali and English are out of scope for the MVP.
+
+### 2.1 MVP acceptance criteria
+
+Feature-level acceptance criteria for the MVP. The full user-story set and the per-ticket breakdown live in the MVP specification (issue #1) and its sub-issues; the tests that cover them are named in `docs/ARCHITECTURE.md` §8.
+
+**Prayer times**
+- Today's five times are shown for the chosen city and method, computed offline, and match the documented reference cases within the agreed tolerance.
+- The chosen calculation method and Asr juristic method are visible on the times screen and never change silently; tomorrow's times are available too.
+- Every displayed time is reproducible from recorded inputs — method, parameters, location, timezone, date and offsets.
+
+**Qibla direction**
+- The bearing is computed from the chosen city's coordinates with no permission required, and is relative to true north.
+- A live compass is shown only where the device supports one, with calibration and approximate-reading states, and the app says plainly when it cannot.
+
+**Hijri calendar**
+- The Hijri date is shown alongside the Gregorian date and labelled as calculated (Umm al-Qura); a user ±1-day adjustment is available.
+- A calculated date is never presented as a moon sighting.
+
+**Reminders**
+- Reminders are per-prayer and off by default; the notification permission is requested only when a user enables one.
+- Quiet hours are configurable; notification text reveals no devotional detail; the app states that exact delivery depends on the OS.
+- The scheduling policy is pure and testable in the domain layer.
+
+**Tasbih**
+- The user types a label and sets a target; each count gives haptic feedback and the counter can be reset and reviewed.
+- The total survives restarts and works offline; the app attributes no dhikr text.
+
+**Settings**
+- Language (Bengali or English), city, calculation method, Asr juristic method, and per-prayer offsets are viewable and changeable; choices survive restarts.
+- Offsets are shown as the user's own adjustment, separate from the raw result, and can be removed.
+
+**Account & sync (optional)**
+- Every MVP feature works logged out and when the sync service is unreachable; sign-in is via Apple or Google.
+- The synced payload is settings and the tasbih total only — no location and no devotional timestamps; in-app account deletion and data export are available, and what leaves the device is disclosed.
+
+**Report a problem**
+- A report carries the location, method and date so that a wrong time can be investigated.
 
 ## 3. Quran content requirements
 
@@ -171,16 +214,8 @@ A feature that does not meet its relevant gates must not be represented as verif
 
 ## 14. Open decisions
 
-Track these explicitly rather than letting implementation choices become accidental product policy. Decisions that are difficult to reverse move into `docs/DECISIONS/` as an ADR.
+Track these explicitly rather than letting implementation choices become accidental product policy. Decisions that are difficult to reverse move into `docs/DECISIONS/` as an ADR when they are made. Only what is **genuinely still open** is listed here; the MVP scope and the decisions settled while producing it now live in §2 and `docs/DECISIONS/`.
 
-- Final product name and brand (working name "Being Muslim" and the `app.beingmuslim.*` identifier namespace are provisional — `DECISIONS/0001-repository-layout-and-identifiers.md`).
-- MVP feature list (see the §2 inventory).
-- Supported languages and launch markets.
-- Quran text and translation sources/licenses.
-- Hadith and dua sources, metadata, and review process.
-- Prayer-time calculation provider and supported methods.
-- Qibla calculation approach and location-permission strategy.
-- Hijri calendar convention, if applicable.
-- Offline access requirements.
-- Account, cloud sync, analytics, and AI scope.
-- Content correction ownership and support channel.
+- **Final product name and brand.** The working name "Being Muslim" and the `app.beingmuslim.*` identifier namespace are provisional (`DECISIONS/0001`).
+- **Launch markets, store accounts, and release signing** for the first public Android release.
+- **The city catalog's source, license, and coverage.** The rights-clear source must be confirmed before the catalog is bundled; if none clears that bar, the curated launch-market fallback and its coverage limitation are recorded instead (issue #3, `DECISIONS/0004`).

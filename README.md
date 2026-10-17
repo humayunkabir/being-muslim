@@ -5,8 +5,8 @@ single repository with two independently buildable apps.
 
 **Status:** Early. The repository holds the engineering and product
 documentation baseline, repository hygiene setup, and empty app shells for both
-platforms. Product scope and the product name are still not finalized; see
-`docs/PRODUCT_REQUIREMENTS.md` §14.
+platforms. The MVP scope is recorded in `docs/PRODUCT_REQUIREMENTS.md` §2
+(Android ships first); the product name is still not finalized (§14).
 
 ## Repository layout
 

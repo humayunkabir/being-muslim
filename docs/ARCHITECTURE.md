@@ -1,6 +1,6 @@
 # Architecture and Repository Structure
 
-**Status:** Baseline — last reviewed 2026-10-17. Product scope and name are still open (`PRODUCT_REQUIREMENTS.md` §14). **Owns:** repository layout, naming, module boundaries, dependency direction, concurrency and state, data/backend boundaries, configuration and secrets, testing strategy, ADRs, build hygiene. **Defers:** product behavior and content → `PRODUCT_REQUIREMENTS.md`; visual and permission UX → `DESIGN_STANDARDS.md`.
+**Status:** Baseline — last reviewed 2026-10-18. The MVP scope is decided (`PRODUCT_REQUIREMENTS.md` §2); the product name and brand remain open (§14). **Owns:** repository layout, naming, module boundaries, dependency direction, concurrency and state, data/backend boundaries, configuration and secrets, testing strategy, ADRs, build hygiene. **Defers:** product behavior and content → `PRODUCT_REQUIREMENTS.md`; visual and permission UX → `DESIGN_STANDARDS.md`.
 
 ## 1. Architectural goals
 

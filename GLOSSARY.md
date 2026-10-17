@@ -5,6 +5,13 @@ product that treats religious-content accuracy, attribution, and respectful
 presentation as critical quality. These are the canonical terms used across both
 native apps and the specification documents. "Being Muslim" is a working name.
 
+The MVP ships **no religious content** — no Quran, Hadith, dua, or audio
+(`docs/PRODUCT_REQUIREMENTS.md` §2, `docs/DECISIONS/0004`). The _Quran content_,
+_Hadith and dua_, and _Content governance_ terms below are therefore defined now
+so that content added later uses one shared vocabulary; nothing here asserts that
+content ships today. The vocabulary the MVP actually uses lives under _Prayer
+times and qibla_, _Dates_, _Reminders_, and _Tasbih_.
+
 ## Language
 
 ### Quran content
@@ -105,6 +112,12 @@ A place used for prayer-time and qibla calculations, taken from the device or
 entered manually.
 _Avoid_: Coordinates, GPS
 
+**City catalog**:
+The bundled, offline list of countries, cities, coordinates, and IANA timezones
+that supplies the locations used for prayer-time and qibla calculations. It has
+no network and no permission dependency.
+_Avoid_: Database, location list, gazetteer
+
 ### Dates
 
 **Hijri calendar**:
@@ -128,6 +141,13 @@ _Avoid_: Alarm, notification
 The operating-system delivery mechanism for reminders. Its exact delivery time is
 not guaranteed.
 _Avoid_: Reminder, push
+
+### Tasbih
+
+**Tasbih**:
+The app's counting feature — a user-typed label, a target, and a count. The app
+ships no dhikr corpus and attributes no text of its own.
+_Avoid_: Dhikr, counter, prayer beads
 
 ### Content governance
 
