@@ -3,29 +3,37 @@
 Native iOS and Android applications for an Islamic mobile product, built as a
 single repository with two independently buildable apps.
 
-**Status:** Early. The repository currently holds the engineering and product
-documentation baseline and repository hygiene setup. The iOS and Android app
-targets do not exist yet; product scope and the product name are not finalized.
+**Status:** Early. The repository holds the engineering and product
+documentation baseline, repository hygiene setup, and empty app shells for both
+platforms. Product scope and the product name are still not finalized; see
+`docs/PRODUCT_REQUIREMENTS.md` §14.
 
 ## Repository layout
 
 ```text
 .
 ├── AGENTS.md              # engineering rules and workflow expectations
-├── docs/                  # product, architecture, and design standards
+├── apps/
+│   ├── ios/               # Swift + SwiftUI (Xcode project)
+│   │   ├── BeingMuslim.xcodeproj
+│   │   ├── App/           # app entry point and screens
+│   │   ├── Resources/     # asset catalog
+│   │   └── Tests/         # XCTest unit tests
+│   └── android/           # Kotlin + Jetpack Compose (Gradle)
+│       ├── app/           # application module
+│       ├── gradle/        # version catalog + wrapper
+│       └── gradlew
+├── docs/                  # product, architecture, design standards, decisions
 ├── .githooks/             # versioned git hooks (see "Git hooks" below)
 └── .gitignore
 ```
 
-Planned, per `docs/ARCHITECTURE.md` §2 — directories are created only when they
-have a defined responsibility:
+Directories listed in `docs/ARCHITECTURE.md` §2 as `Core/`, `design-system/`,
+`build-logic/`, and `shared/` are **not** created yet: they are added when a
+concrete boundary exists (`AGENTS.md` rules 1 and 6).
 
-```text
-apps/ios/       # Swift + SwiftUI (Xcode project or workspace)
-apps/android/   # Kotlin + Jetpack Compose (Gradle)
-shared/         # platform-neutral contracts and design-token sources, if useful
-tools/          # reproducible tooling only
-```
+The identifiers are placeholders and are recorded in
+`docs/DECISIONS/0001-repository-layout-and-identifiers.md`.
 
 ## Getting started
 
@@ -57,11 +65,72 @@ GitHub secret scanning and push protection are also enabled on the repository.
 Deliberate exceptions use `git commit --no-verify` or `git push --no-verify`.
 Never bypass these checks to push a real secret; rotate the credential instead.
 
+## Prerequisites
+
+iOS:
+
+- macOS with Xcode 27.1 or later (iOS 27 SDK). No other tooling is required;
+  packages are resolved with Swift Package Manager when they are added.
+- Deployment target: iOS 18.0.
+- Running on a **physical iPhone** additionally requires a signing identity and
+  a Development Team selected in the target's *Signing & Capabilities* tab. The
+  committed project has `CODE_SIGN_STYLE = Automatic` and **no** team, so it
+  builds for the simulator out of the box but not for a device. See
+  `docs/DECISIONS/0001-repository-layout-and-identifiers.md`.
+
+Android:
+
+- JDK 17 or later. AGP 9 requires JDK 17; JDK 21 is fine.
+- Android SDK containing, at minimum:
+  - `platforms;android-37.0` (API 37 uses minor versions, so there is no
+    plain `platforms;android-37` package),
+  - `build-tools;36.0.0`,
+  - `platform-tools`.
+- `ANDROID_HOME` (or `ANDROID_SDK_ROOT`) pointing at the SDK, or
+  `apps/android/local.properties` with `sdk.dir=...`. `local.properties` is
+  machine-specific and not committed.
+- The Gradle wrapper (9.8.1) is committed; a separate Gradle install is not
+  needed.
+- API levels: `compileSdk`/`targetSdk` 37, `minSdk` 26.
+- Release builds apply R8 and resource shrinking and produce an **unsigned**
+  APK; a release signing config is intentionally not committed.
+
 ## Build, test, lint
 
-Not established yet. As each app is added, its formatter, lint, and test
-commands are documented here and must be runnable from the native toolchain
-(`docs/ARCHITECTURE.md` §10).
+### iOS
+
+```sh
+open apps/ios/BeingMuslim.xcodeproj          # build and run in Xcode
+```
+
+```sh
+xcodebuild -project apps/ios/BeingMuslim.xcodeproj \
+  -scheme BeingMuslim \
+  -destination 'platform=iOS Simulator,name=iPhone 17' \
+  build
+```
+
+```sh
+xcodebuild -project apps/ios/BeingMuslim.xcodeproj \
+  -scheme BeingMuslim \
+  -destination 'platform=iOS Simulator,name=iPhone 17' \
+  test
+```
+
+### Android
+
+Run from `apps/android`:
+
+```sh
+./gradlew assembleDebug     # build
+./gradlew test              # JVM unit tests
+./gradlew lint              # Android Lint
+```
+
+Android Lint runs as part of `./gradlew lint` and currently reports no issues.
+Formatter tooling is not set up yet on either platform (no
+`swift-format`/SwiftLint, no `ktlint`/`detekt`); add it when the app has code
+worth formatting, and document the commands here.
 
 ## Documentation
 
@@ -71,6 +140,7 @@ commands are documented here and must be runnable from the native toolchain
   configuration and secrets, testing strategy.
 - `docs/DESIGN_STANDARDS.md` — design intent, semantic tokens, typography,
   accessibility, content integrity.
+- `docs/DECISIONS/` — architecture decision records.
 - `AGENTS.md` — engineering rules for contributors and coding agents.
 
 ## Secrets

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Neutral placeholder. Replace with an approved brand color (docs/DESIGN_STANDARDS.md §1). -->
+    <color name="ic_launcher_background">#FF546E7A</color>
+</resources>

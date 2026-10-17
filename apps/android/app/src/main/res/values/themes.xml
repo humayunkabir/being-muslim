@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Base theme applied before Compose renders. It stays on a platform theme so
+      the app does not depend on the Material Components (View) library. Brand
+      colors and typography are not defined yet: the product identity is not
+      finalized (docs/DESIGN_STANDARDS.md §1).
+    -->
+    <style name="Theme.BeingMuslim" parent="@android:style/Theme.Material.Light.NoActionBar" />
+</resources>

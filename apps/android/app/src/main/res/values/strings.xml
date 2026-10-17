@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Being Muslim</string>
+    <string name="root_placeholder">The app shell is running. Features are added as product scope is finalized.</string>
+</resources>

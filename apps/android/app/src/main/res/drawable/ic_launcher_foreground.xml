@@ -1,0 +1,13 @@
+<!--
+  Placeholder launcher mark. Replace with approved brand assets
+  (docs/DESIGN_STANDARDS.md §1). Kept inside the adaptive-icon safe zone.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M34,34 H74 V74 H34 Z" />
+</vector>
