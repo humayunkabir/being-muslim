@@ -71,7 +71,7 @@ Do not silently substitute a source, calculation convention, or translation, and
 - Use Keychain on Apple platforms and Android Keystore-backed mechanisms, with least privilege.
 - Document migrations for durable schema changes; define cache-invalidation and offline semantics when caching is introduced.
 - Do not add persistence simply because it might be useful later.
-- Keep devotional activity on the device: what an app stores about a user's worship is excluded from platform cloud backup and device-to-device transfer, and leaves only through an account the user opts into (`PRODUCT_REQUIREMENTS.md` §10).
+- Keep devotional activity on the device: what an app stores about a user's worship is excluded from platform cloud backup and device-to-device transfer, and leaves only through an account the user opts into (`PRODUCT_REQUIREMENTS.md` §10, `DECISIONS/0003`).
 - Never store or log credentials, tokens, private user content, or precise location (`PRODUCT_REQUIREMENTS.md` §10).
 
 ## 8. Testing strategy

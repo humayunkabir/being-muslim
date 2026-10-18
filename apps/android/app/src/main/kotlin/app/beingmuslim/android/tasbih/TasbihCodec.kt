@@ -25,16 +25,9 @@ object TasbihCodec {
         COUNT to counter.count.toString(),
     )
 
-    fun decode(values: Map<String, String?>): TasbihCounter {
-        val stored = TasbihCounter(
+    fun decode(values: Map<String, String?>): TasbihCounter =
+        TasbihCounter(
             label = values[LABEL].orEmpty(),
             count = values[COUNT]?.toIntOrNull()?.coerceAtLeast(0) ?: 0,
         ).withTarget(values[TARGET]?.toIntOrNull())
-
-        // Only a stored count is brought within its target; one the user is
-        // editing is not, or typing a target would undo their counting.
-        return stored.copy(
-            count = stored.target?.let { stored.count.coerceAtMost(it) } ?: stored.count,
-        )
-    }
 }
