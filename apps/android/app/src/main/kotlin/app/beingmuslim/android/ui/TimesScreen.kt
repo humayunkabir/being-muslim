@@ -13,6 +13,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -30,10 +31,14 @@ import java.util.TimeZone
  * Today's five prayer times for the user's city, with the calculation method and
  * Asr juristic method that produced them shown on screen
  * (`docs/PRODUCT_REQUIREMENTS.md` §2.1, §5). Times are formatted for the
- * device's locale and the city's time zone.
+ * device's locale and the city's time zone. [onOpenTasbih] opens the counter.
  */
 @Composable
-fun TimesScreen(state: AppUiState.Times, modifier: Modifier = Modifier) {
+fun TimesScreen(
+    state: AppUiState.Times,
+    onOpenTasbih: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val context = LocalContext.current
 
     Scaffold(modifier = modifier.fillMaxSize()) { innerPadding ->
@@ -105,6 +110,12 @@ fun TimesScreen(state: AppUiState.Times, modifier: Modifier = Modifier) {
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+
+            // shortcut: the counter is reached from here rather than from real
+            // navigation; give it its own destination when the app has one.
+            TextButton(onClick = onOpenTasbih) {
+                Text(stringResource(R.string.times_open_tasbih))
+            }
         }
     }
 }

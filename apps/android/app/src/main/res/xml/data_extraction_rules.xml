@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  What Android may copy off this device, for API 31 and later. The same file is
+  excluded from both channels; see backup_rules.xml for why.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="being_muslim_tasbih.xml" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="being_muslim_tasbih.xml" />
+    </device-transfer>
+</data-extraction-rules>
