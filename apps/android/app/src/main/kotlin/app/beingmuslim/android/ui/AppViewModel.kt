@@ -7,8 +7,8 @@ import app.beingmuslim.android.citycatalog.BundledCityCatalog
 import app.beingmuslim.android.citycatalog.City
 import app.beingmuslim.android.citycatalog.CityCatalog
 import app.beingmuslim.android.prayer.CalculationSettings
-import app.beingmuslim.android.prayer.DailyPrayerTimes
 import app.beingmuslim.android.prayer.PrayerTimeCalculator
+import app.beingmuslim.android.prayer.TwoDayPrayerTimes
 import app.beingmuslim.android.selection.SelectionStore
 import app.beingmuslim.android.selection.UserSelection
 import app.beingmuslim.android.tasbih.TasbihCounter
@@ -25,7 +25,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/** What the app is showing: a load, the first-run setup, the times, or the tasbih. */
+/** What the app is showing: a load, the first-run setup, the times, the settings, or the tasbih. */
 sealed interface AppUiState {
 
     data object Loading : AppUiState
@@ -37,28 +37,34 @@ sealed interface AppUiState {
     data class Setup(val catalog: CityCatalog) : AppUiState
 
     /**
-     * Today's times for the user's city and settings. [today] is null when the
-     * sun neither rises nor sets there on the day — an unavailable state, not an
-     * error.
+     * The user's times: the city's current local date and the day after, either
+     * of which is null when the sun neither rises nor sets there that day.
      */
     data class Times(
         val city: City,
         val settings: CalculationSettings,
-        val today: DailyPrayerTimes?,
+        val days: TwoDayPrayerTimes,
     ) : AppUiState
 
     /** The counter the user is counting with, as it was left last time. */
     data class Tasbih(val counter: TasbihCounter) : AppUiState
+
+    /**
+     * The user is changing their city or calculation choices. Nothing is
+     * persisted until they save, so opening settings never changes anything.
+     */
+    data class Settings(val catalog: CityCatalog, val selection: UserSelection) : AppUiState
 }
 
 /**
  * Orchestrates the app: loads the offline catalog once, reads the persisted
- * selection and counter, and calculates today's times. All real logic lives in
- * the domain (catalog, calculation, [SelectionStore], [TasbihCounter]); this only
- * wires it to the UI and keeps heavy work off the main thread.
+ * selection and counter, and calculates today's and tomorrow's times. All real
+ * logic lives in the domain (catalog, calculation, [SelectionStore],
+ * [TasbihCounter]); this only wires it to the UI and keeps heavy work off the
+ * main thread.
  *
  * "Today" is the city's local date, and it moves: times are recomputed when the
- * app returns to the foreground ([refreshToday]) and again at the city's next
+ * app returns to the foreground ([refreshTimes]) and again at the city's next
  * local midnight, so a session is never left showing yesterday's times under
  * today's heading.
  */
@@ -73,6 +79,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private var selection: UserSelection? = null
     private var tasbih = TasbihCounter()
     private var rolloverJob: Job? = null
+    private var timesRequest = 0
 
     init {
         viewModelScope.launch {
@@ -94,8 +101,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /** Records the first-run choices and shows the times they produce. */
-    fun completeSetup(cityId: Long, settings: CalculationSettings) {
+    /**
+     * Records the choices the user made — at first run, or in settings — and
+     * shows the times they produce. This is the only way a choice is ever
+     * changed, so nothing is changed on the user's behalf.
+     */
+    fun applySelection(cityId: Long, settings: CalculationSettings) {
         val loaded = catalog ?: return
         viewModelScope.launch {
             val chosen = UserSelection(cityId, settings)
@@ -104,15 +115,26 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /** Opens the settings for the current selection, changing nothing. */
+    fun openSettings() {
+        val loaded = catalog ?: return
+        val current = selection ?: return
+        _state.value = AppUiState.Settings(loaded, current)
+    }
+
+    /** Leaves settings with the choices the user already had. */
+    fun dismissSettings() = refreshTimes()
+
     /**
      * Recomputes today's times for the current selection. The UI calls this when
      * the app returns to the foreground, so a session resumed after midnight
      * shows the new day rather than yesterday's times.
      *
-     * Only while the times are on screen: returning to another screen must not
-     * replace it.
+     * Only while the times are on screen: returning to another screen — the
+     * settings, or the counter — must not replace it, or discard edits the user
+     * has not saved.
      */
-    fun refreshToday() {
+    fun refreshTimes() {
         if (_state.value !is AppUiState.Times) return
         val loaded = catalog ?: return
         val current = selection ?: return
@@ -153,6 +175,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private suspend fun showTimes(chosen: UserSelection, catalog: CityCatalog) {
+        // Only the newest request may write the times: a slower earlier one —
+        // a foreground refresh overtaken by a save — must not put the times of
+        // the choice before it back on screen. All of this runs on the main
+        // thread, so the count only changes between a request's start and its
+        // write.
+        val request = ++timesRequest
         // A city id that is no longer in the catalog falls back to setup rather
         // than showing nothing (a catalog change is a data migration).
         val city = catalog.byId(chosen.cityId) ?: run {
@@ -160,13 +188,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
         selection = chosen
-        _state.value = AppUiState.Times(city, chosen.settings, todayAt(city, chosen.settings))
+        val days = daysAt(city, chosen.settings)
+        if (request != timesRequest) return
+        _state.value = AppUiState.Times(city, chosen.settings, days)
         scheduleRollover(city, chosen.settings)
     }
 
-    private suspend fun todayAt(city: City, settings: CalculationSettings): DailyPrayerTimes? =
+    private suspend fun daysAt(city: City, settings: CalculationSettings): TwoDayPrayerTimes =
         withContext(Dispatchers.Default) {
-            PrayerTimeCalculator.forInstant(city, Instant.now(), settings)
+            PrayerTimeCalculator.forInstantAndNextDay(city, Instant.now(), settings)
         }
 
     /** Recomputes at the city's next local midnight so an open app rolls over. */
@@ -178,7 +208,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             val now = Instant.now()
             val nextMidnight = now.atZone(zone).toLocalDate().plusDays(1).atStartOfDay(zone).toInstant()
             delay(Duration.between(now, nextMidnight).toMillis().coerceAtLeast(0))
-            refreshToday()
+            refreshTimes()
         }
     }
 }

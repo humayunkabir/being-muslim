@@ -6,6 +6,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
+import java.time.ZoneOffset
 import kotlin.math.abs
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -211,16 +212,51 @@ class PrayerTimeCalculatorTest {
     }
 
     @Test
-    fun anInstantResolvesToTheCitiesLocalDate() {
-        // 2016-07-01T20:00Z is already the 2nd of July in Dhaka (UTC+6).
-        val times = PrayerTimeCalculator.forInstant(
+    fun todayAndTomorrowFollowTheCitiesLocalCalendar() {
+        val dhakaSettings =
+            CalculationSettings(CalculationMethodChoice.KARACHI, AsrJuristicMethod.STANDARD)
+
+        // 2016-07-01T20:00Z is already the 2nd of July in Dhaka (UTC+6): both
+        // days come from the city's zone, not the device's.
+        val dhakaDays = PrayerTimeCalculator.forInstantAndNextDay(
             dhaka,
             Instant.parse("2016-07-01T20:00:00Z"),
-            CalculationSettings(CalculationMethodChoice.KARACHI, AsrJuristicMethod.STANDARD),
+            dhakaSettings,
         )
 
-        assertEquals(LocalDate.of(2016, 7, 2), times!!.date)
-        assertEquals(ZoneId.of("Asia/Dhaka"), times.zone)
+        assertEquals(LocalDate.of(2016, 7, 2), dhakaDays.today!!.date)
+        assertEquals(LocalDate.of(2016, 7, 3), dhakaDays.tomorrow!!.date)
+        assertEquals(ZoneId.of("Asia/Dhaka"), dhakaDays.tomorrow.zone)
+        assertTrue(dhakaDays.tomorrow[Prayer.FAJR].isAfter(dhakaDays.today[Prayer.ISHA]))
+
+        // The eve of the spring clock change (BST begins on 2016-03-27). A day
+        // added as 24 hours would land on the 28th, so tomorrow is asserted to
+        // be the next local date instead.
+        val londonDays = PrayerTimeCalculator.forInstantAndNextDay(
+            london,
+            Instant.parse("2016-03-26T23:30:00Z"),
+            CalculationSettings(CalculationMethodChoice.MOON_SIGHTING_COMMITTEE, AsrJuristicMethod.HANAFI),
+        )
+
+        assertEquals(LocalDate.of(2016, 3, 26), londonDays.today!!.date)
+        assertEquals(LocalDate.of(2016, 3, 27), londonDays.tomorrow!!.date)
+        // The clock change falls inside tomorrow, so each day must carry the
+        // offset its own date's rules give it: GMT then BST, not one shared
+        // offset applied to both.
+        assertEquals(ZoneOffset.ofHours(0), londonDays.today.zone.rules.getOffset(londonDays.today[Prayer.ISHA]))
+        assertEquals(ZoneOffset.ofHours(1), londonDays.tomorrow.zone.rules.getOffset(londonDays.tomorrow[Prayer.ISHA]))
+    }
+
+    @Test
+    fun aDayTheSunDoesNotRiseIsUnavailableOnItsOwn() {
+        val days = PrayerTimeCalculator.forInstantAndNextDay(
+            longyearbyen,
+            Instant.parse("2016-06-21T12:00:00Z"),
+            CalculationSettings(CalculationMethodChoice.MUSLIM_WORLD_LEAGUE, AsrJuristicMethod.STANDARD),
+        )
+
+        assertNull(days.today)
+        assertNull(days.tomorrow)
     }
 
     @Test

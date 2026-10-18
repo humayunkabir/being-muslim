@@ -1,6 +1,7 @@
 package app.beingmuslim.android.ui
 
 import android.content.Context
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,6 +21,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import app.beingmuslim.android.R
+import app.beingmuslim.android.citycatalog.City
 import app.beingmuslim.android.prayer.DailyPrayerTimes
 import app.beingmuslim.android.prayer.Prayer
 import java.time.Instant
@@ -28,19 +30,20 @@ import java.util.Date
 import java.util.TimeZone
 
 /**
- * Today's five prayer times for the user's city, with the calculation method and
- * Asr juristic method that produced them shown on screen
+ * The five prayer times for the user's city, today and tomorrow, with the
+ * calculation method and Asr juristic method that produced them shown on screen
  * (`docs/PRODUCT_REQUIREMENTS.md` §2.1, §5). Times are formatted for the
- * device's locale and the city's time zone. [onOpenTasbih] opens the counter.
+ * device's locale and the city's time zone. [onChangeSettings] opens the screen
+ * where the user changes their city or method, and [onOpenTasbih] opens the
+ * counter.
  */
 @Composable
 fun TimesScreen(
     state: AppUiState.Times,
+    onChangeSettings: () -> Unit,
     onOpenTasbih: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
-
     Scaffold(modifier = modifier.fillMaxSize()) { innerPadding ->
         Column(
             modifier = Modifier
@@ -59,35 +62,8 @@ fun TimesScreen(
                 style = MaterialTheme.typography.titleMedium,
             )
 
-            val today = state.today
-            if (today == null) {
-                Text(
-                    text = stringResource(R.string.times_unavailable, state.city.name),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            } else {
-                Text(
-                    text = formatDate(context, today),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                Prayer.entries.forEach { prayer ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Text(
-                            text = stringResource(prayer.labelRes()),
-                            style = MaterialTheme.typography.bodyLarge,
-                        )
-                        Text(
-                            text = formatTime(context, today[prayer], today.zone),
-                            style = MaterialTheme.typography.bodyLarge,
-                        )
-                    }
-                }
-            }
+            DaySection(R.string.times_section_today, state.days.today, state.city)
+            DaySection(R.string.times_section_tomorrow, state.days.tomorrow, state.city)
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
@@ -110,12 +86,57 @@ fun TimesScreen(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-
+            TextButton(onClick = onChangeSettings) {
+                Text(stringResource(R.string.times_change_settings))
+            }
             // shortcut: the counter is reached from here rather than from real
             // navigation; give it its own destination when the app has one.
             TextButton(onClick = onOpenTasbih) {
                 Text(stringResource(R.string.times_open_tasbih))
             }
+        }
+    }
+}
+
+/** One day's heading, date and times; the heading and the reason when it has none. */
+@Composable
+private fun DaySection(
+    @StringRes headingRes: Int,
+    times: DailyPrayerTimes?,
+    city: City,
+) {
+    Text(
+        text = stringResource(headingRes),
+        style = MaterialTheme.typography.titleMedium,
+    )
+    if (times == null) {
+        Text(
+            text = stringResource(R.string.times_unavailable, city.name),
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        return
+    }
+
+    val context = LocalContext.current
+    Text(
+        text = formatDate(context, times),
+        style = MaterialTheme.typography.bodyMedium,
+    )
+    Prayer.entries.forEach { prayer ->
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(
+                text = stringResource(prayer.labelRes()),
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            Text(
+                text = formatTime(context, times[prayer], times.zone),
+                style = MaterialTheme.typography.bodyLarge,
+            )
         }
     }
 }

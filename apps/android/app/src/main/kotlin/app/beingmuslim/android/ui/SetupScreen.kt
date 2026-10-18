@@ -1,50 +1,34 @@
 package app.beingmuslim.android.ui
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import app.beingmuslim.android.R
-import app.beingmuslim.android.citycatalog.City
 import app.beingmuslim.android.citycatalog.CityCatalog
 import app.beingmuslim.android.prayer.AsrJuristicMethod
 import app.beingmuslim.android.prayer.CalculationMethodChoice
 import app.beingmuslim.android.prayer.CalculationSettings
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 /**
- * First-run setup: the user must choose a calculation method, an Asr juristic
- * method, and a city before any time is shown. **Nothing is pre-selected**, and
- * a user who cannot answer the method question has an explicit way forward
+ * First run: the user picks a city, a calculation method and an Asr juristic
+ * method. Nothing is pre-selected, and the "not sure" help gives a user who
+ * cannot answer the method question an explicit way forward
  * (`docs/PRODUCT_REQUIREMENTS.md` §2.1, issue #4).
  */
 @Composable
@@ -58,20 +42,6 @@ fun SetupScreen(
     // The city is held by id so the choice survives a configuration change; the
     // City itself is looked up from the catalog.
     var selectedCityId by rememberSaveable { mutableStateOf<Long?>(null) }
-    var query by rememberSaveable { mutableStateOf("") }
-    var showNotSure by rememberSaveable { mutableStateOf(false) }
-
-    val city = selectedCityId?.let(catalog::byId)
-
-    val cityResults by produceState(emptyList<City>(), query, catalog) {
-        // Scanning the catalog is cheap but not free; keep it off the main
-        // thread so typing never blocks a frame.
-        value = if (query.isBlank()) {
-            emptyList()
-        } else {
-            withContext(Dispatchers.Default) { catalog.search(query) }
-        }
-    }
 
     Scaffold(modifier = modifier.fillMaxSize()) { innerPadding ->
         Column(
@@ -91,106 +61,24 @@ fun SetupScreen(
                 style = MaterialTheme.typography.bodyMedium,
             )
 
-            SectionHeading(R.string.setup_method_heading)
-            Text(
-                text = stringResource(R.string.setup_method_help),
-                style = MaterialTheme.typography.bodySmall,
+            CalculationChoiceForm(
+                catalog = catalog,
+                method = method,
+                asrMethod = asrMethod,
+                selectedCityId = selectedCityId,
+                onMethodChange = { method = it },
+                onAsrMethodChange = { asrMethod = it },
+                onCityChange = { selectedCityId = it },
             )
-            Column(Modifier.selectableGroup()) {
-                CalculationMethodChoice.entries.forEach { choice ->
-                    SelectableRow(
-                        label = stringResource(choice.labelRes()),
-                        description = stringResource(choice.descriptionRes()),
-                        selected = method == choice,
-                        onSelect = { method = choice },
-                    )
-                }
-            }
 
-            TextButton(onClick = { showNotSure = !showNotSure }) {
-                Text(stringResource(R.string.setup_not_sure))
-            }
-            if (showNotSure) {
-                Card {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        Text(
-                            text = stringResource(R.string.setup_not_sure_body),
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                        TextButton(
-                            onClick = { method = CalculationMethodChoice.MUSLIM_WORLD_LEAGUE },
-                        ) {
-                            Text(stringResource(R.string.setup_not_sure_use))
-                        }
-                    }
-                }
-            }
-
-            SectionHeading(R.string.setup_asr_heading)
-            Text(
-                text = stringResource(R.string.setup_asr_help),
-                style = MaterialTheme.typography.bodySmall,
-            )
-            Column(Modifier.selectableGroup()) {
-                AsrJuristicMethod.entries.forEach { choice ->
-                    SelectableRow(
-                        label = stringResource(choice.labelRes()),
-                        description = stringResource(choice.descriptionRes()),
-                        selected = asrMethod == choice,
-                        onSelect = { asrMethod = choice },
-                    )
-                }
-            }
-
-            SectionHeading(R.string.setup_city_heading)
-            Text(
-                text = stringResource(R.string.setup_city_help),
-                style = MaterialTheme.typography.bodySmall,
-            )
-            OutlinedTextField(
-                value = query,
-                onValueChange = { query = it },
-                label = { Text(stringResource(R.string.setup_city_search_hint)) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            city?.let {
-                Text(
-                    text = stringResource(R.string.setup_city_selected, it.displayName()),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
-            if (query.isNotBlank() && cityResults.isEmpty()) {
-                Text(
-                    text = stringResource(R.string.setup_city_no_results),
-                    style = MaterialTheme.typography.bodySmall,
-                )
-            }
-            Column(Modifier.selectableGroup()) {
-                cityResults.forEach { candidate ->
-                    SelectableRow(
-                        label = candidate.displayName(),
-                        description = candidate.countryCode,
-                        selected = selectedCityId == candidate.id,
-                        onSelect = {
-                            selectedCityId = candidate.id
-                            query = ""
-                        },
-                    )
-                }
-            }
-
-            val chosenCity = city
+            val chosenCity = selectedCityId
             val chosenMethod = method
             val chosenAsr = asrMethod
             Button(
                 onClick = {
                     if (chosenCity != null && chosenMethod != null && chosenAsr != null) {
                         onComplete(
-                            chosenCity.id,
+                            chosenCity,
                             CalculationSettings(chosenMethod, chosenAsr),
                         )
                     }
@@ -200,45 +88,6 @@ fun SetupScreen(
             ) {
                 Text(stringResource(R.string.setup_continue))
             }
-        }
-    }
-}
-
-@Composable
-private fun SectionHeading(@StringRes resId: Int) {
-    Text(
-        text = stringResource(resId),
-        style = MaterialTheme.typography.titleMedium,
-    )
-}
-
-@Composable
-private fun SelectableRow(
-    label: String,
-    description: String,
-    selected: Boolean,
-    onSelect: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .selectable(
-                selected = selected,
-                role = Role.RadioButton,
-                onClick = onSelect,
-            )
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        RadioButton(selected = selected, onClick = null)
-        Spacer(Modifier.width(8.dp))
-        Column {
-            Text(text = label, style = MaterialTheme.typography.bodyLarge)
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
     }
 }
