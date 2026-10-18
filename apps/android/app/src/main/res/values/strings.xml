@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">Being Muslim</string>
 
-    <!-- First-run setup (issue #4) -->
+    <!-- City, calculation-method and Asr-method choices; shared by first-run setup and settings (issues #4 and #5) -->
     <string name="setup_title">Set up prayer times</string>
     <string name="setup_intro">Choose how your times are calculated. Nothing is chosen for you, and you can change any of this later.</string>
     <string name="setup_method_heading">Calculation method</string>
@@ -18,6 +18,12 @@
     <string name="setup_city_no_results">No city matches that name.</string>
     <string name="setup_city_selected">Selected city: %1$s</string>
     <string name="setup_continue">Continue</string>
+
+    <!-- Settings: changing the same choices after first run (issue #5) -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_intro">Change your city or how times are calculated. Nothing changes until you save, and the app never changes these for you.</string>
+    <string name="settings_save">Save</string>
+    <string name="settings_cancel">Cancel</string>
 
     <!-- Calculation methods -->
     <string name="method_muslim_world_league">Muslim World League</string>
@@ -48,7 +54,10 @@
     <string name="asr_hanafi_description">Shadow length 2×, which places Asr later in the day.</string>
 
     <!-- Prayer times -->
-    <string name="times_title">Today\'s prayer times</string>
+    <string name="times_title">Prayer times</string>
+    <string name="times_section_today">Today</string>
+    <string name="times_section_tomorrow">Tomorrow</string>
+    <string name="times_change_settings">Change city or method</string>
     <string name="times_method">Calculation method: %1$s</string>
     <string name="times_asr_method">Juristic method for Asr: %1$s</string>
     <string name="times_unavailable">Times cannot be calculated for %1$s on this date: at this latitude and time of year the sun neither rises nor sets.</string>

@@ -76,7 +76,10 @@ shown separately from the raw result, never folded into it.
   hour apart in wall time and correct in instant.
 - The **local date is the city's**, not the device's: an instant that is already
   tomorrow in Dhaka computes Dhaka's tomorrow. The current time is always injected
-  (`forInstant`), never read inside the domain, so tests use a fixed clock.
+  (`forInstantAndNextDay`), never read inside the domain, so tests use a fixed
+  clock. That one query returns the city's current date and the day after, each
+  computed on its own date rather than as 24 hours later, so both are right across
+  a daylight-saving change (issue #5).
 - Adhan returns true instants; sub-second noise is dropped so a time is a clean
   minute.
 - Where the sun neither rises nor sets — a polar day or night — the library

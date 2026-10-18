@@ -58,12 +58,25 @@ object PrayerTimeCalculator {
     }
 
     /**
-     * The five times at [city] on the local date that [now] falls on — the date
-     * is the city's, not the device's, so a city across a date boundary resolves
-     * to the right day.
+     * The times at [city] for the local date that [now] falls on, and for the
+     * day after. "Tomorrow" is the city's next local date, not 24 hours later,
+     * so both days are right across a daylight-saving change and when the device
+     * is in a different zone from the city.
+     *
+     * The two days are computed independently, so a polar day or night on one
+     * leaves the other as computed.
      */
-    fun forInstant(city: City, now: Instant, settings: CalculationSettings): DailyPrayerTimes? =
-        forDate(city, now.atZone(ZoneId.of(city.timezone)).toLocalDate(), settings)
+    fun forInstantAndNextDay(
+        city: City,
+        now: Instant,
+        settings: CalculationSettings,
+    ): TwoDayPrayerTimes {
+        val today = now.atZone(ZoneId.of(city.timezone)).toLocalDate()
+        return TwoDayPrayerTimes(
+            today = forDate(city, today, settings),
+            tomorrow = forDate(city, today.plusDays(1), settings),
+        )
+    }
 
     private fun parameters(settings: CalculationSettings): CalculationParameters =
         settings.method.adhan.parameters.apply {

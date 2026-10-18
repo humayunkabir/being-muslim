@@ -20,17 +20,17 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.beingmuslim.android.R
-import app.beingmuslim.android.prayer.CalculationSettings
 
 /**
  * The app shell. It shows the first-run setup until the user has chosen a
- * calculation method, an Asr juristic method, and a city, then today's times
+ * calculation method, an Asr juristic method, and a city, then today's and
+ * tomorrow's times, with settings to change any of those choices
  * (`docs/PRODUCT_REQUIREMENTS.md` §2.1).
  */
 @Composable
 fun AppRoot(viewModel: AppViewModel = viewModel()) {
     // Recompute on return to the foreground so times roll over with the date.
-    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refreshToday() }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refreshTimes() }
 
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -39,13 +39,18 @@ fun AppRoot(viewModel: AppViewModel = viewModel()) {
         AppUiState.CatalogUnavailable -> MessageScreen(R.string.state_catalog_unavailable)
         is AppUiState.Setup -> SetupScreen(
             catalog = current.catalog,
-            onComplete = { cityId: Long, settings: CalculationSettings ->
-                viewModel.completeSetup(cityId, settings)
-            },
+            onComplete = viewModel::applySelection,
         )
         is AppUiState.Times -> TimesScreen(
             state = current,
+            onChangeSettings = viewModel::openSettings,
             onOpenTasbih = viewModel::openTasbih,
+        )
+        is AppUiState.Settings -> SettingsScreen(
+            catalog = current.catalog,
+            selection = current.selection,
+            onSave = viewModel::applySelection,
+            onCancel = viewModel::dismissSettings,
         )
         is AppUiState.Tasbih -> TasbihScreen(
             counter = current.counter,
