@@ -43,7 +43,18 @@ fun AppRoot(viewModel: AppViewModel = viewModel()) {
                 viewModel.completeSetup(cityId, settings)
             },
         )
-        is AppUiState.Times -> TimesScreen(current)
+        is AppUiState.Times -> TimesScreen(
+            state = current,
+            onOpenTasbih = viewModel::openTasbih,
+        )
+        is AppUiState.Tasbih -> TasbihScreen(
+            counter = current.counter,
+            onLabelChange = viewModel::setTasbihLabel,
+            onTargetChange = viewModel::setTasbihTarget,
+            onCount = viewModel::countTasbih,
+            onReset = viewModel::resetTasbih,
+            onBack = viewModel::dismissTasbih,
+        )
     }
 }
 

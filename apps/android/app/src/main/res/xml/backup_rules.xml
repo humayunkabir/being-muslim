@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  What Android may copy off this device, for API 30 and below. API 31 and later
+  read data_extraction_rules.xml instead; both exclude the same file.
+
+  The tasbih preferences hold the user's own words and their devotional activity.
+  The product discloses that devotional activity does not leave the device: the
+  counter is local, and carrying it to another device is the optional account's
+  job, which syncs the total only (docs/DECISIONS/0003). So the file is excluded
+  from platform backup and transfer rather than copied to a cloud account
+  (docs/PRODUCT_REQUIREMENTS.md §10).
+-->
+<full-backup-content>
+    <exclude domain="sharedpref" path="being_muslim_tasbih.xml" />
+</full-backup-content>
