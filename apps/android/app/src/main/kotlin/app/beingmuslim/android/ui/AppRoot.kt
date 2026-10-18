@@ -45,6 +45,7 @@ fun AppRoot(viewModel: AppViewModel = viewModel()) {
             state = current,
             onChangeSettings = viewModel::openSettings,
             onOpenTasbih = viewModel::openTasbih,
+            onAdjustHijriDay = viewModel::adjustHijriDay,
         )
         is AppUiState.Settings -> SettingsScreen(
             catalog = current.catalog,

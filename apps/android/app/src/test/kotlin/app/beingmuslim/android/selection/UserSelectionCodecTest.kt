@@ -79,4 +79,34 @@ class UserSelectionCodecTest {
 
         assertNull(UserSelectionCodec.decode(stored))
     }
+
+    @Test
+    fun roundTripsTheHijriDayAdjustment() {
+        val adjusted = selection.copy(hijriDayOffset = 1)
+
+        assertEquals(adjusted, UserSelectionCodec.decode(UserSelectionCodec.encode(adjusted)))
+    }
+
+    @Test
+    fun aSelectionStoredBeforeTheHijriDateExistedHasNoAdjustment() {
+        // Lenient, like every other missing value here: an older build's stored
+        // selection keeps working, with the calculated date and no shift.
+        val stored = UserSelectionCodec.encode(selection) - UserSelectionCodec.HIJRI_DAY_OFFSET
+
+        assertEquals(0, UserSelectionCodec.decode(stored)?.hijriDayOffset)
+    }
+
+    @Test
+    fun anAdjustmentThatIsNotANumberIsTreatedAsNone() {
+        val stored = UserSelectionCodec.encode(selection) + (UserSelectionCodec.HIJRI_DAY_OFFSET to "later")
+
+        assertEquals(0, UserSelectionCodec.decode(stored)?.hijriDayOffset)
+    }
+
+    @Test
+    fun anAdjustmentBeyondTheOneDayOfferedIsClamped() {
+        val stored = UserSelectionCodec.encode(selection) + (UserSelectionCodec.HIJRI_DAY_OFFSET to "9")
+
+        assertEquals(1, UserSelectionCodec.decode(stored)?.hijriDayOffset)
+    }
 }

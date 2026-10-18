@@ -95,6 +95,30 @@
     <string name="times_unavailable">Times cannot be calculated for %1$s on this date: at this latitude and time of year the sun neither rises nor sets.</string>
     <string name="times_open_tasbih">Tasbih</string>
     <string name="prayer_fajr">Fajr</string>
+
+    <!--
+      Hijri date (issue #11). Calculated, never an observed sighting: the label
+      and the note must keep saying so (`docs/PRODUCT_REQUIREMENTS.md` §7).
+    -->
+    <string name="hijri_label">Hijri date: calculated, on the Umm al-Qura convention</string>
+    <string name="hijri_calculated_note">Calculated, so it can differ by a day or more from what your country or community announces — their date may follow an actual moon sighting. This is not a confirmed local sighting.</string>
+    <string name="hijri_date">%1$d %2$s %3$d</string>
+    <string name="hijri_adjust_earlier">One day earlier</string>
+    <string name="hijri_adjust_later">One day later</string>
+    <string name="hijri_adjusted_earlier">Your Hijri date is showing one day earlier.</string>
+    <string name="hijri_adjusted_later">Your Hijri date is showing one day later.</string>
+    <string name="hijri_month_1">Muharram</string>
+    <string name="hijri_month_2">Safar</string>
+    <string name="hijri_month_3">Rabi\' al-Awwal</string>
+    <string name="hijri_month_4">Rabi\' al-Thani</string>
+    <string name="hijri_month_5">Jumada al-Ula</string>
+    <string name="hijri_month_6">Jumada al-Akhirah</string>
+    <string name="hijri_month_7">Rajab</string>
+    <string name="hijri_month_8">Sha\'ban</string>
+    <string name="hijri_month_9">Ramadan</string>
+    <string name="hijri_month_10">Shawwal</string>
+    <string name="hijri_month_11">Dhu al-Qi\'dah</string>
+    <string name="hijri_month_12">Dhu al-Hijjah</string>
     <string name="prayer_dhuhr">Dhuhr</string>
     <string name="prayer_asr">Asr</string>
     <string name="prayer_maghrib">Maghrib</string>
