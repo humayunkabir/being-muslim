@@ -81,32 +81,32 @@ class UserSelectionCodecTest {
     }
 
     @Test
-    fun roundTripsTheHijriDayAdjustment() {
-        val adjusted = selection.copy(hijriDayOffset = 1)
+    fun roundTripsTheHijriDayShift() {
+        val shifted = selection.copy(hijriDayShift = 1)
 
-        assertEquals(adjusted, UserSelectionCodec.decode(UserSelectionCodec.encode(adjusted)))
+        assertEquals(shifted, UserSelectionCodec.decode(UserSelectionCodec.encode(shifted)))
     }
 
     @Test
-    fun aSelectionStoredBeforeTheHijriDateExistedHasNoAdjustment() {
+    fun aSelectionStoredBeforeTheHijriDateExistedHasNoShift() {
         // Lenient, like every other missing value here: an older build's stored
         // selection keeps working, with the calculated date and no shift.
-        val stored = UserSelectionCodec.encode(selection) - UserSelectionCodec.HIJRI_DAY_OFFSET
+        val stored = UserSelectionCodec.encode(selection) - UserSelectionCodec.HIJRI_DAY_SHIFT
 
-        assertEquals(0, UserSelectionCodec.decode(stored)?.hijriDayOffset)
+        assertEquals(0, UserSelectionCodec.decode(stored)?.hijriDayShift)
     }
 
     @Test
-    fun anAdjustmentThatIsNotANumberIsTreatedAsNone() {
-        val stored = UserSelectionCodec.encode(selection) + (UserSelectionCodec.HIJRI_DAY_OFFSET to "later")
+    fun aShiftThatIsNotANumberIsTreatedAsNone() {
+        val stored = UserSelectionCodec.encode(selection) + (UserSelectionCodec.HIJRI_DAY_SHIFT to "later")
 
-        assertEquals(0, UserSelectionCodec.decode(stored)?.hijriDayOffset)
+        assertEquals(0, UserSelectionCodec.decode(stored)?.hijriDayShift)
     }
 
     @Test
-    fun anAdjustmentBeyondTheOneDayOfferedIsClamped() {
-        val stored = UserSelectionCodec.encode(selection) + (UserSelectionCodec.HIJRI_DAY_OFFSET to "9")
+    fun aShiftBeyondTheOneDayOfferedIsClamped() {
+        val stored = UserSelectionCodec.encode(selection) + (UserSelectionCodec.HIJRI_DAY_SHIFT to "9")
 
-        assertEquals(1, UserSelectionCodec.decode(stored)?.hijriDayOffset)
+        assertEquals(1, UserSelectionCodec.decode(stored)?.hijriDayShift)
     }
 }

@@ -46,7 +46,7 @@ sealed interface AppUiState {
         val city: City,
         val settings: CalculationSettings,
         val days: TwoDayPrayerTimes,
-        val hijriDayOffset: Int,
+        val hijriDayShift: Int,
     ) : AppUiState
 
     /** The counter the user is counting with, as it was left last time. */
@@ -113,7 +113,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun applySelection(cityId: Long, settings: CalculationSettings) {
         val loaded = catalog ?: return
         viewModelScope.launch {
-            val chosen = UserSelection(cityId, settings, selection?.hijriDayOffset ?: 0)
+            val chosen = UserSelection(cityId, settings, selection?.hijriDayShift ?: 0)
             store.save(chosen)
             showTimes(chosen, loaded)
         }
@@ -125,15 +125,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
      * remembers the shift. Values that would move a date further are clamped, so
      * the stored shift is always one the app supports.
      */
-    fun adjustHijriDay(delta: Int) {
+    fun shiftHijriDay(delta: Int) {
         val loaded = catalog ?: return
         val current = selection ?: return
         viewModelScope.launch {
-            val adjusted = current.copy(
-                hijriDayOffset = HijriCalendar.clampDayOffset(current.hijriDayOffset + delta),
+            val shifted = current.copy(
+                hijriDayShift = HijriCalendar.clampDayShift(current.hijriDayShift + delta),
             )
-            store.save(adjusted)
-            showTimes(adjusted, loaded)
+            store.save(shifted)
+            showTimes(shifted, loaded)
         }
     }
 
@@ -217,7 +217,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         selection = chosen
         val days = daysAt(city, chosen.settings)
         if (request != timesRequest) return
-        _state.value = AppUiState.Times(city, chosen.settings, days, chosen.hijriDayOffset)
+        _state.value = AppUiState.Times(city, chosen.settings, days, chosen.hijriDayShift)
         scheduleRollover(city, chosen.settings)
     }
 

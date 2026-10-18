@@ -102,11 +102,11 @@
     -->
     <string name="hijri_label">Hijri date: calculated, on the Umm al-Qura convention</string>
     <string name="hijri_calculated_note">Calculated, so it can differ by a day or more from what your country or community announces — their date may follow an actual moon sighting. This is not a confirmed local sighting.</string>
-    <string name="hijri_date">%1$d %2$s %3$d</string>
-    <string name="hijri_adjust_earlier">One day earlier</string>
-    <string name="hijri_adjust_later">One day later</string>
-    <string name="hijri_adjusted_earlier">Your Hijri date is showing one day earlier.</string>
-    <string name="hijri_adjusted_later">Your Hijri date is showing one day later.</string>
+    <string name="hijri_date">Hijri: %1$d %2$s %3$d</string>
+    <string name="hijri_shift_earlier">One day earlier</string>
+    <string name="hijri_shift_later">One day later</string>
+    <string name="hijri_shifted_earlier">Your Hijri date is showing one day earlier.</string>
+    <string name="hijri_shifted_later">Your Hijri date is showing one day later.</string>
     <string name="hijri_month_1">Muharram</string>
     <string name="hijri_month_2">Safar</string>
     <string name="hijri_month_3">Rabi\' al-Awwal</string>
