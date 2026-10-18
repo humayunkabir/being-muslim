@@ -20,6 +20,18 @@ Upstream's `skills/misc/`, `skills/in-progress/`, and `skills/deprecated/`
 buckets are deliberately not vendored (`misc/` is frozen and unmaintained;
 `in-progress/` is beta and may change or disappear without warning).
 
+## Plugins that inject skills
+
+`opencode.json` pins third-party OpenCode plugins. A plugin can register skills
+and commands at runtime, so they never appear as files under `.agents/skills/`
+and the counts below include them.
+
+| Plugin | Pinned | What it adds |
+| --- | --- | --- |
+| `@dietrichgebert/ponytail` | `5.3.2` | The "lazy senior dev" (YAGNI) ruleset plus 6 skills and 6 commands — `/ponytail`, `/ponytail-audit`, `/ponytail-debt`, `/ponytail-gain`, `/ponytail-help`, `/ponytail-review`. Project-scoped: it loads for anyone who opens this repo, and OpenCode fetches it from npm. |
+
+Adding it is a one-line change to `opencode.json`; removing it is deleting that
+line. `opencode plugin list` reports what actually loaded.
 ## Layout
 
 ```text
@@ -119,10 +131,11 @@ opencode api get '/api/skill?location%5Bdirectory%5D='"$PWD"
 opencode api get '/api/command?location%5Bdirectory%5D='"$PWD"
 ```
 
-Expect 29 skills (27 vendored + the built-in `opencode` and `report`) and 29
-commands (27 wrappers + built-in `init` and `review`). Each skill entry reports
-its resolved `path` and whether `autoinvoke` is off, which is how the two
-invocation classes above can be confirmed rather than assumed.
+Expect 35 skills (27 vendored + the built-in `opencode` and `report` + 6 from
+`ponytail`) and 35 commands (27 wrappers + the built-in `init` and `review` + 6
+from `ponytail`). Each skill entry reports its resolved `path` and whether
+`autoinvoke` is off, which is how the two invocation classes above can be
+confirmed rather than assumed.
 
 ## Updating
 
