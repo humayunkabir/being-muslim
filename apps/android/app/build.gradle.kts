@@ -13,6 +13,11 @@ android {
         targetSdk = 37
         versionCode = 1
         versionName = "0.1.0"
+
+        // Only the languages the app ships. Without this the APKs would also
+        // carry every locale the libraries bundle (appcompat ships dozens) and
+        // could resolve a locale the app does not support.
+        resourceConfigurations += listOf("en", "bn")
     }
 
     buildTypes {
@@ -44,6 +49,9 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.activity.compose)
+    // Per-app locale (issue #14): the platform's per-app language API is 33+,
+    // and AppCompat is its documented backport for the minSdk here.
+    implementation(libs.androidx.appcompat)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)

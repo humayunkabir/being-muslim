@@ -16,6 +16,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -55,7 +56,7 @@ fun TimesScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text(
-                text = state.city.displayName(),
+                text = state.city.displayName(currentLanguage()),
                 style = MaterialTheme.typography.headlineSmall,
             )
             Text(
@@ -142,11 +143,28 @@ private fun DaySection(
                 .fillMaxWidth()
                 .padding(vertical = 4.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                text = stringResource(prayer.labelRes()),
-                style = MaterialTheme.typography.bodyLarge,
-            )
+            // The Arabic name is its own Text rather than concatenated onto the
+            // label: as its own paragraph the platform shapes it and resolves
+            // its right-to-left direction, with no mixed-script ambiguity. The
+            // name group is weighted so that at large text sizes the name wraps
+            // instead of pushing the time off the screen.
+            Row(
+                modifier = Modifier.weight(1f, fill = false),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(prayer.labelRes()),
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+                Text(
+                    text = stringResource(prayer.arabicRes()),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             Text(
                 text = formatTime(context, times[prayer], times.zone),
                 style = MaterialTheme.typography.bodyLarge,

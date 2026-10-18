@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!--
-      Base theme applied before Compose renders. It stays on a platform theme so
-      the app does not depend on the Material Components (View) library. Brand
-      colors and typography are not defined yet: the product identity is not
-      finalized (docs/DESIGN_STANDARDS.md §1).
+      Base theme applied before Compose renders. It stays on an AppCompat theme
+      so the app does not depend on the Material Components (View) library and
+      so AppCompatActivity can host the Compose UI — which is what makes the
+      in-app language setting work on API 32 and below (issue #14,
+      docs/DECISIONS/0006). DayNight follows the system, so it needs no
+      values-night variant. Brand colors and typography are not defined yet: the
+      product identity is not finalized (docs/DESIGN_STANDARDS.md §1).
     -->
-    <style name="Theme.BeingMuslim" parent="@android:style/Theme.Material.Light.NoActionBar" />
+    <style name="Theme.BeingMuslim" parent="Theme.AppCompat.DayNight.NoActionBar" />
 </resources>
