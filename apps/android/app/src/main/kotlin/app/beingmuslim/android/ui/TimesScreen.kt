@@ -126,7 +126,7 @@ private fun DaySection(
     )
     if (times == null) {
         Text(
-            text = stringResource(R.string.times_unavailable, city.name),
+            text = stringResource(R.string.times_unavailable, city.displayName(currentLanguage())),
             style = MaterialTheme.typography.bodyMedium,
         )
         return
