@@ -29,9 +29,12 @@ and the counts below include them.
 | Plugin | Pinned | What it adds |
 | --- | --- | --- |
 | `@dietrichgebert/ponytail` | `5.3.2` | The "lazy senior dev" (YAGNI) ruleset plus 6 skills and 6 commands — `/ponytail`, `/ponytail-audit`, `/ponytail-debt`, `/ponytail-gain`, `/ponytail-help`, `/ponytail-review`. Project-scoped: it loads for anyone who opens this repo, and OpenCode fetches it from npm. |
+| `superpowers` | `v7.0.0` (git tag) | A whole development methodology as 15 skills — `brainstorming`, `writing-plans`, `subagent-driven-development`, `test-driven-development`, `systematic-debugging`, `using-superpowers`, and the rest. It also injects its own tool mapping for this harness. Git-backed: OpenCode clones it under `~/.cache/opencode/npm/git-superpowers-*`, so it needs no checkout here. |
 
-Adding it is a one-line change to `opencode.json`; removing it is deleting that
-line. `opencode plugin list` reports what actually loaded.
+Adding one is a line in `opencode.json`; removing it is deleting that line.
+`opencode plugin list` reports what actually loaded, and each plugin's skills
+appear in the `skill` tool the moment the config reloads.
+
 ## Layout
 
 ```text
@@ -131,11 +134,11 @@ opencode api get '/api/skill?location%5Bdirectory%5D='"$PWD"
 opencode api get '/api/command?location%5Bdirectory%5D='"$PWD"
 ```
 
-Expect 35 skills (27 vendored + the built-in `opencode` and `report` + 6 from
-`ponytail`) and 35 commands (27 wrappers + the built-in `init` and `review` + 6
-from `ponytail`). Each skill entry reports its resolved `path` and whether
-`autoinvoke` is off, which is how the two invocation classes above can be
-confirmed rather than assumed.
+Expect 50 skills (27 vendored + the built-in `opencode` and `report` + 6 from
+`ponytail` + 15 from `superpowers`) and 35 commands (27 wrappers + the built-in
+`init` and `review` + 6 from `ponytail`; `superpowers` adds skills only). Each
+skill entry reports its resolved `path` and whether `autoinvoke` is off, which
+is how the two invocation classes above can be confirmed rather than assumed.
 
 ## Updating
 
