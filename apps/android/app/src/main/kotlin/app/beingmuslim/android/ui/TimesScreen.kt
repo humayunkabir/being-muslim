@@ -31,11 +31,12 @@ import java.util.TimeZone
 
 /**
  * The five prayer times for the user's city, today and tomorrow, with the
- * calculation method and Asr juristic method that produced them shown on screen
- * (`docs/PRODUCT_REQUIREMENTS.md` §2.1, §5). Times are formatted for the
- * device's locale and the city's time zone. [onChangeSettings] opens the screen
- * where the user changes their city or method, and [onOpenTasbih] opens the
- * counter.
+ * calculation method, Asr juristic method and high-latitude rule that produced
+ * them shown on screen (`docs/PRODUCT_REQUIREMENTS.md` §2.1, §5). A day says so
+ * where the high-latitude rule, not true dawn or dusk, produced its Fajr or Isha
+ * (issue #7). Times are formatted for the device's locale and the city's time
+ * zone. [onChangeSettings] opens the screen where the user changes their city or
+ * method, and [onOpenTasbih] opens the counter.
  */
 @Composable
 fun TimesScreen(
@@ -81,6 +82,19 @@ fun TimesScreen(
                 ),
                 style = MaterialTheme.typography.bodySmall,
             )
+            Text(
+                text = stringResource(
+                    R.string.times_high_latitude_rule,
+                    stringResource(state.settings.highLatitudeRule.labelRes()),
+                ),
+                style = MaterialTheme.typography.bodySmall,
+            )
+            if (state.settings.method.usesItsOwnHighLatitudeRule) {
+                Text(
+                    text = stringResource(R.string.times_high_latitude_not_used),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
             Text(
                 text = stringResource(R.string.city_catalog_attribution),
                 style = MaterialTheme.typography.bodySmall,
@@ -138,6 +152,13 @@ private fun DaySection(
                 style = MaterialTheme.typography.bodyLarge,
             )
         }
+    }
+
+    times.boundedByHighLatitudeRule.highLatitudeRuleAppliedRes()?.let { disclosureRes ->
+        Text(
+            text = stringResource(disclosureRes),
+            style = MaterialTheme.typography.bodySmall,
+        )
     }
 }
 

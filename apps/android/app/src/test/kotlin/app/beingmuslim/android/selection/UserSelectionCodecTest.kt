@@ -3,6 +3,7 @@ package app.beingmuslim.android.selection
 import app.beingmuslim.android.prayer.AsrJuristicMethod
 import app.beingmuslim.android.prayer.CalculationMethodChoice
 import app.beingmuslim.android.prayer.CalculationSettings
+import app.beingmuslim.android.prayer.HighLatitudeRuleChoice
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -19,6 +20,7 @@ class UserSelectionCodecTest {
         settings = CalculationSettings(
             method = CalculationMethodChoice.KARACHI,
             asrJuristicMethod = AsrJuristicMethod.HANAFI,
+            highLatitudeRule = HighLatitudeRuleChoice.SEVENTH_OF_THE_NIGHT,
         ),
     )
 
@@ -53,6 +55,27 @@ class UserSelectionCodecTest {
     @Test
     fun anAsrMethodThisBuildNoLongerKnowsIsTreatedAsAbsent() {
         val stored = UserSelectionCodec.encode(selection) + (UserSelectionCodec.ASR_METHOD to "SOME_RETIRED_METHOD")
+
+        assertNull(UserSelectionCodec.decode(stored))
+    }
+
+    @Test
+    fun aHighLatitudeRuleThisBuildNoLongerKnowsIsTreatedAsAbsent() {
+        val stored = UserSelectionCodec.encode(selection) +
+            (UserSelectionCodec.HIGH_LATITUDE_RULE to "SOME_RETIRED_RULE")
+
+        assertNull(UserSelectionCodec.decode(stored))
+    }
+
+    /**
+     * Issue #7 added the rule to the stored selection. A selection stored before
+     * it existed has no rule in it, and is treated as absent like any other
+     * missing value — the user is asked again rather than a rule being picked for
+     * them.
+     */
+    @Test
+    fun aSelectionStoredBeforeTheRuleWasChosenIsTreatedAsAbsent() {
+        val stored = UserSelectionCodec.encode(selection) - UserSelectionCodec.HIGH_LATITUDE_RULE
 
         assertNull(UserSelectionCodec.decode(stored))
     }

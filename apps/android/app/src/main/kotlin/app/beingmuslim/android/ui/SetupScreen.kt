@@ -24,12 +24,13 @@ import app.beingmuslim.android.citycatalog.CityCatalog
 import app.beingmuslim.android.prayer.AsrJuristicMethod
 import app.beingmuslim.android.prayer.CalculationMethodChoice
 import app.beingmuslim.android.prayer.CalculationSettings
+import app.beingmuslim.android.prayer.HighLatitudeRuleChoice
 
 /**
- * First run: the user picks a city, a calculation method and an Asr juristic
- * method. Nothing is pre-selected, and the "not sure" help gives a user who
- * cannot answer the method question an explicit way forward
- * (`docs/PRODUCT_REQUIREMENTS.md` §2.1, issue #4).
+ * First run: the user picks a city, a calculation method, an Asr juristic method
+ * and the high-latitude rule. Nothing is pre-selected, and the "not sure" help
+ * gives a user who cannot answer the method question an explicit way forward
+ * (`docs/PRODUCT_REQUIREMENTS.md` §2.1, issues #4 and #7).
  */
 @Composable
 fun SetupScreen(
@@ -39,6 +40,7 @@ fun SetupScreen(
 ) {
     var method by rememberSaveable { mutableStateOf<CalculationMethodChoice?>(null) }
     var asrMethod by rememberSaveable { mutableStateOf<AsrJuristicMethod?>(null) }
+    var rule by rememberSaveable { mutableStateOf<HighLatitudeRuleChoice?>(null) }
     // The city is held by id so the choice survives a configuration change; the
     // City itself is looked up from the catalog.
     var selectedCityId by rememberSaveable { mutableStateOf<Long?>(null) }
@@ -65,25 +67,28 @@ fun SetupScreen(
                 catalog = catalog,
                 method = method,
                 asrMethod = asrMethod,
+                rule = rule,
                 selectedCityId = selectedCityId,
                 onMethodChange = { method = it },
                 onAsrMethodChange = { asrMethod = it },
+                onRuleChange = { rule = it },
                 onCityChange = { selectedCityId = it },
             )
 
             val chosenCity = selectedCityId
             val chosenMethod = method
             val chosenAsr = asrMethod
+            val chosenRule = rule
             Button(
                 onClick = {
-                    if (chosenCity != null && chosenMethod != null && chosenAsr != null) {
+                    if (chosenCity != null && chosenMethod != null && chosenAsr != null && chosenRule != null) {
                         onComplete(
                             chosenCity,
-                            CalculationSettings(chosenMethod, chosenAsr),
+                            CalculationSettings(chosenMethod, chosenAsr, chosenRule),
                         )
                     }
                 },
-                enabled = chosenCity != null && chosenMethod != null && chosenAsr != null,
+                enabled = chosenCity != null && chosenMethod != null && chosenAsr != null && chosenRule != null,
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(stringResource(R.string.setup_continue))

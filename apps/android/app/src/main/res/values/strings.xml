@@ -53,6 +53,16 @@
     <string name="asr_hanafi">Hanafi</string>
     <string name="asr_hanafi_description">Shadow length 2×, which places Asr later in the day.</string>
 
+    <!-- High-latitude rule (issue #7) -->
+    <string name="setup_high_latitude_rule_heading">High-latitude rule</string>
+    <string name="setup_high_latitude_rule_help">At high latitudes the sun may not reach the Fajr or Isha angle, so this rule limits how far those times can go. It changes nothing at most latitudes. If you are not sure, the middle of the night is the most permissive limit. The Moonsighting Committee method does not use this rule, and applies its own seasonal adjustment instead.</string>
+    <string name="high_latitude_rule_middle_of_the_night">Middle of the night</string>
+    <string name="high_latitude_rule_middle_of_the_night_description">Fajr is never earlier, and Isha never later, than the middle of the night.</string>
+    <string name="high_latitude_rule_seventh_of_the_night">Seventh of the night</string>
+    <string name="high_latitude_rule_seventh_of_the_night_description">Fajr is no earlier than the last seventh of the night; Isha no later than the end of the first seventh.</string>
+    <string name="high_latitude_rule_twilight_angle">Twilight angle</string>
+    <string name="high_latitude_rule_twilight_angle_description">The limit is the fraction of the night that this method\'s Fajr and Isha angles imply.</string>
+
     <!-- Prayer times -->
     <string name="times_title">Prayer times</string>
     <string name="times_section_today">Today</string>
@@ -60,6 +70,11 @@
     <string name="times_change_settings">Change city or method</string>
     <string name="times_method">Calculation method: %1$s</string>
     <string name="times_asr_method">Juristic method for Asr: %1$s</string>
+    <string name="times_high_latitude_rule">High-latitude rule: %1$s</string>
+    <string name="times_high_latitude_not_used">Not used by this method: it applies its own seasonal adjustment at high latitude instead.</string>
+    <string name="times_high_latitude_applied_to_fajr">Fajr here comes from the high-latitude rule instead of true dawn: on this date at this latitude, true dawn either is not reached or falls beyond this rule\'s limit.</string>
+    <string name="times_high_latitude_applied_to_isha">Isha here comes from the high-latitude rule instead of true dusk: on this date at this latitude, true dusk either is not reached or falls beyond this rule\'s limit.</string>
+    <string name="times_high_latitude_applied_to_both">Fajr and Isha here come from the high-latitude rule instead of true dawn and dusk: on this date at this latitude, they either are not reached or fall beyond this rule\'s limit.</string>
     <string name="times_unavailable">Times cannot be calculated for %1$s on this date: at this latitude and time of year the sun neither rises nor sets.</string>
     <string name="times_open_tasbih">Tasbih</string>
     <string name="prayer_fajr">Fajr</string>

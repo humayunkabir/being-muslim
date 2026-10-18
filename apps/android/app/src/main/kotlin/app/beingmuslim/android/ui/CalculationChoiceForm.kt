@@ -32,13 +32,15 @@ import app.beingmuslim.android.citycatalog.City
 import app.beingmuslim.android.citycatalog.CityCatalog
 import app.beingmuslim.android.prayer.AsrJuristicMethod
 import app.beingmuslim.android.prayer.CalculationMethodChoice
+import app.beingmuslim.android.prayer.HighLatitudeRuleChoice
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * The city, calculation-method and Asr-method choices, shared by first-run setup
- * and settings (issues #4 and #5). The caller holds the choices, so this only
- * ever reports a change the user made — no choice is ever selected here.
+ * The city, calculation-method, Asr-method and high-latitude-rule choices, shared
+ * by first-run setup and settings (issues #4, #5 and #7). The caller holds the
+ * choices, so this only ever reports a change the user made — no choice is ever
+ * selected here.
  *
  * The "not sure which to choose" help is shown only while no method is chosen,
  * which is first run and nowhere else.
@@ -48,9 +50,11 @@ fun CalculationChoiceForm(
     catalog: CityCatalog,
     method: CalculationMethodChoice?,
     asrMethod: AsrJuristicMethod?,
+    rule: HighLatitudeRuleChoice?,
     selectedCityId: Long?,
     onMethodChange: (CalculationMethodChoice) -> Unit,
     onAsrMethodChange: (AsrJuristicMethod) -> Unit,
+    onRuleChange: (HighLatitudeRuleChoice) -> Unit,
     onCityChange: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -125,6 +129,22 @@ fun CalculationChoiceForm(
                     description = stringResource(choice.descriptionRes()),
                     selected = asrMethod == choice,
                     onSelect = { onAsrMethodChange(choice) },
+                )
+            }
+        }
+
+        SectionHeading(R.string.setup_high_latitude_rule_heading)
+        Text(
+            text = stringResource(R.string.setup_high_latitude_rule_help),
+            style = MaterialTheme.typography.bodySmall,
+        )
+        Column(Modifier.selectableGroup()) {
+            HighLatitudeRuleChoice.entries.forEach { choice ->
+                SelectableRow(
+                    label = stringResource(choice.labelRes()),
+                    description = stringResource(choice.descriptionRes()),
+                    selected = rule == choice,
+                    onSelect = { onRuleChange(choice) },
                 )
             }
         }

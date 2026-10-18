@@ -45,6 +45,7 @@ fun SettingsScreen(
 
     var method by rememberSaveable { mutableStateOf(selection.settings.method) }
     var asrMethod by rememberSaveable { mutableStateOf(selection.settings.asrJuristicMethod) }
+    var rule by rememberSaveable { mutableStateOf(selection.settings.highLatitudeRule) }
     var selectedCityId by rememberSaveable { mutableStateOf(selection.cityId) }
 
     Scaffold(modifier = modifier.fillMaxSize()) { innerPadding ->
@@ -69,9 +70,11 @@ fun SettingsScreen(
                 catalog = catalog,
                 method = method,
                 asrMethod = asrMethod,
+                rule = rule,
                 selectedCityId = selectedCityId,
                 onMethodChange = { method = it },
                 onAsrMethodChange = { asrMethod = it },
+                onRuleChange = { rule = it },
                 onCityChange = { selectedCityId = it },
             )
 
@@ -83,7 +86,7 @@ fun SettingsScreen(
                     Text(stringResource(R.string.settings_cancel))
                 }
                 Button(
-                    onClick = { onSave(selectedCityId, CalculationSettings(method, asrMethod)) },
+                    onClick = { onSave(selectedCityId, CalculationSettings(method, asrMethod, rule)) },
                     modifier = Modifier.weight(1f),
                 ) {
                     Text(stringResource(R.string.settings_save))

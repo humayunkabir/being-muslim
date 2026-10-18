@@ -55,13 +55,37 @@ implying a neutral truth (§5).
 
 ### High-latitude rule
 
-The Adhan default, `MIDDLE_OF_THE_NIGHT`, is passed for every method and is **not
-yet user-selectable or disclosed** — that is issue #7. It bounds Fajr and Isha
-where true dawn or dusk is undefined.
+The user picks the rule; **nothing is pre-selected and the times screen shows
+which one is in force** (issue #7). Each maps to an Adhan `HighLatitudeRule`:
 
-This is **not uniform across methods**: the Moonsighting Committee method does not
-use the rule at all — Adhan applies its own seasonal twilight adjustment for that
-method instead. Any future disclosure of the rule (#7) must say so.
+| Choice | Adhan | The bound it sets |
+| --- | --- | --- |
+| Middle of the night | `MIDDLE_OF_THE_NIGHT` | Fajr no earlier, and Isha no later, than the middle of the night (½ of the night) |
+| Seventh of the night | `SEVENTH_OF_THE_NIGHT` | Fajr no earlier than the last seventh of the night; Isha no later than the end of the first (1/7 each) |
+| Twilight angle | `TWILIGHT_ANGLE` | The method's own Fajr and Isha angles, each ÷ 60, of the night |
+
+Adhan substitutes the bound in **two** cases: where the sun never reaches the
+angle at all, and where the twilight it computed falls beyond the bound. It does
+not report which happened, and for `MIDDLE_OF_THE_NIGHT` that cannot be inferred
+from its public output — comparing the times two rules return reports the rule as
+engaged at 50–57°N in summer, where the middle-of-the-night bound is never
+reached and true dawn stands. `PrayerTimeCalculator` therefore recomputes the raw
+twilight with the library's own `internal.SolarTime`, carries the same minute
+adjustments and rounding Adhan does, and compares it with the time Adhan
+returned: a difference means the rule produced that time. This **mirrors
+`PrayerTimes` in adhan 1.2.1** and is pinned by a test; revisit it, like the rest
+of this file, if the library is upgraded.
+
+The times screen discloses this per day, and only where the rule produced Fajr or
+Isha; on a day where true dawn and dusk stand it says nothing about the rule.
+
+This is **not uniform across methods**:
+
+- **Moonsighting Committee** does not use the rule at all — Adhan applies its own
+  seasonal twilight adjustment for that method instead. The times screen says so
+  beside the rule, and the choice cannot change that method's times.
+- **Umm al-Qura and Qatar** take Isha from a fixed interval after Maghrib, so
+  neither the Isha angle nor the rule applies to Isha there.
 
 ### Offsets
 
@@ -97,6 +121,19 @@ Umm al-Qura, Singapore, Gulf (Dubai), Kuwait and Qatar — across both Asr
 conventions, a DST date and a standard-time date, large UTC offsets
 (Asia/Riyadh, Asia/Dubai), a date rollover (Asia/Dhaka), and an unavailable polar
 date.
+
+**High latitude.** The library's own high-latitude rule case
+(`testHighLatitudeRule` in the suite of its Kotlin port, `adhan2`; the pinned
+1.2.1 artifact returns the same values) is pinned for all three rules — Fajr and
+Isha 01:14 for middle of the night, 03:31 and 22:56 for seventh of the night,
+02:31 and 23:50 for twilight angle — so the rule is the only thing that moves
+those times. The pinned version's own suite supplies the other high-latitude
+case (`testMoonsightingMethodHighLat`: Oslo, 60°N, 2016-01-01), where the
+method's seasonal adjustment produced the times and the user's rule does not
+apply. Around them: a day where a looser rule keeps true twilight while a tighter
+one caps it (London, 2016-08-15), a low latitude where no rule binds (Dhaka), a
+method with a fixed Isha interval, a method with its own rule, and an unavailable
+polar date.
 
 Not yet covered: the **launch market's own method**, Karachi. It is exercised
 (the Hanafi-vs-Standard Asr check uses it) but not against a documented

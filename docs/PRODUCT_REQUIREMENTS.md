@@ -45,7 +45,7 @@ Feature-level acceptance criteria for the MVP. The full user-story set and the p
 
 **Prayer times**
 - Today's five times are shown for the chosen city and method, computed offline, and match the documented reference cases within the agreed tolerance.
-- The chosen calculation method and Asr juristic method are visible on the times screen and never change silently.
+- The chosen calculation method, Asr juristic method and high-latitude rule are visible on the times screen and never change silently, and a time the rule produced is disclosed as such.
 - Every displayed time is reproducible from recorded inputs — method, parameters, location, timezone, date and offsets.
 - Tomorrow's times are available, and the city and method can be changed after setup (issue #5).
 
@@ -67,7 +67,7 @@ Feature-level acceptance criteria for the MVP. The full user-story set and the p
 - The total survives restarts and works offline; the app attributes no dhikr text.
 
 **Settings**
-- Language (Bengali or English), city, calculation method, Asr juristic method, and per-prayer offsets are viewable and changeable; choices survive restarts.
+- Language (Bengali or English), city, calculation method, Asr juristic method, high-latitude rule, and per-prayer offsets are viewable and changeable; choices survive restarts.
 - Offsets are shown as the user's own adjustment, separate from the raw result, and can be removed.
 
 **Account & sync (optional)**
