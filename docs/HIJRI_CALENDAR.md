@@ -32,14 +32,14 @@ off the chronology. The month names are the app's own string resources, not
 platform locale data, so they are reviewed and translated with the rest of the UI
 (`docs/PRODUCT_REQUIREMENTS.md` §7, §8).
 
-## The ±1-day adjustment
+## The ±1-day shift
 
 A country or community that begins a month by an **announced moon sighting**
 often starts it a day either side of the calculated Umm al-Qura date. The app
 therefore offers the user one control, and nothing else:
 
-- **±1 day**, and no further. The limit lives in `HijriCalendar.MAX_DAY_OFFSET`
-  and is applied by `HijriCalendar.clampDayOffset`, so neither the UI nor a
+- **±1 day**, and no further. The limit lives in `HijriCalendar.MAX_DAY_SHIFT`
+  and is applied by `HijriCalendar.clampDayShift`, so neither the UI nor a
   stored value can move a date past it.
 - The shift is **stored with the user's choices** (`UserSelection`), so it
   survives a restart, applies to **every** Hijri date the app shows — both days
@@ -60,21 +60,31 @@ reconcile. Both dates are correct within their own convention.
 - the convention itself — the platform chronology is the Umm al-Qura one the
   label names, so a platform default changing fails loudly;
 - **published Umm al-Qura dates** from outside the code: 1 Ramadan 1445,
-  1 Shawwal 1445 (Eid al-Fitr), 1 Muharram 1446 and 1 Ramadan 1446;
+  1 Shawwal 1445 (Eid al-Fitr), 1 Muharram 1446 and 1 Ramadan 1446. Sources:
+  the Umm al-Qura civil calendar for each month, and Saudi Arabia's Supreme
+  Court announcement of 1 Muharram 1446 (6 July 2024 = 30 Dhu al-Hijjah 1445);
 - a **month boundary of 29 days** (Sha'ban 1446 → Ramadan 1446) and of
   **30 days** (Ramadan 1445 → Shawwal 1445);
 - a **year boundary** (30 Dhu al-Hijjah 1445 → 1 Muharram 1446);
 - the shift across those boundaries, the case above (a local announcement a day
   after the calculation), and clamping beyond ±1.
 
+The date fed in is the **city's** local date, already resolved from the instant
+and the city's zone by the prayer-time calculator; the zone, daylight-saving and
+rollover cases for that step are in `PrayerTimeCalculatorTest`
+(`todayAndTomorrowFollowTheCitiesLocalCalendar`), not duplicated here.
+
 `UserSelectionCodecTest` covers the shift surviving storage, its absence in an
 older stored selection, an unparsable value, and clamping on read.
 
-## Known limits and open items
+## Open items
 
-- The umalqura table is the **platform's**. A change to Saudi Arabia's official
-  calendar may not appear until that platform data is updated; the ±1-day shift
-  reconciles a one-day difference, not more.
+- The umalqura table is the **platform's**, and the two platforms differ: the JVM
+  tests exercise the JDK's table, while Android ships its own chronology data,
+  which may disagree by a day. The ±1-day shift reconciles one day, not more, and
+  a divergence this way is a reason to widen the documentation, not the shift.
+- A change to Saudi Arabia's official calendar may not appear until that platform
+  data is updated.
 - The platform's table covers roughly **1882–2174 CE** and throws outside it. The
   app only ever converts today's and tomorrow's date.
 - **Not yet checked against a trusted local source for the launch market** (the

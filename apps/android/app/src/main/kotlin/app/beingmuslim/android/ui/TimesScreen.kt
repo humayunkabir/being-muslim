@@ -39,7 +39,7 @@ import java.util.TimeZone
  * where the high-latitude rule, not true dawn or dusk, produced its Fajr or Isha
  * (issue #7). Times are formatted for the device's locale and the city's time
  * zone. [onChangeSettings] opens the screen where the user changes their city or
- * method, [onAdjustHijriDay] shifts the calculated Hijri dates by ±1 day (§7),
+ * method, [onShiftHijriDay] shifts the calculated Hijri dates by ±1 day (§7),
  * and [onOpenTasbih] opens the counter.
  */
 @Composable
@@ -47,7 +47,7 @@ fun TimesScreen(
     state: AppUiState.Times,
     onChangeSettings: () -> Unit,
     onOpenTasbih: () -> Unit,
-    onAdjustHijriDay: (Int) -> Unit,
+    onShiftHijriDay: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(modifier = modifier.fillMaxSize()) { innerPadding ->
@@ -68,10 +68,10 @@ fun TimesScreen(
                 style = MaterialTheme.typography.titleMedium,
             )
 
-            DaySection(R.string.times_section_today, state.days.today, state.city, state.hijriDayOffset)
-            DaySection(R.string.times_section_tomorrow, state.days.tomorrow, state.city, state.hijriDayOffset)
+            DaySection(R.string.times_section_today, state.days.today, state.city, state.hijriDayShift)
+            DaySection(R.string.times_section_tomorrow, state.days.tomorrow, state.city, state.hijriDayShift)
 
-            HijriDateSection(state.hijriDayOffset, onAdjustHijriDay)
+            HijriDateSection(state.hijriDayShift, onShiftHijriDay)
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
@@ -125,7 +125,7 @@ private fun DaySection(
     @StringRes headingRes: Int,
     times: DailyPrayerTimes?,
     city: City,
-    hijriDayOffset: Int,
+    hijriDayShift: Int,
 ) {
     Text(
         text = stringResource(headingRes),
@@ -145,7 +145,7 @@ private fun DaySection(
         style = MaterialTheme.typography.bodyMedium,
     )
     Text(
-        text = formatHijriDate(times.date, hijriDayOffset),
+        text = formatHijriDate(times.date, hijriDayShift),
         style = MaterialTheme.typography.bodyMedium,
     )
     Prayer.entries.forEach { prayer ->
@@ -192,13 +192,13 @@ private fun DaySection(
 }
 
 /**
- * The Hijri date's provenance and the user's ±1-day adjustment of it
+ * The Hijri date's provenance and the user's ±1-day shift of it
  * (`docs/PRODUCT_REQUIREMENTS.md` §7). The copy says what the date is — a
  * calculation on a named convention — and that a local announcement may differ,
  * so a calculated date is never taken for a confirmed sighting.
  */
 @Composable
-private fun HijriDateSection(dayOffset: Int, onAdjustHijriDay: (Int) -> Unit) {
+private fun HijriDateSection(dayShift: Int, onShiftHijriDay: (Int) -> Unit) {
     Text(
         text = stringResource(R.string.hijri_label),
         style = MaterialTheme.typography.bodySmall,
@@ -212,32 +212,32 @@ private fun HijriDateSection(dayOffset: Int, onAdjustHijriDay: (Int) -> Unit) {
         // Each direction is offered only while it can still move the date, so
         // the pair cannot reach a shift the app does not support.
         TextButton(
-            onClick = { onAdjustHijriDay(-1) },
-            enabled = dayOffset > -HijriCalendar.MAX_DAY_OFFSET,
+            onClick = { onShiftHijriDay(-1) },
+            enabled = dayShift > -HijriCalendar.MAX_DAY_SHIFT,
         ) {
-            Text(stringResource(R.string.hijri_adjust_earlier))
+            Text(stringResource(R.string.hijri_shift_earlier))
         }
         TextButton(
-            onClick = { onAdjustHijriDay(1) },
-            enabled = dayOffset < HijriCalendar.MAX_DAY_OFFSET,
+            onClick = { onShiftHijriDay(1) },
+            enabled = dayShift < HijriCalendar.MAX_DAY_SHIFT,
         ) {
-            Text(stringResource(R.string.hijri_adjust_later))
+            Text(stringResource(R.string.hijri_shift_later))
         }
     }
-    if (dayOffset != 0) {
+    if (dayShift != 0) {
         Text(
             text = stringResource(
-                if (dayOffset > 0) R.string.hijri_adjusted_later else R.string.hijri_adjusted_earlier,
+                if (dayShift > 0) R.string.hijri_shifted_later else R.string.hijri_shifted_earlier,
             ),
             style = MaterialTheme.typography.bodySmall,
         )
     }
 }
 
-/** Formats [date]'s Hijri day, shifted by [dayOffsetDays], as "11 Ramadan 1445". */
+/** Formats [date]'s Hijri date, shifted by [dayShiftDays], as "Hijri: 11 Ramadan 1445". */
 @Composable
-private fun formatHijriDate(date: LocalDate, dayOffsetDays: Int): String {
-    val hijri = HijriCalendar.dateFor(date, dayOffsetDays)
+private fun formatHijriDate(date: LocalDate, dayShiftDays: Int): String {
+    val hijri = HijriCalendar.dateFor(date, dayShiftDays)
     return stringResource(
         R.string.hijri_date,
         hijri.day,

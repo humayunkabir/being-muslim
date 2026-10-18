@@ -29,17 +29,17 @@ object UserSelectionCodec {
      * The user's ±1-day Hijri date shift. Absent in selections written before
      * the Hijri date shipped, which read as the calculated date.
      */
-    const val HIJRI_DAY_OFFSET = "hijri_day_offset"
+    const val HIJRI_DAY_SHIFT = "hijri_day_shift"
 
     /** Every key [decode] reads, for a caller assembling the stored values. */
-    val KEYS = listOf(CITY_ID, METHOD, ASR_METHOD, HIGH_LATITUDE_RULE, HIJRI_DAY_OFFSET)
+    val KEYS = listOf(CITY_ID, METHOD, ASR_METHOD, HIGH_LATITUDE_RULE, HIJRI_DAY_SHIFT)
 
     fun encode(selection: UserSelection): Map<String, String> = mapOf(
         CITY_ID to selection.cityId.toString(),
         METHOD to selection.settings.method.name,
         ASR_METHOD to selection.settings.asrJuristicMethod.name,
         HIGH_LATITUDE_RULE to selection.settings.highLatitudeRule.name,
-        HIJRI_DAY_OFFSET to selection.hijriDayOffset.toString(),
+        HIJRI_DAY_SHIFT to selection.hijriDayShift.toString(),
     )
 
     fun decode(values: Map<String, String?>): UserSelection? {
@@ -47,12 +47,12 @@ object UserSelectionCodec {
         val method = enumOrNull<CalculationMethodChoice>(values[METHOD]) ?: return null
         val asrJuristicMethod = enumOrNull<AsrJuristicMethod>(values[ASR_METHOD]) ?: return null
         val highLatitudeRule = enumOrNull<HighLatitudeRuleChoice>(values[HIGH_LATITUDE_RULE]) ?: return null
-        val hijriDayOffset = HijriCalendar.clampDayOffset(values[HIJRI_DAY_OFFSET]?.toIntOrNull() ?: 0)
+        val hijriDayShift = HijriCalendar.clampDayShift(values[HIJRI_DAY_SHIFT]?.toIntOrNull() ?: 0)
 
         return UserSelection(
             cityId,
             CalculationSettings(method, asrJuristicMethod, highLatitudeRule),
-            hijriDayOffset,
+            hijriDayShift,
         )
     }
 

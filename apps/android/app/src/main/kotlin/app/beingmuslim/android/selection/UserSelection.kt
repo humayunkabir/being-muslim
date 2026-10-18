@@ -12,5 +12,5 @@ import app.beingmuslim.android.prayer.CalculationSettings
 data class UserSelection(
     val cityId: Long,
     val settings: CalculationSettings,
-    val hijriDayOffset: Int = 0,
+    val hijriDayShift: Int = 0,
 )

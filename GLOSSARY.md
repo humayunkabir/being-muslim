@@ -130,6 +130,12 @@ A local, announced start of a Hijri month. A date based on one is not equivalent
 to a calculated Hijri date.
 _Avoid_: Observation, sighting
 
+**Hijri date shift**:
+A user-applied movement of a calculated Hijri date, by a day at most, so it
+matches the month start their own country or community announces. Not a
+prayer-time *Offset*.
+_Avoid_: Offset, correction, adjustment
+
 ### Reminders
 
 **Reminder**:
