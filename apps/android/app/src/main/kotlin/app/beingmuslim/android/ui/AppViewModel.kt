@@ -123,7 +123,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /** Leaves settings with the choices the user already had. */
-    fun dismissSettings() = refreshTimes()
+    fun dismissSettings() = showStoredSelection()
 
     /**
      * Recomputes today's times for the current selection. The UI calls this when
@@ -136,6 +136,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun refreshTimes() {
         if (_state.value !is AppUiState.Times) return
+        showStoredSelection()
+    }
+
+    /** Shows the times for the selection the user already had. */
+    private fun showStoredSelection() {
         val loaded = catalog ?: return
         val current = selection ?: return
         viewModelScope.launch { showTimes(current, loaded) }
