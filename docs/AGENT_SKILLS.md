@@ -31,6 +31,11 @@ and the counts below include them.
 | `@dietrichgebert/ponytail` | `5.3.2` | The "lazy senior dev" (YAGNI) ruleset plus 6 skills and 6 commands — `/ponytail`, `/ponytail-audit`, `/ponytail-debt`, `/ponytail-gain`, `/ponytail-help`, `/ponytail-review`. Project-scoped: it loads for anyone who opens this repo, and OpenCode fetches it from npm. |
 | `superpowers` | `v7.0.0` (git tag) | A whole development methodology as 15 skills — `brainstorming`, `writing-plans`, `subagent-driven-development`, `test-driven-development`, `systematic-debugging`, `using-superpowers`, and the rest. It also injects its own tool mapping for this harness. Git-backed: OpenCode clones it under `~/.cache/opencode/npm/git-superpowers-*`, so it needs no checkout here. |
 
+Both are MIT — `ponytail` (c) 2026 DietrichGebert; `superpowers` (c) 2025 Jesse
+Vincent — and both are agent tooling, so they install into OpenCode's own cache
+(`~/.cache/opencode/`), not into either app: no build or runtime dependency is
+added to iOS or Android.
+
 Adding one is a line in `opencode.json`; removing it is deleting that line.
 `opencode plugin list` reports what actually loaded, and each plugin's skills
 appear in the `skill` tool the moment the config reloads.
@@ -158,6 +163,7 @@ update does not silently revert them.
 
 ## Related
 
-- `opencode.json` — project OpenCode config (MCP servers; unrelated to skills).
+- `opencode.json` — project OpenCode config: the `mcp.servers` block, and the
+  `plugins` array that decides which plugin skills load.
 - `AGENTS.md` — repository engineering rules; the `## Agent skills` block is
   added there by `/setup-matt-pocock-skills`.
