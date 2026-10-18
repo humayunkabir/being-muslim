@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import app.beingmuslim.android.R
 import app.beingmuslim.android.prayer.AsrJuristicMethod
 import app.beingmuslim.android.prayer.CalculationMethodChoice
+import app.beingmuslim.android.prayer.HighLatitudeRuleChoice
 import app.beingmuslim.android.prayer.Prayer
 
 /**
@@ -50,6 +51,33 @@ fun AsrJuristicMethod.labelRes(): Int = when (this) {
 fun AsrJuristicMethod.descriptionRes(): Int = when (this) {
     AsrJuristicMethod.STANDARD -> R.string.asr_standard_description
     AsrJuristicMethod.HANAFI -> R.string.asr_hanafi_description
+}
+
+@StringRes
+fun HighLatitudeRuleChoice.labelRes(): Int = when (this) {
+    HighLatitudeRuleChoice.MIDDLE_OF_THE_NIGHT -> R.string.high_latitude_rule_middle_of_the_night
+    HighLatitudeRuleChoice.SEVENTH_OF_THE_NIGHT -> R.string.high_latitude_rule_seventh_of_the_night
+    HighLatitudeRuleChoice.TWILIGHT_ANGLE -> R.string.high_latitude_rule_twilight_angle
+}
+
+@StringRes
+fun HighLatitudeRuleChoice.descriptionRes(): Int = when (this) {
+    HighLatitudeRuleChoice.MIDDLE_OF_THE_NIGHT -> R.string.high_latitude_rule_middle_of_the_night_description
+    HighLatitudeRuleChoice.SEVENTH_OF_THE_NIGHT -> R.string.high_latitude_rule_seventh_of_the_night_description
+    HighLatitudeRuleChoice.TWILIGHT_ANGLE -> R.string.high_latitude_rule_twilight_angle_description
+}
+
+/**
+ * The times screen's disclosure that the high-latitude rule, not true dawn or
+ * dusk, produced a day's Fajr or Isha — or null when it produced neither and
+ * there is nothing to disclose (issue #7).
+ */
+@StringRes
+fun Set<Prayer>.highLatitudeRuleAppliedRes(): Int? = when {
+    Prayer.FAJR in this && Prayer.ISHA in this -> R.string.times_high_latitude_applied_to_both
+    Prayer.FAJR in this -> R.string.times_high_latitude_applied_to_fajr
+    Prayer.ISHA in this -> R.string.times_high_latitude_applied_to_isha
+    else -> null
 }
 
 @StringRes

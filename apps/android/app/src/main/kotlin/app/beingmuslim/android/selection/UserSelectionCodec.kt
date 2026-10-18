@@ -3,6 +3,7 @@ package app.beingmuslim.android.selection
 import app.beingmuslim.android.prayer.AsrJuristicMethod
 import app.beingmuslim.android.prayer.CalculationMethodChoice
 import app.beingmuslim.android.prayer.CalculationSettings
+import app.beingmuslim.android.prayer.HighLatitudeRuleChoice
 
 /**
  * Encodes and decodes the user's [UserSelection] to and from flat string
@@ -21,22 +22,28 @@ object UserSelectionCodec {
     const val CITY_ID = "city_id"
     const val METHOD = "calculation_method"
     const val ASR_METHOD = "asr_juristic_method"
+    const val HIGH_LATITUDE_RULE = "high_latitude_rule"
 
     /** Every key [decode] reads, for a caller assembling the stored values. */
-    val KEYS = listOf(CITY_ID, METHOD, ASR_METHOD)
+    val KEYS = listOf(CITY_ID, METHOD, ASR_METHOD, HIGH_LATITUDE_RULE)
 
     fun encode(selection: UserSelection): Map<String, String> = mapOf(
         CITY_ID to selection.cityId.toString(),
         METHOD to selection.settings.method.name,
         ASR_METHOD to selection.settings.asrJuristicMethod.name,
+        HIGH_LATITUDE_RULE to selection.settings.highLatitudeRule.name,
     )
 
     fun decode(values: Map<String, String?>): UserSelection? {
         val cityId = values[CITY_ID]?.toLongOrNull() ?: return null
         val method = enumOrNull<CalculationMethodChoice>(values[METHOD]) ?: return null
         val asrJuristicMethod = enumOrNull<AsrJuristicMethod>(values[ASR_METHOD]) ?: return null
+        val highLatitudeRule = enumOrNull<HighLatitudeRuleChoice>(values[HIGH_LATITUDE_RULE]) ?: return null
 
-        return UserSelection(cityId, CalculationSettings(method, asrJuristicMethod))
+        return UserSelection(
+            cityId,
+            CalculationSettings(method, asrJuristicMethod, highLatitudeRule),
+        )
     }
 
     private inline fun <reified T : Enum<T>> enumOrNull(name: String?): T? =

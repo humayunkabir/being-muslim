@@ -20,5 +20,15 @@ enum class CalculationMethodChoice(val adhan: CalculationMethod) {
     KUWAIT(CalculationMethod.KUWAIT),
     QATAR(CalculationMethod.QATAR),
     SINGAPORE(CalculationMethod.SINGAPORE),
-    NORTH_AMERICA(CalculationMethod.NORTH_AMERICA),
+    NORTH_AMERICA(CalculationMethod.NORTH_AMERICA);
+
+    /**
+     * Whether the method derives Fajr and Isha itself at high latitude instead of
+     * using the user's [HighLatitudeRuleChoice] — true for the Moonsighting
+     * Committee method, which applies its own seasonal twilight adjustment
+     * (`docs/PRAYER_TIMES.md`). Where true, the times screen must say the rule was
+     * not used (issue #7).
+     */
+    val usesItsOwnHighLatitudeRule: Boolean
+        get() = this == MOON_SIGHTING_COMMITTEE
 }
