@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import app.beingmuslim.android.citycatalog.BundledCityCatalog
 import app.beingmuslim.android.citycatalog.City
 import app.beingmuslim.android.citycatalog.CityCatalog
+import app.beingmuslim.android.hijri.HijriCalendar
 import app.beingmuslim.android.prayer.CalculationSettings
 import app.beingmuslim.android.prayer.PrayerTimeCalculator
 import app.beingmuslim.android.prayer.TwoDayPrayerTimes
@@ -38,12 +39,14 @@ sealed interface AppUiState {
 
     /**
      * The user's times: the city's current local date and the day after, either
-     * of which is null when the sun neither rises nor sets there that day.
+     * of which is null when the sun neither rises nor sets there that day, with
+     * the ±1-day shift applied to the calculated Hijri dates.
      */
     data class Times(
         val city: City,
         val settings: CalculationSettings,
         val days: TwoDayPrayerTimes,
+        val hijriDayOffset: Int,
     ) : AppUiState
 
     /** The counter the user is counting with, as it was left last time. */
@@ -104,14 +107,33 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * Records the choices the user made — at first run, or in settings — and
      * shows the times they produce. This is the only way a choice is ever
-     * changed, so nothing is changed on the user's behalf.
+     * changed, so nothing is changed on the user's behalf. The Hijri date shift
+     * is the user's own and is carried over untouched.
      */
     fun applySelection(cityId: Long, settings: CalculationSettings) {
         val loaded = catalog ?: return
         viewModelScope.launch {
-            val chosen = UserSelection(cityId, settings)
+            val chosen = UserSelection(cityId, settings, selection?.hijriDayOffset ?: 0)
             store.save(chosen)
             showTimes(chosen, loaded)
+        }
+    }
+
+    /**
+     * Shifts the calculated Hijri dates by [delta] days — the UI offers ±1 — so
+     * they match the user's own country's or community's announcement, and
+     * remembers the shift. Values that would move a date further are clamped, so
+     * the stored shift is always one the app supports.
+     */
+    fun adjustHijriDay(delta: Int) {
+        val loaded = catalog ?: return
+        val current = selection ?: return
+        viewModelScope.launch {
+            val adjusted = current.copy(
+                hijriDayOffset = HijriCalendar.clampDayOffset(current.hijriDayOffset + delta),
+            )
+            store.save(adjusted)
+            showTimes(adjusted, loaded)
         }
     }
 
@@ -195,7 +217,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         selection = chosen
         val days = daysAt(city, chosen.settings)
         if (request != timesRequest) return
-        _state.value = AppUiState.Times(city, chosen.settings, days)
+        _state.value = AppUiState.Times(city, chosen.settings, days, chosen.hijriDayOffset)
         scheduleRollover(city, chosen.settings)
     }
 

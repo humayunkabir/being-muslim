@@ -98,6 +98,8 @@ worth formatting.
   specification documents.
 - `docs/CITY_CATALOG.md` — the bundled city catalog's source, license, format,
   and coverage limits.
+- `docs/HIJRI_CALENDAR.md` — the calculated Hijri date's convention and the
+  user's ±1-day adjustment.
 - `docs/PRAYER_TIMES.md` — the prayer-time library, methods, parameters, and
   reference cases.
 - `docs/DECISIONS/` — architecture decision records.
