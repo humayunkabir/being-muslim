@@ -66,6 +66,8 @@ fun SettingsScreen(
                 style = MaterialTheme.typography.bodyMedium,
             )
 
+            LanguageChoice()
+
             CalculationChoiceForm(
                 catalog = catalog,
                 method = method,

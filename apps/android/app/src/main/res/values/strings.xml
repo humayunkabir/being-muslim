@@ -1,6 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Being Muslim</string>
+    <!-- Provisional product name, not translated (docs/PRODUCT_REQUIREMENTS.md §14). -->
+    <string name="app_name" translatable="false">Being Muslim</string>
+
+    <!-- Language (issue #14) -->
+    <string name="language_heading">Language</string>
+
+    <!--
+      Not translated: a language names itself the same way in every locale, and
+      a prayer's Arabic name is Arabic in both locales (issue #14). The Arabic
+      names need a reviewer for the same reason the Bengali copy does.
+    -->
+    <string name="language_english" translatable="false">English</string>
+    <string name="language_bengali" translatable="false">বাংলা</string>
+    <string name="prayer_fajr_arabic" translatable="false">الفجر</string>
+    <string name="prayer_dhuhr_arabic" translatable="false">الظهر</string>
+    <string name="prayer_asr_arabic" translatable="false">العصر</string>
+    <string name="prayer_maghrib_arabic" translatable="false">المغرب</string>
+    <string name="prayer_isha_arabic" translatable="false">العشاء</string>
 
     <!-- City, calculation-method and Asr-method choices; shared by first-run setup and settings (issues #4 and #5) -->
     <string name="setup_title">Set up prayer times</string>

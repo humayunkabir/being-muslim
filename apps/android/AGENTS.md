@@ -18,6 +18,12 @@ still apply and govern anything cross-cutting.
   design system is **per app** — extract `design-system/` once a repeated
   pattern exists, never speculatively (`docs/ARCHITECTURE.md` §2.1–§2.2,
   `docs/DESIGN_STANDARDS.md` §2/§4).
+- `MainActivity` stays an `AppCompatActivity` and the base theme stays an
+  AppCompat descendant: that is what applies the user's chosen app language
+  below Android 13 (issue #14, `docs/DECISIONS/0006`). User-facing strings live
+  in `values/strings.xml` and `values-bn/strings.xml`, and a new language needs
+  a `Language` entry and a `res/xml/locale_config.xml` entry too
+  (`LocalizationResourcesTest` enforces this).
 ## Build, test, lint
 
 Run from `apps/android`:

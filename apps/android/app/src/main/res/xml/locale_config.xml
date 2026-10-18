@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The languages the app ships, shown in the per-app language list in system
+  settings on Android 13+ (issue #14). Each entry needs a matching
+  `values-<tag>/` directory, or the default `values/` for the app's fallback
+  locale; `LocalizationResourcesTest` keeps the two in step.
+-->
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+    <locale android:name="en" />
+    <locale android:name="bn" />
+</locale-config>

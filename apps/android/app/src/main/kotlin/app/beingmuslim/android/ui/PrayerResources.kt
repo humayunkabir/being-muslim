@@ -88,3 +88,16 @@ fun Prayer.labelRes(): Int = when (this) {
     Prayer.MAGHRIB -> R.string.prayer_maghrib
     Prayer.ISHA -> R.string.prayer_isha
 }
+
+/**
+ * The prayer's Arabic name, shown beside the localized one. Not translated, and
+ * the same in both locales (issue #14).
+ */
+@StringRes
+fun Prayer.arabicRes(): Int = when (this) {
+    Prayer.FAJR -> R.string.prayer_fajr_arabic
+    Prayer.DHUHR -> R.string.prayer_dhuhr_arabic
+    Prayer.ASR -> R.string.prayer_asr_arabic
+    Prayer.MAGHRIB -> R.string.prayer_maghrib_arabic
+    Prayer.ISHA -> R.string.prayer_isha_arabic
+}

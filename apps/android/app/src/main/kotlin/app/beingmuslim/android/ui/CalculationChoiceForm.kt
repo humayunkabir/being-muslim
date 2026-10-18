@@ -62,6 +62,7 @@ fun CalculationChoiceForm(
     var showNotSure by rememberSaveable { mutableStateOf(false) }
 
     val selectedCity = selectedCityId?.let(catalog::byId)
+    val language = currentLanguage()
 
     val cityResults by produceState(emptyList<City>(), query, catalog) {
         // Scanning the catalog is cheap but not free; keep it off the main
@@ -163,7 +164,7 @@ fun CalculationChoiceForm(
         )
         selectedCity?.let {
             Text(
-                text = stringResource(R.string.setup_city_selected, it.displayName()),
+                text = stringResource(R.string.setup_city_selected, it.displayName(language)),
                 style = MaterialTheme.typography.bodyMedium,
             )
         }
@@ -176,7 +177,7 @@ fun CalculationChoiceForm(
         Column(Modifier.selectableGroup()) {
             cityResults.forEach { candidate ->
                 SelectableRow(
-                    label = candidate.displayName(),
+                    label = candidate.displayName(language),
                     description = candidate.countryCode,
                     selected = selectedCityId == candidate.id,
                     onSelect = {
@@ -190,7 +191,7 @@ fun CalculationChoiceForm(
 }
 
 @Composable
-private fun SectionHeading(@StringRes resId: Int) {
+internal fun SectionHeading(@StringRes resId: Int) {
     Text(
         text = stringResource(resId),
         style = MaterialTheme.typography.titleMedium,
@@ -198,11 +199,11 @@ private fun SectionHeading(@StringRes resId: Int) {
 }
 
 @Composable
-private fun SelectableRow(
+internal fun SelectableRow(
     label: String,
-    description: String,
     selected: Boolean,
     onSelect: () -> Unit,
+    description: String? = null,
 ) {
     Row(
         modifier = Modifier
@@ -219,11 +220,13 @@ private fun SelectableRow(
         Spacer(Modifier.width(8.dp))
         Column {
             Text(text = label, style = MaterialTheme.typography.bodyLarge)
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            description?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }
