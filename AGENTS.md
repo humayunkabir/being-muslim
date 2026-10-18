@@ -71,6 +71,11 @@ Ask for clarification before a material product or architecture decision that ca
 - **Issue tracker:** GitHub (`humayunkabir/being-muslim`) via the `gh` CLI. See `docs/agents/issue-tracker.md`.
 - **Triage labels:** the five canonical roles. See `docs/agents/triage-labels.md`.
 - **Domain docs:** single-context. See `docs/agents/domain.md`.
+- **Skill precedence:** these repo skills win when an installed plugin ships a
+  duplicate — `tdd` over a plugin's TDD skill, `code-review` over a plugin's
+  review skill, `writing-for-agents` over a plugin's skill-authoring skill.
+  The plugins installed for this project, and what each adds, are listed in
+  `docs/AGENT_SKILLS.md`.
 
 <!-- graft:start -->
 ## Graft — repo context graph

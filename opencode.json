@@ -5,13 +5,14 @@
     "superpowers@git+https://github.com/obra/superpowers.git#v7.0.0"
   ],
   "mcp": {
-    "graft": {
-      "type": "local",
-      "command": [
-        "graft",
-        "mcp"
-      ],
-      "enabled": true
+    "servers": {
+      "graft": {
+        "type": "local",
+        "command": [
+          "graft",
+          "mcp"
+        ]
+      }
     }
   }
 }
