@@ -39,16 +39,14 @@ class TasbihCodecTest {
     }
 
     @Test
-    fun aStoredCountBeyondItsTargetIsBroughtBackWithinIt() {
-        val stored = mapOf(
-            TasbihCodec.LABEL to "evening",
-            TasbihCodec.TARGET to "5",
-            TasbihCodec.COUNT to "9000",
-        )
+    fun aCountPastItsTargetSurvivesARestart() {
+        var counted = TasbihCounter(label = "evening", target = 100)
+        repeat(50) { counted = counted.counted() }
+        counted = counted.withTarget(10)
 
-        val restored = TasbihCodec.decode(stored)
+        val restored = TasbihCodec.decode(TasbihCodec.encode(counted))
 
-        assertEquals(5, restored.target)
-        assertEquals(5, restored.count)
+        assertEquals(counted, restored)
+        assertEquals(50, restored.count)
     }
 }

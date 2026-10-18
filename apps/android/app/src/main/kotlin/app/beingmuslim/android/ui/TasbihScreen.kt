@@ -36,7 +36,11 @@ import androidx.compose.ui.unit.dp
 import app.beingmuslim.android.R
 import app.beingmuslim.android.tasbih.TasbihCounter
 
-/** A target beyond this many digits cannot be held in an [Int], so it is not accepted. */
+/**
+ * While the target is being typed, only this many digits are kept. The largest it
+ * allows (999,999,999) is still an [Int], so every non-empty value parses — a
+ * target that failed to parse would silently read as no target at all.
+ */
 private const val MAX_TARGET_DIGITS = 9
 
 /**
@@ -70,7 +74,8 @@ fun TasbihScreen(
     val haptics = LocalHapticFeedback.current
     val target = counter.target
     // A count can sit past its target when the user lowers the target under it.
-    val progress = if (target == null || counter.count >= target) {
+    val reached = target != null && counter.count >= target
+    val progress = if (reached || target == null) {
         stringResource(R.string.tasbih_count_only, counter.count)
     } else {
         stringResource(R.string.tasbih_progress, counter.count, target)
@@ -78,7 +83,7 @@ fun TasbihScreen(
     val countDescription = stringResource(R.string.tasbih_count_action, progress)
     val hint = when {
         counter.label.isBlank() || target == null -> R.string.tasbih_not_ready
-        counter.count >= target -> R.string.tasbih_reached
+        reached -> R.string.tasbih_reached
         else -> null
     }
 
