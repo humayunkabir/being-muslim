@@ -16,11 +16,12 @@ GitHub's rules are stated once, here. They are stable and live in exactly one pl
 Keywords are interpreted **only when the pull request targets the repository's default branch**. Any other base makes every keyword inert: no links are created and merging closes nothing.
 
 ```sh
-gh repo view --json defaultBranchRef --jq .defaultBranchRef.name
-gh pr view <NUMBER> --json baseRefName --jq .baseRefName
+PR=24                              # the pull request in question
+DEFAULT=$(gh repo view --json defaultBranchRef --jq .defaultBranchRef.name)
+printf '%s %s\n' "$DEFAULT" "$(gh pr view "$PR" --json baseRefName --jq .baseRefName)"
 ```
 
-When they differ, say so in the body instead of promising a close, and get the issues closed another way — link them manually from the pull request's *Development* sidebar, or close them by hand after merge.
+When they differ, retarget — `gh pr edit "$PR" --base "$DEFAULT"` — or, for a pull request that does not exist yet, just open it against the default branch (`gh pr create --base "$DEFAULT"`). If neither is possible, say so in the body instead of promising a close, and get the issues closed another way — link them manually from the pull request's *Development* sidebar, or close them by hand after merge.
 
 ## 2. Compose the body
 
@@ -35,7 +36,7 @@ Closes #2, Closes #3, Closes #4
 Fixes octo-org/octo-repo#100
 ```
 
-- Same repository: `KEYWORD #NUMBER`. Another repository: `KEYWORD OWNER/REPO#NUMBER`.
+- Same repository: `KEYWORD #NUMBER`. Another repository: `KEYWORD OWNER/REPO#NUMBER` — that closes the issue over there, where step 4's check cannot see it.
 - Any of `close`, `closes`, `closed`, `fix`, `fixes`, `fixed`, `resolve`, `resolves`, `resolved`. Colons and uppercase are accepted (`Closes: #10`, `CLOSES #10`).
 - A closing keyword in a commit message works too, but then the pull request is not listed as linked.
 
@@ -44,12 +45,14 @@ Fixes octo-org/octo-repo#100
 Done only when GitHub reports every issue the body claims to close:
 
 ```sh
-OWNER=owner REPO=repo NUMBER=1
-gh api graphql -f query='{repository(owner:"'"$OWNER"'",name:"'"$REPO"'"){pullRequest(number:'"$NUMBER"'){closingIssuesReferences(first:25){totalCount nodes{number}}}}}' \
+OWNER=humayunkabir REPO=being-muslim PR=24
+gh api graphql -f query='{repository(owner:"'"$OWNER"'",name:"'"$REPO"'"){pullRequest(number:'"$PR"'){closingIssuesReferences(first:100){totalCount nodes{number}}}}}' \
   --jq '.data.repository.pullRequest.closingIssuesReferences | "\(.totalCount) \(.nodes|map(.number))"'
 ```
 
-An empty or short list means the gate in step 1 failed, or the rules above have drifted from the source — check it. GitHub can also lag; re-run before concluding. Links are derived from the description as it stands, so **re-verify after every body edit**; removing the keyword itself is the only way to unlink a keyword-linked issue.
+The check is `totalCount` against the number of issues the body claims — not the length of `nodes`, which `first` caps and which would silently hide a 26th keyword. `closingIssuesReferences` covers **this** repository only, so a cross-repository keyword (step 3) closes its issue but never appears here; verify those on the other repository's issue instead.
+
+A short count means the gate in step 1 failed, or the rules above have drifted from the source — check it. GitHub can also lag; re-run before concluding. Links are derived from the description as it stands, so **re-verify after every body edit**; removing the keyword itself is the only way to unlink a keyword-linked issue.
 
 ## This repository
 
