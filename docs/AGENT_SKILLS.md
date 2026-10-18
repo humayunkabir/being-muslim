@@ -1,7 +1,8 @@
-# Agent skills (vendored)
+# Agent skills
 
-This repository vendors a curated set of agent skills so that OpenCode discovers
-them automatically. They are prompt documents, not code: no build step, no
+This repository ships a curated set of agent skills so that OpenCode discovers
+them automatically — the vendored set below, plus one of its own (`make-pr`; see
+*Repo-native skills*). They are prompt documents, not code: no build step, no
 runtime dependency, and no effect on the iOS or Android builds.
 
 ## What is installed
@@ -39,6 +40,15 @@ added to iOS or Android.
 Adding one is a line in `opencode.json`; removing it is deleting that line.
 `opencode plugin list` reports what actually loaded, and each plugin's skills
 appear in the `skill` tool the moment the config reloads.
+
+## Repo-native skills
+
+Skills this repository writes itself sit beside the vendored ones and are ours to
+edit freely — upstream re-copying never touches them.
+
+| Skill | Why it exists |
+| --- | --- |
+| `make-pr` | The vendored `pr` skill owns the body's shape but says nothing about GitHub's **closing keywords**, and that silence cost us twice: a keyword repeated wrong, then a keyword that was right but inert because the pull request targeted a non-default branch. `make-pr` calls `pr` for the template and owns the closing keywords — the default-branch gate that decides whether they work at all, and a closing-issue count that must come back right before the body is done. |
 
 ## Layout
 
@@ -139,11 +149,12 @@ opencode api get '/api/skill?location%5Bdirectory%5D='"$PWD"
 opencode api get '/api/command?location%5Bdirectory%5D='"$PWD"
 ```
 
-Expect 50 skills (27 vendored + the built-in `opencode` and `report` + 6 from
-`ponytail` + 15 from `superpowers`) and 35 commands (27 wrappers + the built-in
-`init` and `review` + 6 from `ponytail`; `superpowers` adds skills only). Each
-skill entry reports its resolved `path` and whether `autoinvoke` is off, which
-is how the two invocation classes above can be confirmed rather than assumed.
+Expect 51 skills (27 vendored + `make-pr` + the built-in `opencode` and `report`
++ 6 from `ponytail` + 15 from `superpowers`) and 36 commands (27 wrappers +
+`make-pr` + the built-in `init` and `review` + 6 from `ponytail`; `superpowers`
+adds skills only). Each skill entry reports its resolved `path` and whether
+`autoinvoke` is off, which is how the two invocation classes above can be
+confirmed rather than assumed.
 
 ## Updating
 
