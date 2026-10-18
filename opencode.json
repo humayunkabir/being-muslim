@@ -12,6 +12,15 @@
           "graft",
           "mcp"
         ]
+      },
+      "codegraph": {
+        "type": "local",
+        "command": [
+          "codegraph",
+          "serve",
+          "--mcp"
+        ],
+        "codemode": false
       }
     }
   }
