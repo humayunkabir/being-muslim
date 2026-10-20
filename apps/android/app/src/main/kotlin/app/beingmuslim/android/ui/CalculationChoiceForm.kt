@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -39,6 +40,14 @@ import app.beingmuslim.android.prayer.CalculationMethodChoice
 import app.beingmuslim.android.prayer.HighLatitudeRuleChoice
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+
+private const val COUNTRY_RESULT_LIMIT = 8
+
+private data class CountryOption(
+    val code: String,
+    val label: String,
+    val searchNames: List<String>,
+)
 
 /**
  * The city, calculation-method, Asr-method and high-latitude-rule choices, shared
@@ -63,18 +72,50 @@ fun CalculationChoiceForm(
     modifier: Modifier = Modifier,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
+    var countryQuery by rememberSaveable { mutableStateOf("") }
+    var countryCode by rememberSaveable { mutableStateOf<String?>(null) }
     var showNotSure by rememberSaveable { mutableStateOf(false) }
 
     val selectedCity = selectedCityId?.let(catalog::byId)
     val language = currentLanguage()
 
-    val cityResults by produceState(emptyList<City>(), query, catalog) {
-        // Scanning the catalog is cheap but not free; keep it off the main
-        // thread so typing never blocks a frame.
-        value = if (query.isBlank()) {
+    val countryOptions = remember(language) {
+        catalog.countries().map { code ->
+            CountryOption(
+                code = code,
+                label = countryName(code, language),
+                searchNames = listOf(
+                    countryName(code, Language.ENGLISH),
+                    countryName(code, Language.BENGALI),
+                ).distinct(),
+            )
+        }
+    }
+    val selectedCountryName = countryCode?.let { selected ->
+        countryOptions.firstOrNull { it.code == selected }?.label
+    }
+    val countryResults = remember(countryQuery, countryOptions) {
+        val key = countryQuery.trim()
+        if (key.isEmpty()) {
             emptyList()
         } else {
-            withContext(Dispatchers.Default) { catalog.search(query) }
+            countryOptions
+                .filter { country ->
+                    country.code.equals(key, ignoreCase = true) ||
+                        country.searchNames.any { it.contains(key, ignoreCase = true) }
+                }
+                .take(COUNTRY_RESULT_LIMIT)
+        }
+    }
+
+    val chosenCountry = countryCode
+    val cityResults by produceState(emptyList<City>(), query, chosenCountry, catalog) {
+        // Scanning the catalog is cheap but not free; keep it off the main
+        // thread so typing never blocks a frame.
+        value = when {
+            query.isNotBlank() -> withContext(Dispatchers.Default) { catalog.search(query, chosenCountry) }
+            chosenCountry != null -> withContext(Dispatchers.Default) { catalog.citiesIn(chosenCountry) }
+            else -> emptyList()
         }
     }
 
@@ -165,6 +206,46 @@ fun CalculationChoiceForm(
             onCityFound = onCityChange,
         )
         OutlinedTextField(
+            value = countryQuery,
+            onValueChange = { countryQuery = it },
+            label = { Text(stringResource(R.string.setup_country_search_hint)) },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        selectedCountryName?.let { name ->
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = stringResource(R.string.setup_country_selected, name),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier
+                        .weight(1f)
+                        .semantics { liveRegion = LiveRegionMode.Polite },
+                )
+                TextButton(onClick = { countryCode = null }) {
+                    Text(stringResource(R.string.setup_country_all))
+                }
+            }
+        }
+        if (countryQuery.isNotBlank() && countryResults.isEmpty()) {
+            Text(
+                text = stringResource(R.string.setup_country_no_results),
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
+        Column(Modifier.selectableGroup()) {
+            countryResults.forEach { country ->
+                SelectableRow(
+                    label = country.label,
+                    description = country.code,
+                    selected = countryCode == country.code,
+                    onSelect = {
+                        countryCode = country.code
+                        countryQuery = ""
+                    },
+                )
+            }
+        }
+        OutlinedTextField(
             value = query,
             onValueChange = { query = it },
             label = { Text(stringResource(R.string.setup_city_search_hint)) },
@@ -188,7 +269,7 @@ fun CalculationChoiceForm(
             cityResults.forEach { candidate ->
                 SelectableRow(
                     label = candidate.displayName(language),
-                    description = candidate.countryCode,
+                    description = countryName(candidate.countryCode, language),
                     selected = selectedCityId == candidate.id,
                     onSelect = {
                         onCityChange(candidate.id)

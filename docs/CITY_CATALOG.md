@@ -80,15 +80,19 @@ not written to the asset.
 ## Coverage and limitations
 
 - **Global.** City search covers the whole catalog, and each result shows its
-  country as an ISO alpha-2 code. There is no country list or country-filtered
-  browsing yet; the MVP city picker searches by city name in English and Bengali.
+  country name. A searchable country filter sits beside the city search:
+  `CityCatalog.countries()` lists the ISO alpha-2 codes in the catalog,
+  `citiesIn(code)` lists that country's cities in population order, and
+  `search(query, countryCode)` scopes a name search to one country. A blank city
+  query with a country chosen browses that country's largest cities.
 - **Bengali names are partial by source.** GeoNames records a Bengali-script
   alternate name for 3,739 of the 34,166 cities (29 of 139 in Bangladesh).
   Lookup works in Bengali "where the catalog supports it" — a city without a
   Bengali name is found by its English name only.
-- **Country display names are not bundled.** Only codes and cities ship; localized
-  country names are a picker concern and are deferred. The MVP city picker
-  searches by city name in English and Bengali.
+- **Country display names are not bundled.** Only codes and cities ship; the
+  picker asks the platform locale for a name (`Locale.getDisplayCountry`) in the
+  app language. A region the platform has no name for is shown as its code, and
+  Bengali names depend on the device's locale data.
 - City entries that are administrative seats rather than settlements (thanas,
   districts) are present, as GeoNames supplies them.
 - **Nearest-city lookup is approximate.** `CityCatalog.nearest(latitude,

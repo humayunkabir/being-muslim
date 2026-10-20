@@ -87,6 +87,34 @@ class CityCatalogTest {
     }
 
     @Test
+    fun listsEachCountryOnceInCodeOrder() {
+        val catalog = catalogOf(dhaka, seoul, hala, chattogram)
+
+        assertEquals(listOf("BD", "KR", "PK"), catalog.countries())
+    }
+
+    @Test
+    fun listsACountrysCitiesInCatalogOrder() {
+        // Catalog order is population order, so the largest city comes first.
+        val catalog = catalogOf(dhaka, seoul, chattogram)
+
+        assertEquals(listOf("Dhaka", "Chattogram"), catalog.citiesIn("BD").map { it.name })
+    }
+
+    @Test
+    fun aCountryWithNoCitiesHasNone() {
+        assertEquals(emptyList<City>(), catalogOf(dhaka).citiesIn("US"))
+    }
+
+    @Test
+    fun searchCanBeLimitedToACountry() {
+        val catalog = catalogOf(dhaka, hala)
+
+        assertEquals(listOf("Dhaka"), catalog.search("a", countryCode = "BD").map { it.name })
+        assertEquals(emptyList<City>(), catalog.search("Dhaka", countryCode = "PK"))
+    }
+
+    @Test
     fun aPrefixMatchRankedLateStillOutranksEarlierSubstringMatches() {
         // Every city but the last only *contains* "ha"; the prefix match sits
         // last, past twice the limit, and must still come first.

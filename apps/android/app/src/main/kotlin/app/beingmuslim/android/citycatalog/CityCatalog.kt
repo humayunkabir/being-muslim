@@ -32,6 +32,7 @@ class CityCatalog private constructor(
 ) {
 
     private val byId: Map<Long, City> = cities.associateBy(City::id)
+    private val countryCodes: List<String> = cities.map(City::countryCode).distinct().sorted()
 
     /**
      * Every city, in catalog order. Exposed for whole-catalog checks — the
@@ -73,14 +74,36 @@ class CityCatalog private constructor(
     }
 
     /**
+     * Every country in the catalog, as ISO 3166-1 alpha-2 codes, sorted. Each
+     * code has at least one city; display names come from the platform locale,
+     * not from the catalog.
+     */
+    fun countries(): List<String> = countryCodes
+
+    /**
+     * The cities in [countryCode], in catalog order — most populated first — so
+     * a blank city query with a country chosen has something to browse. At most
+     * [limit] cities are returned.
+     */
+    fun citiesIn(countryCode: String, limit: Int = DEFAULT_SEARCH_LIMIT): List<City> {
+        require(limit > 0) { "limit must be positive, was $limit" }
+        return cities.filter { it.countryCode == countryCode }.take(limit)
+    }
+
+    /**
      * Cities whose English or Bengali name matches [query], most significant
      * first, with names that start with the query ranked ahead of names that
-     * merely contain it.
+     * merely contain it. When [countryCode] is set, only that country's cities
+     * are searched.
      *
      * The match is case-insensitive and ignores diacritics in Latin names. A
      * blank query matches nothing. At most [limit] cities are returned.
      */
-    fun search(query: String, limit: Int = DEFAULT_SEARCH_LIMIT): List<City> {
+    fun search(
+        query: String,
+        countryCode: String? = null,
+        limit: Int = DEFAULT_SEARCH_LIMIT,
+    ): List<City> {
         require(limit > 0) { "limit must be positive, was $limit" }
         val key = normalize(query)
         if (key.isEmpty()) return emptyList()
@@ -92,6 +115,7 @@ class CityCatalog private constructor(
             // exit is having enough of them; scanning must otherwise continue so
             // a prefix match ranked later still displaces a substring match.
             if (startsWith.size >= limit) break
+            if (countryCode != null && cities[index].countryCode != countryCode) continue
 
             if (nameKeys[index].startsWith(key) || bengaliKeys[index]?.startsWith(key) == true) {
                 startsWith += cities[index]
