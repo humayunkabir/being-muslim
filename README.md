@@ -107,6 +107,9 @@ worth formatting.
   compass states and limits.
 - `docs/REMINDERS.md` — the opt-in prayer reminders, quiet hours, permission
   UX, and delivery limits.
+- `docs/APPWRITE.md` — the optional account backend: endpoint and project IDs,
+  platform registrations, OAuth provider state, the sync table and its
+  permissions, and the admin-key runbook.
 - `docs/DECISIONS/` — architecture decision records.
 - `docs/AGENT_SKILLS.md` — vendored agent skills: provenance, layout, update
   procedure.
