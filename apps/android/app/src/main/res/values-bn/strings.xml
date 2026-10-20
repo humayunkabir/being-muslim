@@ -28,7 +28,7 @@
     <string name="setup_city_use_location">আমার অবস্থান ব্যবহার করুন</string>
     <string name="setup_city_location_benefit">ঐচ্ছিক। একটি মোটামুটি অবস্থান থেকে নিকটতম শহর সাজেস্ট করা হয়; এটি একবারই ব্যবহার করা হয় এবং সংরক্ষণ করা হয় না।</string>
     <string name="setup_city_location_searching">আপনার নিকটতম শহর খোঁজা হচ্ছে…</string>
-    <string name="setup_city_location_denied">অবস্থান বন্ধ আছে। পরিবর্তে শহর খুঁজুন।</string>
+    <string name="setup_city_location_denied">অবস্থানের অনুমতি দেওয়া হয়নি। পরিবর্তে শহর খুঁজুন।</string>
     <string name="setup_city_location_unavailable">আপনার অবস্থান পাওয়া যায়নি। পরিবর্তে শহর খুঁজুন।</string>
     <string name="setup_continue">চালিয়ে যান</string>
 

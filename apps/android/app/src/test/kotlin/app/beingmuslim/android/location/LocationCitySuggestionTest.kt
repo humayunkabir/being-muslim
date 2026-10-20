@@ -2,13 +2,13 @@ package app.beingmuslim.android.location
 
 import app.beingmuslim.android.citycatalog.CityCatalog
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * How a device fix becomes a city suggestion (issue #6): only a recent fix is
- * used, and the chosen city carries the timezone the times are calculated in.
- * The position never leaves this function.
+ * How a permission result and a device fix become a city suggestion (issue #6):
+ * denial is distinct from an unavailable fix, only a recent fix is used, and the
+ * chosen city carries the timezone the times are calculated in.
  */
 class LocationCitySuggestionTest {
 
@@ -20,40 +20,68 @@ class LocationCitySuggestionTest {
 
     @Test
     fun aFreshFixSelectsTheNearestCityIncludingItsTimezone() {
-        val city = LocationFix(23.72, 90.41, ageMillis = 0).nearestCity(catalog)
+        val result = suggestCity(
+            permissionGranted = true,
+            fix = LocationFix(23.72, 90.41, ageMillis = 0),
+            catalog = catalog,
+        )
 
-        assertEquals("Dhaka", city?.name)
-        assertEquals("Asia/Dhaka", city?.timezone)
+        assertTrue(result is CitySuggestion.Found)
+        val city = (result as CitySuggestion.Found).city
+        assertEquals("Dhaka", city.name)
+        assertEquals("Asia/Dhaka", city.timezone)
     }
 
     @Test
     fun aFixAtTheAgeLimitIsStillUsed() {
-        val city = LocationFix(22.34, 91.83, ageMillis = MAX_LOCATION_AGE_MILLIS)
-            .nearestCity(catalog)
+        val result = suggestCity(
+            permissionGranted = true,
+            fix = LocationFix(22.34, 91.83, ageMillis = MAX_LOCATION_AGE_MILLIS),
+            catalog = catalog,
+        )
 
-        assertEquals("Chattogram", city?.name)
+        assertTrue(result is CitySuggestion.Found)
+        assertEquals("Chattogram", (result as CitySuggestion.Found).city.name)
     }
 
     @Test
-    fun aStaleFixIsNotUsed() {
-        val city = LocationFix(23.72, 90.41, ageMillis = MAX_LOCATION_AGE_MILLIS + 1)
-            .nearestCity(catalog)
+    fun aStaleFixIsUnavailable() {
+        val result = suggestCity(
+            permissionGranted = true,
+            fix = LocationFix(23.72, 90.41, ageMillis = MAX_LOCATION_AGE_MILLIS + 1),
+            catalog = catalog,
+        )
 
-        assertNull(city)
+        assertEquals(CitySuggestion.Unavailable, result)
     }
 
     @Test
-    fun aMissingFixIsNotUsed() {
-        assertNull((null as LocationFix?).nearestCity(catalog))
+    fun aMissingFixIsUnavailable() {
+        assertEquals(CitySuggestion.Unavailable, suggestCity(true, null, catalog))
     }
 
     @Test
-    fun aFixWithAFutureTimestampIsNotUsed() {
-        assertNull(LocationFix(23.72, 90.41, ageMillis = -1).nearestCity(catalog))
+    fun aFixWithAFutureTimestampIsUnavailable() {
+        val result = suggestCity(true, LocationFix(23.72, 90.41, ageMillis = -1), catalog)
+
+        assertEquals(CitySuggestion.Unavailable, result)
     }
 
     @Test
-    fun aNonFiniteFixIsNotUsed() {
-        assertNull(LocationFix(Double.NaN, 90.41, ageMillis = 0).nearestCity(catalog))
+    fun aNonFiniteFixIsUnavailable() {
+        val result = suggestCity(true, LocationFix(Double.NaN, 90.41, ageMillis = 0), catalog)
+
+        assertEquals(CitySuggestion.Unavailable, result)
+    }
+
+    @Test
+    fun deniedPermissionIsReportedAsDenied() {
+        val result = suggestCity(
+            permissionGranted = false,
+            fix = LocationFix(23.72, 90.41, ageMillis = 0),
+            catalog = catalog,
+        )
+
+        assertEquals(CitySuggestion.Denied, result)
     }
 }

@@ -42,21 +42,29 @@ class LocationLookup(context: Context) {
 
     /**
      * One coarse fix, or null when permission is missing, no provider is
-     * enabled, or none arrives within [TIMEOUT_MILLIS]. A cached fix is used as
-     * a fallback; [nearestCity] rejects it if it is stale.
+     * enabled, or none arrives within [PROVIDER_TIMEOUT_MILLIS]. A cached fix is
+     * used as a fallback; [suggestCity] rejects it if it is stale.
      */
     suspend fun currentFix(): LocationFix? {
         if (!hasPermission()) return null
         val locationManager = manager ?: return null
-        val provider = enabledProvider(locationManager) ?: return null
+        val providers = withContext(Dispatchers.IO) { enabledProviders(locationManager) }
+        if (providers.isEmpty()) return null
 
-        val location = withTimeoutOrNull(TIMEOUT_MILLIS) {
-            requestCurrent(locationManager, provider)
-        } ?: lastKnown(locationManager) ?: return null
+        var location: Location? = null
+        for (provider in providers) {
+            location = withTimeoutOrNull(PROVIDER_TIMEOUT_MILLIS) {
+                requestCurrent(locationManager, provider)
+            }
+            if (location != null) break
+        }
+        val resolved = location
+            ?: withContext(Dispatchers.IO) { lastKnown(locationManager, providers) }
+            ?: return null
 
-        val ageMillis = (SystemClock.elapsedRealtimeNanos() - location.elapsedRealtimeNanos)
+        val ageMillis = (SystemClock.elapsedRealtimeNanos() - resolved.elapsedRealtimeNanos)
             .coerceAtLeast(0L) / NANOS_PER_MILLI
-        return LocationFix(location.latitude, location.longitude, ageMillis)
+        return LocationFix(resolved.latitude, resolved.longitude, ageMillis)
     }
 
     private suspend fun requestCurrent(manager: LocationManager, provider: String): Location? =
@@ -126,33 +134,27 @@ class LocationLookup(context: Context) {
 
     /**
      * The fused provider where the platform has one, else the network provider —
-     * both work with coarse permission. A disabled provider is skipped instead of
-     * leaving the user waiting for a fix that cannot arrive.
+     * both work with coarse permission. Disabled providers are skipped instead of
+     * leaving the user waiting for a fix that cannot arrive, and the next
+     * provider is tried if one returns nothing.
      */
-    private fun enabledProvider(manager: LocationManager): String? {
-        val providers = buildList {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                add(LocationManager.FUSED_PROVIDER)
-            }
-            add(LocationManager.NETWORK_PROVIDER)
-        }
-        return providers.firstOrNull { provider ->
+    private fun enabledProviders(manager: LocationManager): List<String> =
+        candidateProviders().filter { provider ->
             runCatching { manager.isProviderEnabled(provider) }.getOrDefault(false)
         }
+
+    private fun candidateProviders(): List<String> = buildList {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            add(LocationManager.FUSED_PROVIDER)
+        }
+        add(LocationManager.NETWORK_PROVIDER)
     }
 
     @SuppressLint("MissingPermission")
-    private fun lastKnown(manager: LocationManager): Location? {
-        val providers = buildList {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                add(LocationManager.FUSED_PROVIDER)
-            }
-            add(LocationManager.NETWORK_PROVIDER)
-        }
-        return providers.firstNotNullOfOrNull { provider ->
+    private fun lastKnown(manager: LocationManager, providers: List<String>): Location? =
+        providers.firstNotNullOfOrNull { provider ->
             runCatching { manager.getLastKnownLocation(provider) }.getOrNull()
         }
-    }
 
     private fun CancellableContinuation<Location?>.resumeIfActive(location: Location?) {
         if (isActive) resume(location)
@@ -162,7 +164,7 @@ class LocationLookup(context: Context) {
         /** The least precise permission that satisfies the suggestion. */
         val PERMISSION: String = Manifest.permission.ACCESS_COARSE_LOCATION
 
-        private const val TIMEOUT_MILLIS = 8_000L
+        private const val PROVIDER_TIMEOUT_MILLIS = 6_000L
         private const val NANOS_PER_MILLI = 1_000_000L
     }
 }

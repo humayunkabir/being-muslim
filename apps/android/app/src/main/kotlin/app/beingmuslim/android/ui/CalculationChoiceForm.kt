@@ -25,7 +25,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import app.beingmuslim.android.R
 import app.beingmuslim.android.citycatalog.City
@@ -38,9 +41,9 @@ import kotlinx.coroutines.withContext
 
 /**
  * The city, calculation-method, Asr-method and high-latitude-rule choices, shared
- * by first-run setup and settings (issues #4, #5 and #7). The caller holds the
- * choices, so this only ever reports a change the user made — no choice is ever
- * selected here.
+ * by first-run setup and settings (issues #4, #5, #6 and #7). The caller holds
+ * the choices, so this only ever reports a change the user made — the optional
+ * location action is the one suggestion, and it is still changeable.
  *
  * The "not sure which to choose" help is shown only while no method is chosen,
  * which is first run and nowhere else.
@@ -57,7 +60,6 @@ fun CalculationChoiceForm(
     onRuleChange: (HighLatitudeRuleChoice) -> Unit,
     onCityChange: (Long) -> Unit,
     modifier: Modifier = Modifier,
-    cityAction: @Composable () -> Unit = {},
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var showNotSure by rememberSaveable { mutableStateOf(false) }
@@ -156,7 +158,11 @@ fun CalculationChoiceForm(
             text = stringResource(R.string.setup_city_help),
             style = MaterialTheme.typography.bodySmall,
         )
-        cityAction()
+        LocationCitySuggestion(
+            catalog = catalog,
+            selectedCityId = selectedCityId,
+            onCityFound = onCityChange,
+        )
         OutlinedTextField(
             value = query,
             onValueChange = { query = it },
@@ -168,6 +174,7 @@ fun CalculationChoiceForm(
             Text(
                 text = stringResource(R.string.setup_city_selected, it.displayName(language)),
                 style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
             )
         }
         if (query.isNotBlank() && cityResults.isEmpty()) {
