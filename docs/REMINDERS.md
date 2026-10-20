@@ -18,6 +18,11 @@ already calculated offline.
   not stop while the app stays closed.
 - The whole set is replaced whenever the city, calculation method, offsets, or
   reminder choices change, so a stale prompt is not left behind after a change.
+- Opening the app only schedules when its WorkManager queue is empty. It does
+  not cancel a reminder the OS has deferred but not delivered yet.
+- A reminder the OS holds back for more than **one hour** is dropped rather than
+  posted late: a prompt for a prayer from hours ago would be misleading. The
+  next reminder still extends the queue.
 
 The policy itself — `ReminderSchedule.upcoming` — is pure: it takes the city,
 settings, offsets, preferences and the current instant, and returns the
@@ -52,13 +57,16 @@ moment the phone may beep. A window that crosses midnight (for example 22:00 to
 The notification is deliberately neutral: the app name and "Tap to open the
 app." No prayer name, no calculated time, no other devotional detail is shown,
 including on a lock screen. It is also marked `VISIBILITY_PRIVATE`, so the
-content stays hidden while the device is locked even if the copy changes later.
+system hides the content while the device is locked unless the user has chosen
+to show all notification content — and the copy stays neutral either way.
 
 Reminder choices are stored locally beside the selection, in their own
 preferences file. Which prayers a user asked to be prompted for is devotional
 activity, so that file is excluded from platform cloud backup and
 device-to-device transfer, like the tasbih counter
-(`docs/ARCHITECTURE.md` §7). It is not location data and holds no timestamps.
+(`docs/ARCHITECTURE.md` §7). WorkManager's database is excluded too: its queued
+work carries the prayer, instant and city zone, and on restore the app simply
+reschedules. The preferences file holds no location data and no timestamps.
 
 ## Adding a prayer or changing the policy
 

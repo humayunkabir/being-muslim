@@ -10,8 +10,16 @@
   job, which syncs the total only (docs/DECISIONS/0003). So both files are
   excluded from platform backup and transfer rather than copied to a cloud
   account (docs/PRODUCT_REQUIREMENTS.md §10).
+
+  WorkManager's database queues the reminder work and carries the prayer name,
+  instant and city zone in its input data and tags, so it is excluded too. Losing
+  it on restore is harmless: the app reschedules on next launch.
 -->
 <full-backup-content>
     <exclude domain="sharedpref" path="being_muslim_tasbih.xml" />
     <exclude domain="sharedpref" path="being_muslim_reminders.xml" />
+    <exclude domain="database" path="androidx.work.workdb" />
+    <exclude domain="database" path="androidx.work.workdb-journal" />
+    <exclude domain="database" path="androidx.work.workdb-wal" />
+    <exclude domain="database" path="androidx.work.workdb-shm" />
 </full-backup-content>

@@ -11,6 +11,7 @@ import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -24,7 +25,9 @@ import kotlinx.coroutines.withContext
  * [reschedule] replaces the previous set, so changing a city, a calculation
  * method, an offset, or a reminder choice can never leave a stale prompt behind.
  * [extend], called by a delivered reminder, adds the new end of the horizon
- * without cancelling the set the running worker belongs to.
+ * without cancelling the set the running worker belongs to. [ensureScheduled]
+ * is the launch path: it leaves a live queue alone, so a reminder the OS has not
+ * delivered yet is not cancelled and lost by merely opening the app.
  */
 class ReminderScheduler(context: Context) {
 
@@ -32,6 +35,13 @@ class ReminderScheduler(context: Context) {
     private val workManager = WorkManager.getInstance(this.context)
     private val reminders = ReminderStore(this.context)
     private val selections = SelectionStore(this.context)
+
+    suspend fun ensureScheduled() = withContext(Dispatchers.IO) {
+        val pending = workManager.getWorkInfosByTagFlow(WORK_TAG)
+            .first()
+            .any { !it.state.isFinished }
+        if (!pending) schedule(cancelExisting = true)
+    }
 
     suspend fun reschedule() = withContext(Dispatchers.IO) { schedule(cancelExisting = true) }
 
@@ -43,7 +53,12 @@ class ReminderScheduler(context: Context) {
         val preferences = reminders.load()
         if (preferences.enabledPrayers.isEmpty()) return@withLock
         val selection = selections.load() ?: return@withLock
-        val city = BundledCityCatalog.load(context.assets).byId(selection.cityId) ?: return@withLock
+        // A catalog that cannot be read leaves the queue as it is rather than
+        // crashing the caller; the next launch or settings change retries.
+        val city = runCatching { BundledCityCatalog.load(context.assets) }
+            .getOrNull()
+            ?.byId(selection.cityId)
+            ?: return@withLock
 
         val now = Instant.now()
         ReminderSchedule.upcoming(
@@ -61,6 +76,7 @@ class ReminderScheduler(context: Context) {
                         ReminderWorker.KEY_TAG to reminder.tag(),
                         ReminderWorker.KEY_PRAYER to reminder.prayer.name,
                         ReminderWorker.KEY_ZONE to city.timezone,
+                        ReminderWorker.KEY_AT to reminder.at.epochSecond,
                     ),
                 )
                 .addTag(WORK_TAG)
@@ -78,7 +94,7 @@ class ReminderScheduler(context: Context) {
     private fun Reminder.tag(): String = "${prayer.name}-$at"
 
     private companion object {
-        const val WORK_TAG = "prayer_reminders"
+        const val WORK_TAG = "prayer_reminder_work"
 
         /** Serialises the app's reschedule with a worker extending the horizon. */
         val lock = Mutex()

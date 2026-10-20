@@ -126,9 +126,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             } else {
                 showTimes(stored, loaded)
             }
-            // Re-schedule on launch: WorkManager keeps its queue across reboots,
-            // but a force-stop or a long gap may have emptied it.
-            reminderScheduler.reschedule()
+            // Re-schedule on launch only when the queue is empty, so a reminder
+            // the OS has deferred is not cancelled and lost by opening the app.
+            reminderScheduler.ensureScheduled()
         }
     }
 

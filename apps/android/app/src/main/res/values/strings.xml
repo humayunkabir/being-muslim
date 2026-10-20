@@ -159,6 +159,7 @@
     <string name="reminders_none_enabled">No reminders are on. Everything else in the app works without them.</string>
     <string name="reminders_quiet_hours">Quiet hours</string>
     <string name="reminders_quiet_hours_help">No reminder is sent between these times, in your chosen city\'s local time. A reminder inside the window is skipped, not delayed.</string>
+    <string name="reminders_quiet_hours_empty">The start and end are the same time, so this window suppresses nothing. Choose different times.</string>
     <string name="reminders_quiet_hours_from">From %1$s</string>
     <string name="reminders_quiet_hours_to">To %1$s</string>
     <string name="reminders_privacy_note">Notifications show a neutral message only. Your prayer names and times never appear on the lock screen.</string>
