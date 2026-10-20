@@ -57,6 +57,7 @@ fun CalculationChoiceForm(
     onRuleChange: (HighLatitudeRuleChoice) -> Unit,
     onCityChange: (Long) -> Unit,
     modifier: Modifier = Modifier,
+    cityAction: @Composable () -> Unit = {},
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var showNotSure by rememberSaveable { mutableStateOf(false) }
@@ -155,6 +156,7 @@ fun CalculationChoiceForm(
             text = stringResource(R.string.setup_city_help),
             style = MaterialTheme.typography.bodySmall,
         )
+        cityAction()
         OutlinedTextField(
             value = query,
             onValueChange = { query = it },

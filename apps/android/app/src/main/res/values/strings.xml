@@ -30,10 +30,15 @@
     <string name="setup_asr_heading">Juristic method for Asr</string>
     <string name="setup_asr_help">This sets how the afternoon (Asr) prayer is worked out, and can move Asr later in the day.</string>
     <string name="setup_city_heading">City</string>
-    <string name="setup_city_help">Times are calculated for one city. Search the offline list below — no location permission is needed.</string>
+    <string name="setup_city_help">Times are calculated for one city. Search the offline list, or use your location to suggest the nearest one.</string>
     <string name="setup_city_search_hint">Search a city</string>
     <string name="setup_city_no_results">No city matches that name.</string>
     <string name="setup_city_selected">Selected city: %1$s</string>
+    <string name="setup_city_use_location">Use my location</string>
+    <string name="setup_city_location_benefit">Optional. Suggests the nearest city from your approximate location, used once and never saved.</string>
+    <string name="setup_city_location_searching">Finding your nearest city…</string>
+    <string name="setup_city_location_denied">Location is off. Search for a city instead.</string>
+    <string name="setup_city_location_unavailable">Couldn\'t get your location. Search for a city instead.</string>
     <string name="setup_continue">Continue</string>
 
     <!-- Settings: changing the same choices after first run (issue #5) -->
