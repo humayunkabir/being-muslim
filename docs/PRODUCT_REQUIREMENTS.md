@@ -131,6 +131,8 @@ If Qibla or location-based features are included:
 
 Permission UX: `DESIGN_STANDARDS.md` §8.
 
+Bearing formula, true-north correction, compass states and known limits: `docs/QIBLA.md`. Test boundaries: `ARCHITECTURE.md` §6, §8.
+
 ## 7. Hijri calendar and dates
 
 If Hijri dates are included:

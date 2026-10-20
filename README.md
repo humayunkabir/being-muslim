@@ -102,6 +102,8 @@ worth formatting.
   user's ±1-day shift.
 - `docs/PRAYER_TIMES.md` — the prayer-time library, methods, parameters, and
   reference cases.
+- `docs/QIBLA.md` — the qibla bearing, the true-north correction, and the
+  compass states and limits.
 - `docs/DECISIONS/` — architecture decision records.
 - `docs/AGENT_SKILLS.md` — vendored agent skills: provenance, layout, update
   procedure.
