@@ -38,17 +38,19 @@ import java.util.TimeZone
  * calculation method, Asr juristic method and high-latitude rule that produced
  * them shown on screen (`docs/PRODUCT_REQUIREMENTS.md` §2.1, §5). A day says so
  * where the high-latitude rule, not true dawn or dusk, produced its Fajr or Isha
+<<<<<<< HEAD
  * (issue #7). A time the user has adjusted shows the adjusted time with the raw
  * calculated one beside it, never silently folded in (issue #8). Times are
  * formatted for the device's locale and the city's time zone. [onChangeSettings]
  * opens the screen where the user changes their city or method, [onShiftHijriDay]
- * shifts the calculated Hijri dates by ±1 day (§7), and [onOpenTasbih] opens the
- * counter.
+ * shifts the calculated Hijri dates by ±1 day (§7), [onOpenQibla] opens the
+ * qibla, and [onOpenTasbih] opens the counter.
  */
 @Composable
 fun TimesScreen(
     state: AppUiState.Times,
     onChangeSettings: () -> Unit,
+    onOpenQibla: () -> Unit,
     onOpenTasbih: () -> Unit,
     onShiftHijriDay: (Int) -> Unit,
     modifier: Modifier = Modifier,
@@ -125,8 +127,12 @@ fun TimesScreen(
             TextButton(onClick = onChangeSettings) {
                 Text(stringResource(R.string.times_change_settings))
             }
-            // shortcut: the counter is reached from here rather than from real
-            // navigation; give it its own destination when the app has one.
+            // shortcut: the qibla and the counter are reached from here rather
+            // than from real navigation; give each its own destination when the
+            // app has one.
+            TextButton(onClick = onOpenQibla) {
+                Text(stringResource(R.string.times_open_qibla))
+            }
             TextButton(onClick = onOpenTasbih) {
                 Text(stringResource(R.string.times_open_tasbih))
             }

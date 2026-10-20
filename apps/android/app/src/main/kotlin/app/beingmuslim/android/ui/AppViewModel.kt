@@ -27,7 +27,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/** What the app is showing: a load, the first-run setup, the times, the settings, or the tasbih. */
+/** What the app is showing: a load, the first-run setup, the times, the qibla, the settings, or the tasbih. */
 sealed interface AppUiState {
 
     data object Loading : AppUiState
@@ -52,6 +52,9 @@ sealed interface AppUiState {
         val hijriDayShift: Int,
         val offsets: PrayerOffsets,
     ) : AppUiState
+
+    /** The qibla for the user's city, or no city when none is selected. */
+    data class Qibla(val city: City?) : AppUiState
 
     /** The counter the user is counting with, as it was left last time. */
     data class Tasbih(val counter: TasbihCounter) : AppUiState
@@ -172,6 +175,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         val current = selection ?: return
         viewModelScope.launch { showTimes(current, loaded) }
     }
+
+    /** Opens the qibla for the city the user already chose. */
+    fun openQibla() {
+        val loaded = catalog ?: return
+        _state.value = AppUiState.Qibla(selection?.let { loaded.byId(it.cityId) })
+    }
+
+    /** Leaves the qibla and shows the times again. */
+    fun dismissQibla() = showStoredSelection()
 
     /** Opens the counter as the user last left it. */
     fun openTasbih() {

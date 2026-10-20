@@ -160,6 +160,23 @@
     <string name="tasbih_reset">Reset</string>
     <string name="tasbih_back">Back</string>
 
+    <!-- Qibla (issues #9 and #10). The direction is always a number from true
+         north, so it never depends on the compass or on colour alone. -->
+    <string name="times_open_qibla">Qibla direction</string>
+    <string name="qibla_title">Qibla</string>
+    <string name="qibla_back">Back</string>
+    <string name="qibla_bearing">%1$d° from true north</string>
+    <string name="qibla_no_city">Choose a city in setup to see the qibla. Every feature still works without a location permission.</string>
+    <string name="qibla_explanation">The direction from %1$s to the Kaaba in Makkah, calculated from the city\'s coordinates. It needs no permission and no network.</string>
+    <string name="qibla_compass_unavailable">This device has no usable compass, so the live direction cannot be shown. The bearing above is still correct: use it with a physical compass or a known local direction.</string>
+    <string name="qibla_compass_waiting">Waiting for the compass…</string>
+    <string name="qibla_calibration_required">The compass needs calibrating. Move the phone in a figure-eight until the reading settles, then hold it flat. The bearing above does not depend on the compass.</string>
+    <string name="qibla_reading_approximate">The compass reading is approximate. Hold the phone flat and away from metal.</string>
+    <string name="qibla_facing">You are facing the qibla.</string>
+    <string name="qibla_turn_right">Turn right %1$d°.</string>
+    <string name="qibla_turn_left">Turn left %1$d°.</string>
+    <string name="qibla_compass_limitation">Compass readings can be affected by nearby metal or magnets and by how the phone is held. Hold it flat.</string>
+
     <!-- Required by the bundled city catalog\'s CC BY 4.0 license (docs/CITY_CATALOG.md). -->
     <string name="city_catalog_attribution">City data from GeoNames (https://www.geonames.org/), licensed under CC BY 4.0.</string>
 </resources>

@@ -25,8 +25,8 @@ import app.beingmuslim.android.prayer.PrayerOffsets
 /**
  * The app shell. It shows the first-run setup until the user has chosen a
  * calculation method, an Asr juristic method, and a city, then today's and
- * tomorrow's times, with settings to change any of those choices
- * (`docs/PRODUCT_REQUIREMENTS.md` §2.1).
+ * tomorrow's times, with the qibla, settings and the counter reachable from
+ * there (`docs/PRODUCT_REQUIREMENTS.md` §2.1).
  */
 @Composable
 fun AppRoot(viewModel: AppViewModel = viewModel()) {
@@ -47,8 +47,13 @@ fun AppRoot(viewModel: AppViewModel = viewModel()) {
         is AppUiState.Times -> TimesScreen(
             state = current,
             onChangeSettings = viewModel::openSettings,
+            onOpenQibla = viewModel::openQibla,
             onOpenTasbih = viewModel::openTasbih,
             onShiftHijriDay = viewModel::shiftHijriDay,
+        )
+        is AppUiState.Qibla -> QiblaScreen(
+            state = current,
+            onBack = viewModel::dismissQibla,
         )
         is AppUiState.Settings -> SettingsScreen(
             catalog = current.catalog,

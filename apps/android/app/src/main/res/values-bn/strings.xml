@@ -145,6 +145,23 @@
     <string name="tasbih_reset">রিসেট</string>
     <string name="tasbih_back">পেছনে</string>
 
+    <!-- কিবলা (ইস্যু #৯ ও #১০)। দিকটি সর্বদা প্রকৃত উত্তর থেকে একটি সংখ্যা হিসেবে
+         দেওয়া হয়, তাই এটি কম্পাস বা কেবল রঙের উপর নির্ভর করে না। -->
+    <string name="times_open_qibla">কিবলার দিক</string>
+    <string name="qibla_title">কিবলা</string>
+    <string name="qibla_back">পেছনে</string>
+    <string name="qibla_bearing">প্রকৃত উত্তর থেকে %1$d°</string>
+    <string name="qibla_no_city">কিবলা দেখতে সেটআপে একটি শহর বেছে নিন। অবস্থানের অনুমতি ছাড়াই সব সুবিধা কাজ করে।</string>
+    <string name="qibla_explanation">%1$s থেকে মক্কার কাবার দিক, শহরের স্থানাঙ্ক থেকে হিসাব করা। এতে কোনো অনুমতি বা নেটওয়ার্ক লাগে না।</string>
+    <string name="qibla_compass_unavailable">এই ডিভাইসে ব্যবহারযোগ্য কম্পাস নেই, তাই সরাসরি দিক দেখানো যাচ্ছে না। উপরের দিকটি তবুও সঠিক: কোনো সাধারণ কম্পাস বা স্থানীয়ভাবে জানা দিকের সাথে মিলিয়ে নিন।</string>
+    <string name="qibla_compass_waiting">কম্পাসের জন্য অপেক্ষা করা হচ্ছে…</string>
+    <string name="qibla_calibration_required">কম্পাস ক্যালিব্রেট করা দরকার। ফোনটি আটের আকৃতিতে ঘোরান যতক্ষণ না পাঠ স্থির হয়, তারপর সমানভাবে ধরে রাখুন। উপরের দিকটি কম্পাসের উপর নির্ভর করে না।</string>
+    <string name="qibla_reading_approximate">কম্পাসের পাঠ মোটামুটি। ফোনটি সমানভাবে ধরে রাখুন এবং ধাতু থেকে দূরে রাখুন।</string>
+    <string name="qibla_facing">আপনি কিবলার দিকে মুখ করে আছেন।</string>
+    <string name="qibla_turn_right">ডানে %1$d° ঘুরুন।</string>
+    <string name="qibla_turn_left">বামে %1$d° ঘুরুন।</string>
+    <string name="qibla_compass_limitation">কাছের ধাতু বা চুম্বক এবং ফোন ধরার ভঙ্গি কম্পাসের পাঠকে প্রভাবিত করতে পারে। ফোনটি সমানভাবে ধরে রাখুন।</string>
+
     <!-- Loading and failure states -->
     <string name="state_loading">লোড হচ্ছে…</string>
     <string name="state_catalog_unavailable">শহরের তালিকা পড়া যায়নি। অ্যাপটি আবার ইনস্টল করুন, অথবা সমস্যাটি জানান।</string>
