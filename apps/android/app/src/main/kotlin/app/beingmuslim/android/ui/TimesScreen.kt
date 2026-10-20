@@ -43,7 +43,8 @@ import java.util.TimeZone
  * formatted for the device's locale and the city's time zone. [onChangeSettings]
  * opens the screen where the user changes their city or method, [onShiftHijriDay]
  * shifts the calculated Hijri dates by ±1 day (§7), [onOpenQibla] opens the
- * qibla, and [onOpenTasbih] opens the counter.
+ * qibla, [onOpenTasbih] opens the counter, and [onOpenReminders] opens the
+ * opt-in reminders (issue #12).
  */
 @Composable
 fun TimesScreen(
@@ -51,6 +52,7 @@ fun TimesScreen(
     onChangeSettings: () -> Unit,
     onOpenQibla: () -> Unit,
     onOpenTasbih: () -> Unit,
+    onOpenReminders: () -> Unit,
     onShiftHijriDay: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -139,6 +141,9 @@ fun TimesScreen(
             }
             TextButton(onClick = onOpenTasbih) {
                 Text(stringResource(R.string.times_open_tasbih))
+            }
+            TextButton(onClick = onOpenReminders) {
+                Text(stringResource(R.string.times_open_reminders))
             }
         }
     }
@@ -305,13 +310,6 @@ private val HIJRI_MONTH_LABELS = intArrayOf(
     R.string.hijri_month_11,
     R.string.hijri_month_12,
 )
-
-/** Formats [instant] for the device locale, in the city's [zone]. */
-private fun formatTime(context: Context, instant: Instant, zone: ZoneId): String {
-    val format = android.text.format.DateFormat.getTimeFormat(context)
-    format.timeZone = TimeZone.getTimeZone(zone)
-    return format.format(Date.from(instant))
-}
 
 /** Formats the local date of [times], in the city's zone. */
 private fun formatDate(context: Context, times: DailyPrayerTimes): String {

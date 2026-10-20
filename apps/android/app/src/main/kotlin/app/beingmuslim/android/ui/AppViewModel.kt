@@ -8,9 +8,14 @@ import app.beingmuslim.android.citycatalog.City
 import app.beingmuslim.android.citycatalog.CityCatalog
 import app.beingmuslim.android.hijri.HijriCalendar
 import app.beingmuslim.android.prayer.CalculationSettings
+import app.beingmuslim.android.prayer.Prayer
 import app.beingmuslim.android.prayer.PrayerOffsets
 import app.beingmuslim.android.prayer.PrayerTimeCalculator
 import app.beingmuslim.android.prayer.TwoDayPrayerTimes
+import app.beingmuslim.android.reminder.QuietHours
+import app.beingmuslim.android.reminder.ReminderPreferences
+import app.beingmuslim.android.reminder.ReminderScheduler
+import app.beingmuslim.android.reminder.ReminderStore
 import app.beingmuslim.android.selection.SelectionStore
 import app.beingmuslim.android.selection.UserSelection
 import app.beingmuslim.android.tasbih.TasbihCounter
@@ -25,9 +30,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
-/** What the app is showing: a load, the first-run setup, the times, the qibla, the settings, or the tasbih. */
+/** What the app is showing: a load, the first-run setup, the times, the qibla, the settings, the tasbih, or the reminders. */
 sealed interface AppUiState {
 
     data object Loading : AppUiState
@@ -60,6 +67,12 @@ sealed interface AppUiState {
     data class Tasbih(val counter: TasbihCounter) : AppUiState
 
     /**
+     * The reminders the user has asked for. Each change is saved as it is made,
+     * so leaving this screen never discards a choice (issue #12).
+     */
+    data class Reminders(val preferences: ReminderPreferences) : AppUiState
+
+    /**
      * The user is changing their city or calculation choices. Nothing is
      * persisted until they save, so opening settings never changes anything.
      */
@@ -82,14 +95,18 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     private val store = SelectionStore(application)
     private val tasbihStore = TasbihStore(application)
+    private val reminderStore = ReminderStore(application)
+    private val reminderScheduler = ReminderScheduler(application)
     private val _state = MutableStateFlow<AppUiState>(AppUiState.Loading)
     val state: StateFlow<AppUiState> = _state.asStateFlow()
 
     private var catalog: CityCatalog? = null
     private var selection: UserSelection? = null
     private var tasbih = TasbihCounter()
+    private var reminders = ReminderPreferences()
     private var rolloverJob: Job? = null
     private var timesRequest = 0
+    private val remindersUpdate = Mutex()
 
     init {
         viewModelScope.launch {
@@ -102,12 +119,16 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             }
             catalog = loaded
             tasbih = tasbihStore.load()
+            reminders = reminderStore.load()
             val stored = store.load()
             if (stored == null) {
                 _state.value = AppUiState.Setup(loaded)
             } else {
                 showTimes(stored, loaded)
             }
+            // Re-schedule on launch: WorkManager keeps its queue across reboots,
+            // but a force-stop or a long gap may have emptied it.
+            reminderScheduler.reschedule()
         }
     }
 
@@ -124,6 +145,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             val chosen = UserSelection(cityId, settings, selection?.hijriDayShift ?: 0, offsets)
             store.save(chosen)
             showTimes(chosen, loaded)
+            // The city, method and offsets all move reminder times.
+            reminderScheduler.reschedule()
         }
     }
 
@@ -197,6 +220,41 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     /** Opens the counter as the user last left it. */
     fun openTasbih() {
         _state.value = AppUiState.Tasbih(tasbih)
+    }
+
+    /** Opens the reminders, showing only what the user has already chosen. */
+    fun openReminders() {
+        _state.value = AppUiState.Reminders(reminders)
+    }
+
+    /** Leaves the reminders, keeping every choice made there. */
+    fun dismissReminders() = showStoredSelection()
+
+    fun setReminderEnabled(prayer: Prayer, enabled: Boolean) =
+        updateReminders(reminders.withReminder(prayer, enabled))
+
+    fun setQuietHoursEnabled(enabled: Boolean) =
+        updateReminders(reminders.copy(quietHoursEnabled = enabled))
+
+    fun setQuietHours(quietHours: QuietHours) =
+        updateReminders(reminders.copy(quietHours = quietHours))
+
+    /**
+     * Shows, stores and re-schedules the reminder choices — the one place they
+     * change, so what the screen shows and what the OS will deliver cannot drift.
+     */
+    private fun updateReminders(next: ReminderPreferences) {
+        if (next == reminders) return
+        reminders = next
+        _state.value = AppUiState.Reminders(next)
+        viewModelScope.launch {
+            // Saves are serialised and each writes the latest value, so two
+            // quick toggles cannot leave an older choice as the stored one.
+            remindersUpdate.withLock {
+                reminderStore.save(reminders)
+                reminderScheduler.reschedule()
+            }
+        }
     }
 
     /** Leaves the counter, keeping it, and shows the times again. */

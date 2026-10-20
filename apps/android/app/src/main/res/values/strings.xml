@@ -147,6 +147,34 @@
     <string name="prayer_maghrib">Maghrib</string>
     <string name="prayer_isha">Isha</string>
 
+    <!--
+      Prayer reminders (issue #12). Off by default and enabled per prayer. The
+      notification itself carries no devotional detail, and the copy says that
+      exact delivery depends on the OS and battery policy.
+    -->
+    <string name="times_open_reminders">Reminders</string>
+    <string name="reminders_title">Prayer reminders</string>
+    <string name="reminders_intro">Reminders are off unless you turn on a prayer here, one at a time. The app asks for notification permission only after you turn one on.</string>
+    <string name="reminders_prayers_heading">Remind me for</string>
+    <string name="reminders_none_enabled">No reminders are on. Everything else in the app works without them.</string>
+    <string name="reminders_quiet_hours">Quiet hours</string>
+    <string name="reminders_quiet_hours_help">No reminder is sent between these times, in your chosen city\'s local time. A reminder inside the window is skipped, not delayed.</string>
+    <string name="reminders_quiet_hours_from">From %1$s</string>
+    <string name="reminders_quiet_hours_to">To %1$s</string>
+    <string name="reminders_privacy_note">Notifications show a neutral message only. Your prayer names and times never appear on the lock screen.</string>
+    <string name="reminders_delivery_note">Android decides when a reminder is delivered. Exact timing depends on the operating system and battery policy, so it may arrive later than the calculated time.</string>
+    <string name="reminders_permission_title">Allow notifications?</string>
+    <string name="reminders_permission_body">You will get a notification at the time you chose for that prayer. Android asks for permission next. Notifications show a neutral message only, never a prayer name or time, and exact delivery depends on the operating system and battery policy. Everything else works without them.</string>
+    <string name="reminders_permission_confirm">Continue</string>
+    <string name="reminders_permission_later">Not now</string>
+    <string name="reminders_permission_denied">Notifications are turned off for this app, so reminders cannot be delivered. Everything else still works. You can allow notifications later in system settings.</string>
+    <string name="reminders_open_settings">Open notification settings</string>
+    <string name="reminders_back">Back</string>
+    <string name="reminder_notification_title">Reminder</string>
+    <string name="reminder_notification_body">Tap to open the app.</string>
+    <string name="reminders_channel_name">Prayer reminders</string>
+    <string name="reminders_channel_description">The reminders you turn on, at the times you chose. Notifications show a neutral message.</string>
+
     <!-- Loading and failure states -->
     <string name="state_loading">Loading…</string>
     <string name="state_catalog_unavailable">The city list could not be read. Reinstall the app, or report the problem.</string>

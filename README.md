@@ -5,7 +5,8 @@ single repository with two independently buildable apps.
 
 **Status:** Early. The Android app implements the first MVP path — first-run
 setup, then today's and tomorrow's offline prayer times for a chosen city and
-method, with the city and method changeable from settings afterwards. iOS remains
+method, with the city and method changeable from settings afterwards, plus
+opt-in per-prayer reminders with quiet hours. iOS remains
 a shell, parity following the Android product
 (`docs/DECISIONS/0002-android-first-release-order.md`). The MVP scope is recorded
 in `docs/PRODUCT_REQUIREMENTS.md` §2; the product name is still not finalized
@@ -104,6 +105,8 @@ worth formatting.
   reference cases.
 - `docs/QIBLA.md` — the qibla bearing, the true-north correction, and the
   compass states and limits.
+- `docs/REMINDERS.md` — the opt-in prayer reminders, quiet hours, permission
+  UX, and delivery limits.
 - `docs/DECISIONS/` — architecture decision records.
 - `docs/AGENT_SKILLS.md` — vendored agent skills: provenance, layout, update
   procedure.
