@@ -105,6 +105,7 @@
     <string name="times_method">Calculation method: %1$s</string>
     <string name="times_asr_method">Juristic method for Asr: %1$s</string>
     <string name="times_high_latitude_rule">High-latitude rule: %1$s</string>
+    <string name="times_variation_note">Calculated times vary by method, city, date and local authority, so a nearby masjid may announce slightly different times.</string>
     <string name="times_high_latitude_not_used">Not used by this method: it applies its own seasonal adjustment at high latitude instead.</string>
     <string name="times_high_latitude_applied_to_fajr">Fajr here comes from the high-latitude rule instead of true dawn: on this date at this latitude, true dawn either is not reached or falls beyond this rule\'s limit.</string>
     <string name="times_high_latitude_applied_to_isha">Isha here comes from the high-latitude rule instead of true dusk: on this date at this latitude, true dusk either is not reached or falls beyond this rule\'s limit.</string>

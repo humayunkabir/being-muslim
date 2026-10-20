@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -204,6 +205,8 @@ internal fun SectionHeading(@StringRes resId: Int) {
     Text(
         text = stringResource(resId),
         style = MaterialTheme.typography.titleMedium,
+        // Marked as a heading so TalkBack can jump between form sections.
+        modifier = Modifier.semantics { heading() },
     )
 }
 

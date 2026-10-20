@@ -128,6 +128,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
+     * Records the choices made in setup. A forced setup — the stored city is no
+     * longer in the catalog — keeps the user's saved offsets, because nothing is
+     * changed on their behalf; on first run there are none to keep.
+     */
+    fun completeSetup(cityId: Long, settings: CalculationSettings) {
+        applySelection(cityId, settings, selection?.offsets ?: PrayerOffsets())
+    }
+
+    /**
      * Shifts the calculated Hijri dates by [delta] days — the UI offers ±1 — so
      * they match the user's own country's or community's announcement, and
      * remembers the shift. Values that would move a date further are clamped, so
@@ -256,9 +265,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         rolloverJob = viewModelScope.launch {
             val zone = ZoneId.of(city.timezone)
             val now = Instant.now()
-            val nextMidnight = now.atZone(zone).toLocalDate().plusDays(1).atStartOfDay(zone).toInstant()
-            delay(Duration.between(now, nextMidnight).toMillis().coerceAtLeast(0))
+            delay(Duration.between(now, nextLocalMidnight(now, zone)).toMillis().coerceAtLeast(0))
             refreshTimes()
         }
     }
 }
+
+/** The city's next local midnight after [now] — when the shown day rolls over. */
+internal fun nextLocalMidnight(now: Instant, zone: ZoneId): Instant =
+    now.atZone(zone).toLocalDate().plusDays(1).atStartOfDay(zone).toInstant()

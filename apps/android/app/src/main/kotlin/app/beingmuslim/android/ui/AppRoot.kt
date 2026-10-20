@@ -20,7 +20,6 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.beingmuslim.android.R
-import app.beingmuslim.android.prayer.PrayerOffsets
 
 /**
  * The app shell. It shows the first-run setup until the user has chosen a
@@ -40,9 +39,7 @@ fun AppRoot(viewModel: AppViewModel = viewModel()) {
         AppUiState.CatalogUnavailable -> MessageScreen(R.string.state_catalog_unavailable)
         is AppUiState.Setup -> SetupScreen(
             catalog = current.catalog,
-            onComplete = { cityId, settings ->
-                viewModel.applySelection(cityId, settings, PrayerOffsets())
-            },
+            onComplete = viewModel::completeSetup,
         )
         is AppUiState.Times -> TimesScreen(
             state = current,

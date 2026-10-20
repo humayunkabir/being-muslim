@@ -79,8 +79,9 @@ not written to the asset.
 
 ## Coverage and limitations
 
-- **Global.** Countries appear as ISO alpha-2 codes; `CityCatalog.countries()`
-  lists them and `citiesIn(code)` lists a country's cities.
+- **Global.** City search covers the whole catalog, and each result shows its
+  country as an ISO alpha-2 code. There is no country list or country-filtered
+  browsing yet; the MVP city picker searches by city name in English and Bengali.
 - **Bengali names are partial by source.** GeoNames records a Bengali-script
   alternate name for 3,739 of the 34,166 cities (29 of 139 in Bangladesh).
   Lookup works in Bengali "where the catalog supports it" — a city without a

@@ -96,6 +96,7 @@
     <string name="times_method">হিসাবের পদ্ধতি: %1$s</string>
     <string name="times_asr_method">আসরের ফিকহি পদ্ধতি: %1$s</string>
     <string name="times_high_latitude_rule">উচ্চ অক্ষাংশের নিয়ম: %1$s</string>
+    <string name="times_variation_note">হিসাব করা সময় পদ্ধতি, শহর, তারিখ ও স্থানীয় কর্তৃপক্ষভেদে ভিন্ন হয়, তাই কাছের মসজিদ সামান্য ভিন্ন সময় ঘোষণা করতে পারে।</string>
     <string name="times_high_latitude_not_used">এই পদ্ধতি এটি ব্যবহার করে না: বরং উচ্চ অক্ষাংশে নিজের ঋতুভিত্তিক সমন্বয় প্রয়োগ করে।</string>
     <string name="times_high_latitude_applied_to_fajr">এখানে ফজর প্রকৃত ভোর থেকে নয়, উচ্চ অক্ষাংশের নিয়ম থেকে এসেছে: এই তারিখে এই অক্ষাংশে প্রকৃত ভোর হয় পৌঁছায় না, নয়তো এই নিয়মের সীমা ছাড়িয়ে যায়।</string>
     <string name="times_high_latitude_applied_to_isha">এখানে এশা প্রকৃত সন্ধ্যা থেকে নয়, উচ্চ অক্ষাংশের নিয়ম থেকে এসেছে: এই তারিখে এই অক্ষাংশে প্রকৃত সন্ধ্যা হয় পৌঁছায় না, নয়তো এই নিয়মের সীমা ছাড়িয়ে যায়।</string>

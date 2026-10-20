@@ -38,7 +38,6 @@ import java.util.TimeZone
  * calculation method, Asr juristic method and high-latitude rule that produced
  * them shown on screen (`docs/PRODUCT_REQUIREMENTS.md` §2.1, §5). A day says so
  * where the high-latitude rule, not true dawn or dusk, produced its Fajr or Isha
-<<<<<<< HEAD
  * (issue #7). A time the user has adjusted shows the adjusted time with the raw
  * calculated one beside it, never silently folded in (issue #8). Times are
  * formatted for the device's locale and the city's time zone. [onChangeSettings]
@@ -119,6 +118,11 @@ fun TimesScreen(
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
+            Text(
+                text = stringResource(R.string.times_variation_note),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             Text(
                 text = stringResource(R.string.city_catalog_attribution),
                 style = MaterialTheme.typography.bodySmall,
