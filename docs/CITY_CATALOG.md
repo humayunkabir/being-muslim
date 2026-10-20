@@ -90,8 +90,19 @@ not written to the asset.
   searches by city name in English and Bengali.
 - City entries that are administrative seats rather than settlements (thanas,
   districts) are present, as GeoNames supplies them.
+- **Nearest-city lookup is approximate.** `CityCatalog.nearest(latitude,
+  longitude)` compares the great-circle angle to every city and returns the
+  closest entry, including its timezone and GeoNames id. It is meant for a coarse
+  device fix that the user confirms or changes, so it always returns the nearest
+  entry even when it is far away; a non-finite position returns null. It reads
+  the local catalog only and stores, logs or transmits nothing.
 
 ## Unverified on this change
+
+- **The location permission flow is not implemented here.** This change adds only
+  the catalog lookup; the opt-in, permission request, and city pre-selection of
+  issue #6 remain, so the privacy and state handling in its acceptance criteria
+  are still to be built and verified.
 
 - **Load behaviour and memory on a low-end device is not yet verified.** The
   asset is ~1.9 MB and parsing is proportional to its size, so it must be loaded

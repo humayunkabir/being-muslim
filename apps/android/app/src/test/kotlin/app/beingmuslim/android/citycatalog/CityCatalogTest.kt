@@ -115,10 +115,21 @@ class CityCatalogTest {
     }
 
     @Test
+    fun anEmptyCatalogHasNoNearestCity() {
+        assertNull(catalogOf().nearest(23.7104, 90.40744))
+    }
+
+    @Test
+    fun aPositionThatIsNotFiniteHasNoNearestCity() {
+        assertNull(catalogOf(dhaka).nearest(Double.NaN, 90.40744))
+        assertNull(catalogOf(dhaka).nearest(23.7104, Double.POSITIVE_INFINITY))
+    }
+
+    @Test
     fun resolvesCoordinatesAcrossTheDateLine() {
         // Suva sits just west of the date line (178.44E), Apia just east of it
-        // (-171.75, that is 188.25E). A fix at -179.5 is 2° from Suva but 8°
-        // from Apia, so a straight subtraction of longitudes gets it wrong.
+        // (-171.75, that is 188.25E). A fix at -179.5 is ~1.07° from Suva but
+        // ~8.8° from Apia, so a straight subtraction of longitudes gets it wrong.
         val suva = "2198148\tSuva\t\t-18.1416\t178.4419\tFJ\tPacific/Fiji"
         val apia = "4035413\tApia\t\t-13.8333\t-171.75\tWS\tPacific/Apia"
 
