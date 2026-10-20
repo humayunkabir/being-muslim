@@ -46,6 +46,17 @@ class BundledCityCatalogAssetTest {
     }
 
     @Test
+    fun resolvesADeviceFixToTheNearestRealCity() {
+        // GeoNames' own coordinates for Dhaka: the nearest real city to a fix
+        // right there, carrying the timezone the times are computed in.
+        val nearest = catalog.nearest(23.7104, 90.40744)!!
+
+        assertEquals("Dhaka", nearest.name)
+        assertEquals("BD", nearest.countryCode)
+        assertEquals("Asia/Dhaka", nearest.timezone)
+    }
+
+    @Test
     fun findsDhakaInBengaliAndEnglish() {
         val byEnglish = catalog.search("Dhaka").first()
         assertEquals("Dhaka", byEnglish.name)

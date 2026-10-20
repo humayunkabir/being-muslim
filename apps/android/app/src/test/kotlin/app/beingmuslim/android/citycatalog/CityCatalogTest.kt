@@ -104,6 +104,27 @@ class CityCatalogTest {
         )
     }
 
+    @Test
+    fun resolvesCoordinatesToTheClosestCityWhateverTheCatalogOrder() {
+        // A device fix between Dhaka and Barishal: Barishal is nearer and sits
+        // later in the catalog, so catalog order must not decide the answer.
+        val catalog = catalogOf(dhaka, chattogram, barishal)
+
+        assertEquals("Dhaka", catalog.nearest(23.7104, 90.40744)!!.name)
+        assertEquals("Barishal", catalog.nearest(22.9, 90.4)!!.name)
+    }
+
+    @Test
+    fun resolvesCoordinatesAcrossTheDateLine() {
+        // Suva sits just west of the date line (178.44E), Apia just east of it
+        // (-171.75, that is 188.25E). A fix at -179.5 is 2° from Suva but 8°
+        // from Apia, so a straight subtraction of longitudes gets it wrong.
+        val suva = "2198148\tSuva\t\t-18.1416\t178.4419\tFJ\tPacific/Fiji"
+        val apia = "4035413\tApia\t\t-13.8333\t-171.75\tWS\tPacific/Apia"
+
+        assertEquals("Suva", catalogOf(suva, apia).nearest(-18.0, -179.5)!!.name)
+    }
+
     @Test(expected = IllegalArgumentException::class)
     fun rejectsARowWithTheWrongNumberOfColumns() {
         CityCatalog.parse(sequenceOf("1185241\tDhaka\tঢাকা\t23.7104\t90.40744\tBD"))
