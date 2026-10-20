@@ -85,7 +85,7 @@ _Avoid_: Salah time, namaz time
 
 **Calculation method**:
 The named set of parameters used to compute prayer times, including angles,
-intervals, high-latitude rules, the Asr method, and offsets.
+intervals, high-latitude rules, and the Asr method.
 _Avoid_: Formula, algorithm, default method
 
 **Juristic method**:

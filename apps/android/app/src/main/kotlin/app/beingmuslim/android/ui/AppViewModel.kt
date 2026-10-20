@@ -8,6 +8,7 @@ import app.beingmuslim.android.citycatalog.City
 import app.beingmuslim.android.citycatalog.CityCatalog
 import app.beingmuslim.android.hijri.HijriCalendar
 import app.beingmuslim.android.prayer.CalculationSettings
+import app.beingmuslim.android.prayer.PrayerOffsets
 import app.beingmuslim.android.prayer.PrayerTimeCalculator
 import app.beingmuslim.android.prayer.TwoDayPrayerTimes
 import app.beingmuslim.android.selection.SelectionStore
@@ -40,13 +41,16 @@ sealed interface AppUiState {
     /**
      * The user's times: the city's current local date and the day after, either
      * of which is null when the sun neither rises nor sets there that day, with
-     * the ±1-day shift applied to the calculated Hijri dates.
+     * the ±1-day shift applied to the calculated Hijri dates. [days] stays the
+     * raw calculation; [offsets] is the user's own adjustment and is applied only
+     * where it is shown (issue #8).
      */
     data class Times(
         val city: City,
         val settings: CalculationSettings,
         val days: TwoDayPrayerTimes,
         val hijriDayShift: Int,
+        val offsets: PrayerOffsets,
     ) : AppUiState
 
     /** The counter the user is counting with, as it was left last time. */
@@ -108,12 +112,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
      * Records the choices the user made — at first run, or in settings — and
      * shows the times they produce. This is the only way a choice is ever
      * changed, so nothing is changed on the user's behalf. The Hijri date shift
-     * is the user's own and is carried over untouched.
+     * is the user's own and is carried over untouched. Offsets are the user's own
+     * and are stored beside the calculation settings, never inside them.
      */
-    fun applySelection(cityId: Long, settings: CalculationSettings) {
+    fun applySelection(cityId: Long, settings: CalculationSettings, offsets: PrayerOffsets) {
         val loaded = catalog ?: return
         viewModelScope.launch {
-            val chosen = UserSelection(cityId, settings, selection?.hijriDayShift ?: 0)
+            val chosen = UserSelection(cityId, settings, selection?.hijriDayShift ?: 0, offsets)
             store.save(chosen)
             showTimes(chosen, loaded)
         }
@@ -217,7 +222,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         selection = chosen
         val days = daysAt(city, chosen.settings)
         if (request != timesRequest) return
-        _state.value = AppUiState.Times(city, chosen.settings, days, chosen.hijriDayShift)
+        _state.value = AppUiState.Times(
+            city = city,
+            settings = chosen.settings,
+            days = days,
+            hijriDayShift = chosen.hijriDayShift,
+            offsets = chosen.offsets,
+        )
         scheduleRollover(city, chosen.settings)
     }
 

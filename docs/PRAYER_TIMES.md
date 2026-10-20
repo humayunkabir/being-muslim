@@ -89,8 +89,13 @@ This is **not uniform across methods**:
 
 ### Offsets
 
-**No offsets are applied by default.** User offsets (issue #8) will be stored and
-shown separately from the raw result, never folded into it.
+Per-prayer user offsets are stored as whole minutes, from −60 to +60, and are
+**off by default** (issue #8). They are held apart from the calculation settings
+and applied only where a time is shown, never folded into the library parameters
+or the raw result: the times screen shows the adjusted time with the calculated
+time it moved beside it. Clearing an offset restores that prayer's raw time. The
+stored selection carries them, so they survive a restart, and a selection stored
+before offsets existed reads as no offsets at all.
 
 ## Time, dates, and daylight saving
 

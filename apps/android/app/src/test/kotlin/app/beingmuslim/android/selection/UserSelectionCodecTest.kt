@@ -4,6 +4,8 @@ import app.beingmuslim.android.prayer.AsrJuristicMethod
 import app.beingmuslim.android.prayer.CalculationMethodChoice
 import app.beingmuslim.android.prayer.CalculationSettings
 import app.beingmuslim.android.prayer.HighLatitudeRuleChoice
+import app.beingmuslim.android.prayer.Prayer
+import app.beingmuslim.android.prayer.PrayerOffsets
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -108,5 +110,49 @@ class UserSelectionCodecTest {
         val stored = UserSelectionCodec.encode(selection) + (UserSelectionCodec.HIJRI_DAY_SHIFT to "9")
 
         assertEquals(1, UserSelectionCodec.decode(stored)?.hijriDayShift)
+    }
+
+    @Test
+    fun roundTripsTheUsersPrayerTimeOffsets() {
+        val adjusted = selection.copy(
+            offsets = PrayerOffsets()
+                .with(Prayer.FAJR, 5)
+                .with(Prayer.ISHA, -2),
+        )
+
+        assertEquals(adjusted, UserSelectionCodec.decode(UserSelectionCodec.encode(adjusted)))
+    }
+
+    @Test
+    fun aSelectionStoredBeforeOffsetsExistedHasNone() {
+        // Existing users upgrading must not gain an adjustment they never made.
+        val stored = UserSelectionCodec.encode(selection) - UserSelectionCodec.PRAYER_OFFSET_KEYS.values
+
+        assertEquals(PrayerOffsets(), UserSelectionCodec.decode(stored)?.offsets)
+    }
+
+    @Test
+    fun anOffsetThatIsNotANumberIsTreatedAsNone() {
+        val stored = UserSelectionCodec.encode(selection) +
+            (UserSelectionCodec.PRAYER_OFFSET_KEYS.getValue(Prayer.DHUHR) to "later")
+
+        assertEquals(0, UserSelectionCodec.decode(stored)?.offsets?.get(Prayer.DHUHR))
+    }
+
+    @Test
+    fun anOffsetBeyondTheSupportedRangeIsClamped() {
+        val stored = UserSelectionCodec.encode(selection) +
+            (UserSelectionCodec.PRAYER_OFFSET_KEYS.getValue(Prayer.ASR) to "500")
+
+        assertEquals(
+            PrayerOffsets.MAX_MINUTES,
+            UserSelectionCodec.decode(stored)?.offsets?.get(Prayer.ASR),
+        )
+    }
+
+    @Test
+    fun everyPrayerHasAStoredOffsetKey() {
+        // A new prayer without a key would silently lose its offset on restart.
+        assertEquals(Prayer.entries.toSet(), UserSelectionCodec.PRAYER_OFFSET_KEYS.keys)
     }
 }

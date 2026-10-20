@@ -38,6 +38,15 @@
     <string name="settings_save">সংরক্ষণ করুন</string>
     <string name="settings_cancel">বাতিল</string>
 
+    <!-- The user's own per-prayer adjustments (issue #8) -->
+    <string name="settings_offsets_heading">আপনার নামাজের সময়ের সমন্বয়</string>
+    <string name="settings_offsets_help">আপনার স্থানীয় মসজিদ যদি সামান্য ভিন্ন সময় ঘোষণা করে, আপনি প্রতিটি নামাজ পূর্ণ মিনিটে এদিক-ওদিক করতে পারেন। এগুলো আপনার নিজের সমন্বয়, হিসাব করা সময় থেকে আলাদাভাবে দেখানো হয়; এগুলো হিসাবের পদ্ধতি বা তার সেটিংস কখনো বদলায় না, এবং মুছে ফেললে আবার হিসাব করা সময় ফিরে আসে।</string>
+    <string name="settings_offset_decrease">%1$s-এর জন্য এক মিনিট আগে</string>
+    <string name="settings_offset_increase">%1$s-এর জন্য এক মিনিট পরে</string>
+    <string name="settings_offset_none">নেই</string>
+    <string name="settings_offsets_clear">সব সমন্বয় মুছুন</string>
+    <string name="offset_minutes">%1$+d মিনিট</string>
+
     <!-- Language (issue #14) -->
     <string name="language_heading">ভাষা</string>
 
@@ -93,6 +102,7 @@
     <string name="times_high_latitude_applied_to_both">এখানে ফজর ও এশা প্রকৃত ভোর ও সন্ধ্যা থেকে নয়, উচ্চ অক্ষাংশের নিয়ম থেকে এসেছে: এই তারিখে এই অক্ষাংশে এরা হয় পৌঁছায় না, নয়তো এই নিয়মের সীমা ছাড়িয়ে যায়।</string>
     <string name="times_unavailable">%1$s-এর জন্য এই তারিখে সময় হিসাব করা যায় না: এই অক্ষাংশে বছরের এই সময়ে সূর্য ওঠেও না, অস্তও যায় না।</string>
     <string name="times_open_tasbih">তাসবিহ</string>
+    <string name="times_offset_note">আপনার সমন্বয়: %1$s · হিসাব করা সময় %2$s</string>
 
     <!-- হিজরি তারিখ (ইস্যু #১১)। হিসাব করা, কখনও দেখা চাঁদের ভিত্তিতে নয়: লেবেল ও
          নোট যেন তা-ই বোঝায় (docs/PRODUCT_REQUIREMENTS.md §7)। -->

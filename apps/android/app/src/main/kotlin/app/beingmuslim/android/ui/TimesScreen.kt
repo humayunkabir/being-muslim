@@ -26,6 +26,7 @@ import app.beingmuslim.android.citycatalog.City
 import app.beingmuslim.android.hijri.HijriCalendar
 import app.beingmuslim.android.prayer.DailyPrayerTimes
 import app.beingmuslim.android.prayer.Prayer
+import app.beingmuslim.android.prayer.PrayerOffsets
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -37,10 +38,12 @@ import java.util.TimeZone
  * calculation method, Asr juristic method and high-latitude rule that produced
  * them shown on screen (`docs/PRODUCT_REQUIREMENTS.md` §2.1, §5). A day says so
  * where the high-latitude rule, not true dawn or dusk, produced its Fajr or Isha
- * (issue #7). Times are formatted for the device's locale and the city's time
- * zone. [onChangeSettings] opens the screen where the user changes their city or
- * method, [onShiftHijriDay] shifts the calculated Hijri dates by ±1 day (§7),
- * and [onOpenTasbih] opens the counter.
+ * (issue #7). A time the user has adjusted shows the adjusted time with the raw
+ * calculated one beside it, never silently folded in (issue #8). Times are
+ * formatted for the device's locale and the city's time zone. [onChangeSettings]
+ * opens the screen where the user changes their city or method, [onShiftHijriDay]
+ * shifts the calculated Hijri dates by ±1 day (§7), and [onOpenTasbih] opens the
+ * counter.
  */
 @Composable
 fun TimesScreen(
@@ -68,8 +71,20 @@ fun TimesScreen(
                 style = MaterialTheme.typography.titleMedium,
             )
 
-            DaySection(R.string.times_section_today, state.days.today, state.city, state.hijriDayShift)
-            DaySection(R.string.times_section_tomorrow, state.days.tomorrow, state.city, state.hijriDayShift)
+            DaySection(
+                R.string.times_section_today,
+                state.days.today,
+                state.city,
+                state.hijriDayShift,
+                state.offsets,
+            )
+            DaySection(
+                R.string.times_section_tomorrow,
+                state.days.tomorrow,
+                state.city,
+                state.hijriDayShift,
+                state.offsets,
+            )
 
             HijriDateSection(state.hijriDayShift, onShiftHijriDay)
 
@@ -126,6 +141,7 @@ private fun DaySection(
     times: DailyPrayerTimes?,
     city: City,
     hijriDayShift: Int,
+    offsets: PrayerOffsets,
 ) {
     Text(
         text = stringResource(headingRes),
@@ -149,6 +165,7 @@ private fun DaySection(
         style = MaterialTheme.typography.bodyMedium,
     )
     Prayer.entries.forEach { prayer ->
+        val offsetMinutes = offsets[prayer]
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -177,8 +194,25 @@ private fun DaySection(
                 )
             }
             Text(
-                text = formatTime(context, times[prayer], times.zone),
+                text = formatTime(
+                    context,
+                    offsets.adjusted(prayer, times[prayer]),
+                    times.zone,
+                ),
                 style = MaterialTheme.typography.bodyLarge,
+            )
+        }
+        if (offsetMinutes != 0) {
+            // The user's adjustment is shown beside the time it moved, so the
+            // raw calculation stays visible instead of being folded into it.
+            Text(
+                text = stringResource(
+                    R.string.times_offset_note,
+                    stringResource(R.string.offset_minutes, offsetMinutes),
+                    formatTime(context, times[prayer], times.zone),
+                ),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }

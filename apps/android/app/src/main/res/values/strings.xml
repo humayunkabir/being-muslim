@@ -47,6 +47,18 @@
     <string name="settings_save">Save</string>
     <string name="settings_cancel">Cancel</string>
 
+    <!-- The user's own per-prayer adjustments (issue #8) -->
+    <string name="settings_offsets_heading">Your prayer-time adjustments</string>
+    <string name="settings_offsets_help">If your local masjid announces a slightly different time, you can move each prayer by whole minutes. These are your own adjustments, shown separately from the calculated time; they never change the calculation method or its settings, and clearing them brings back the raw time.</string>
+    <string name="settings_offset_decrease">One minute earlier for %1$s</string>
+    <string name="settings_offset_increase">One minute later for %1$s</string>
+    <string name="settings_offset_none">None</string>
+    <string name="settings_offsets_clear">Clear all adjustments</string>
+    <!-- The one-minute step each stepper applies; symbols, so the same in every language. -->
+    <string name="settings_offset_decrease_amount" translatable="false">−1</string>
+    <string name="settings_offset_increase_amount" translatable="false">+1</string>
+    <string name="offset_minutes">%1$+d min</string>
+
     <!-- Calculation methods -->
     <string name="method_muslim_world_league">Muslim World League</string>
     <string name="method_muslim_world_league_description">Fajr 18°, Isha 17°. Used widely in Europe and by many communities.</string>
@@ -99,6 +111,7 @@
     <string name="times_high_latitude_applied_to_both">Fajr and Isha here come from the high-latitude rule instead of true dawn and dusk: on this date at this latitude, they either are not reached or fall beyond this rule\'s limit.</string>
     <string name="times_unavailable">Times cannot be calculated for %1$s on this date: at this latitude and time of year the sun neither rises nor sets.</string>
     <string name="times_open_tasbih">Tasbih</string>
+    <string name="times_offset_note">Your adjustment: %1$s · calculated %2$s</string>
     <string name="prayer_fajr">Fajr</string>
 
     <!--

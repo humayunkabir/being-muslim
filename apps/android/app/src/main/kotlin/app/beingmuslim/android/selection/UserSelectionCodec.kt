@@ -5,6 +5,8 @@ import app.beingmuslim.android.prayer.AsrJuristicMethod
 import app.beingmuslim.android.prayer.CalculationMethodChoice
 import app.beingmuslim.android.prayer.CalculationSettings
 import app.beingmuslim.android.prayer.HighLatitudeRuleChoice
+import app.beingmuslim.android.prayer.Prayer
+import app.beingmuslim.android.prayer.PrayerOffsets
 
 /**
  * Encodes and decodes the user's [UserSelection] to and from flat string
@@ -31,16 +33,33 @@ object UserSelectionCodec {
      */
     const val HIJRI_DAY_SHIFT = "hijri_day_shift"
 
-    /** Every key [decode] reads, for a caller assembling the stored values. */
-    val KEYS = listOf(CITY_ID, METHOD, ASR_METHOD, HIGH_LATITUDE_RULE, HIJRI_DAY_SHIFT)
-
-    fun encode(selection: UserSelection): Map<String, String> = mapOf(
-        CITY_ID to selection.cityId.toString(),
-        METHOD to selection.settings.method.name,
-        ASR_METHOD to selection.settings.asrJuristicMethod.name,
-        HIGH_LATITUDE_RULE to selection.settings.highLatitudeRule.name,
-        HIJRI_DAY_SHIFT to selection.hijriDayShift.toString(),
+    /**
+     * The user's own per-prayer offsets, in minutes. Absent in selections written
+     * before offsets shipped, or for a prayer the user never adjusted, which read
+     * as the raw calculated time (issue #8).
+     */
+    val PRAYER_OFFSET_KEYS: Map<Prayer, String> = mapOf(
+        Prayer.FAJR to "offset_fajr",
+        Prayer.DHUHR to "offset_dhuhr",
+        Prayer.ASR to "offset_asr",
+        Prayer.MAGHRIB to "offset_maghrib",
+        Prayer.ISHA to "offset_isha",
     )
+
+    /** Every key [decode] reads, for a caller assembling the stored values. */
+    val KEYS = listOf(CITY_ID, METHOD, ASR_METHOD, HIGH_LATITUDE_RULE, HIJRI_DAY_SHIFT) +
+        PRAYER_OFFSET_KEYS.values
+
+    fun encode(selection: UserSelection): Map<String, String> = buildMap {
+        put(CITY_ID, selection.cityId.toString())
+        put(METHOD, selection.settings.method.name)
+        put(ASR_METHOD, selection.settings.asrJuristicMethod.name)
+        put(HIGH_LATITUDE_RULE, selection.settings.highLatitudeRule.name)
+        put(HIJRI_DAY_SHIFT, selection.hijriDayShift.toString())
+        PRAYER_OFFSET_KEYS.forEach { (prayer, key) ->
+            put(key, selection.offsets[prayer].toString())
+        }
+    }
 
     fun decode(values: Map<String, String?>): UserSelection? {
         val cityId = values[CITY_ID]?.toLongOrNull() ?: return null
@@ -48,11 +67,17 @@ object UserSelectionCodec {
         val asrJuristicMethod = enumOrNull<AsrJuristicMethod>(values[ASR_METHOD]) ?: return null
         val highLatitudeRule = enumOrNull<HighLatitudeRuleChoice>(values[HIGH_LATITUDE_RULE]) ?: return null
         val hijriDayShift = HijriCalendar.clampDayShift(values[HIJRI_DAY_SHIFT]?.toIntOrNull() ?: 0)
+        // Each prayer decodes on its own: one corrupt value loses only that
+        // prayer's adjustment, and the raw time is shown instead.
+        val offsets = PRAYER_OFFSET_KEYS.entries.fold(PrayerOffsets()) { offsets, (prayer, key) ->
+            offsets.with(prayer, values[key]?.toIntOrNull() ?: 0)
+        }
 
         return UserSelection(
             cityId,
             CalculationSettings(method, asrJuristicMethod, highLatitudeRule),
             hijriDayShift,
+            offsets,
         )
     }
 
