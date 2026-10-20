@@ -16,17 +16,36 @@ data class LocationFix(
     val ageMillis: Long,
 )
 
+/** The outcome of the optional location shortcut (issue #6). */
+sealed interface CitySuggestion {
+
+    /** The catalog city nearest the accepted fix, including its timezone. */
+    data class Found(val city: City) : CitySuggestion
+
+    /** The user did not grant the optional coarse permission. */
+    data object Denied : CitySuggestion
+
+    /** Permission was granted, but no usable fix was available. */
+    data object Unavailable : CitySuggestion
+}
+
 /**
- * The catalog city nearest to this fix, including its timezone, or null when
- * there is no fix or it is older than [MAX_LOCATION_AGE_MILLIS]. A stale fix is
- * not silently treated as current: the user searches for a city instead.
+ * Maps a permission result and a fix to what the city step should do. Only a
+ * granted permission and a fix no older than [MAX_LOCATION_AGE_MILLIS] can
+ * suggest a city; a stale fix is not silently treated as current.
  */
-fun LocationFix?.nearestCity(
+fun suggestCity(
+    permissionGranted: Boolean,
+    fix: LocationFix?,
     catalog: CityCatalog,
-    maxAgeMillis: Long = MAX_LOCATION_AGE_MILLIS,
-): City? {
-    if (this == null || ageMillis !in 0..maxAgeMillis) return null
-    return catalog.nearest(latitude, longitude)
+): CitySuggestion {
+    if (!permissionGranted) return CitySuggestion.Denied
+    if (fix == null || fix.ageMillis !in 0..MAX_LOCATION_AGE_MILLIS) {
+        return CitySuggestion.Unavailable
+    }
+    return catalog.nearest(fix.latitude, fix.longitude)
+        ?.let { CitySuggestion.Found(it) }
+        ?: CitySuggestion.Unavailable
 }
 
 /** How old a fix may be and still suggest a city. */

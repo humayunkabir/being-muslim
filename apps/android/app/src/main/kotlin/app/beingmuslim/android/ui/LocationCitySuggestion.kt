@@ -9,10 +9,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -23,8 +26,9 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import app.beingmuslim.android.R
 import app.beingmuslim.android.citycatalog.CityCatalog
+import app.beingmuslim.android.location.CitySuggestion
 import app.beingmuslim.android.location.LocationLookup
-import app.beingmuslim.android.location.nearestCity
+import app.beingmuslim.android.location.suggestCity
 import kotlinx.coroutines.launch
 
 /**
@@ -36,32 +40,44 @@ import kotlinx.coroutines.launch
 @Composable
 internal fun LocationCitySuggestion(
     catalog: CityCatalog,
+    selectedCityId: Long?,
     onCityFound: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val lookup = remember(context) { LocationLookup(context) }
     val scope = rememberCoroutineScope()
-    var status by remember { mutableStateOf(LocationSuggestionStatus.IDLE) }
+    var status by rememberSaveable { mutableStateOf(LocationSuggestionStatus.IDLE) }
+    val latestCityId by rememberUpdatedState(selectedCityId)
 
-    val findCity = {
-        status = LocationSuggestionStatus.SEARCHING
+    // A lookup does not survive recreation; never leave the button disabled on a
+    // state whose coroutine is gone.
+    LaunchedEffect(Unit) {
+        if (status == LocationSuggestionStatus.SEARCHING) {
+            status = LocationSuggestionStatus.IDLE
+        }
+    }
+
+    val findCity: (Boolean) -> Unit = { granted ->
+        if (granted) status = LocationSuggestionStatus.SEARCHING
+        val cityIdAtRequest = latestCityId
         scope.launch {
-            val city = lookup.currentFix()?.nearestCity(catalog)
-            if (city == null) {
-                status = LocationSuggestionStatus.UNAVAILABLE
-            } else {
-                onCityFound(city.id)
-                status = LocationSuggestionStatus.IDLE
+            val fix = if (granted) lookup.currentFix() else null
+            when (val suggestion = suggestCity(granted, fix, catalog)) {
+                is CitySuggestion.Found -> {
+                    // A manual choice made while the fix was in flight wins.
+                    if (latestCityId == cityIdAtRequest) onCityFound(suggestion.city.id)
+                    status = LocationSuggestionStatus.IDLE
+                }
+                CitySuggestion.Denied -> status = LocationSuggestionStatus.DENIED
+                CitySuggestion.Unavailable -> status = LocationSuggestionStatus.UNAVAILABLE
             }
         }
     }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
-    ) { granted ->
-        if (granted) findCity() else status = LocationSuggestionStatus.DENIED
-    }
+    ) { granted -> findCity(granted) }
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -74,7 +90,7 @@ internal fun LocationCitySuggestion(
         OutlinedButton(
             onClick = {
                 if (lookup.hasPermission()) {
-                    findCity()
+                    findCity(true)
                 } else {
                     permissionLauncher.launch(LocationLookup.PERMISSION)
                 }

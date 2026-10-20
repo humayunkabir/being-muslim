@@ -76,12 +76,6 @@ fun SetupScreen(
                 onAsrMethodChange = { asrMethod = it },
                 onRuleChange = { rule = it },
                 onCityChange = { selectedCityId = it },
-                cityAction = {
-                    LocationCitySuggestion(
-                        catalog = catalog,
-                        onCityFound = { selectedCityId = it },
-                    )
-                },
             )
 
             val chosenCity = selectedCityId

@@ -96,11 +96,11 @@ not written to the asset.
   device fix that the user confirms or changes, so it always returns the nearest
   entry even when it is far away; a non-finite position returns null. It reads
   the local catalog only and stores, logs or transmits nothing.
-- **Device location is an optional shortcut (issue #6).** The city step explains
-  the benefit in the UI, then requests only `ACCESS_COARSE_LOCATION`. One fused
-  or network fix is reduced to `LocationFix` and passed to
-  `nearestCity`; a fix older than ten minutes, a denied permission, or an
-  unavailable provider leaves the offline search as the complete path. The
+- **Device location is an optional shortcut (issue #6).** The city step in
+  setup and settings explains the benefit in the UI, then requests only
+  `ACCESS_COARSE_LOCATION`. One fused or network fix is reduced to `LocationFix`
+  and passed to `suggestCity`; a fix older than ten minutes, a denied permission,
+  or an unavailable provider leaves the offline search as the complete path. The
   coordinates are not persisted, logged, or sent, and selecting the suggested
   city stores only its GeoNames id like any manual choice.
 

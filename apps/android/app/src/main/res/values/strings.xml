@@ -37,7 +37,7 @@
     <string name="setup_city_use_location">Use my location</string>
     <string name="setup_city_location_benefit">Optional. Suggests the nearest city from your approximate location, used once and never saved.</string>
     <string name="setup_city_location_searching">Finding your nearest city…</string>
-    <string name="setup_city_location_denied">Location is off. Search for a city instead.</string>
+    <string name="setup_city_location_denied">Location permission was not granted. Search for a city instead.</string>
     <string name="setup_city_location_unavailable">Couldn\'t get your location. Search for a city instead.</string>
     <string name="setup_continue">Continue</string>
 
