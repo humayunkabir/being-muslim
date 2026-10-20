@@ -46,6 +46,7 @@ fun AppRoot(viewModel: AppViewModel = viewModel()) {
             onChangeSettings = viewModel::openSettings,
             onOpenQibla = viewModel::openQibla,
             onOpenTasbih = viewModel::openTasbih,
+            onOpenReminders = viewModel::openReminders,
             onShiftHijriDay = viewModel::shiftHijriDay,
         )
         is AppUiState.Qibla -> QiblaScreen(
@@ -57,6 +58,13 @@ fun AppRoot(viewModel: AppViewModel = viewModel()) {
             selection = current.selection,
             onSave = viewModel::applySelection,
             onCancel = viewModel::dismissSettings,
+        )
+        is AppUiState.Reminders -> RemindersScreen(
+            preferences = current.preferences,
+            onPrayerChange = viewModel::setReminderEnabled,
+            onQuietHoursEnabledChange = viewModel::setQuietHoursEnabled,
+            onQuietHoursChange = viewModel::setQuietHours,
+            onBack = viewModel::dismissReminders,
         )
         is AppUiState.Tasbih -> TasbihScreen(
             counter = current.counter,

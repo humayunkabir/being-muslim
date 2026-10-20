@@ -59,6 +59,9 @@ dependencies {
     implementation(libs.androidx.compose.material3)
 
     implementation(libs.adhan)
+    // Reminders (issue #12): local, persisted scheduling that survives reboot
+    // without an exact-alarm permission or a boot receiver.
+    implementation(libs.androidx.work.runtime)
 
     testImplementation(libs.junit)
 

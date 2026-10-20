@@ -167,6 +167,30 @@
     <string name="qibla_turn_left">বামে %1$d° ঘুরুন।</string>
     <string name="qibla_compass_limitation">কাছের ধাতু বা চুম্বক এবং ফোন ধরার ভঙ্গি কম্পাসের পাঠকে প্রভাবিত করতে পারে। ফোনটি সমানভাবে ধরে রাখুন। প্রকৃত উত্তরের সংশোধন বেছে নেওয়া শহরের অবস্থান ব্যবহার করে, তাই সেই শহর থেকে অনেক দূরে থাকলে এটি কম নির্ভুল হতে পারে।</string>
 
+    <!-- Prayer reminders (issue #12) -->
+    <string name="times_open_reminders">রিমাইন্ডার</string>
+    <string name="reminders_title">নামাজের রিমাইন্ডার</string>
+    <string name="reminders_intro">আপনি এখানে একটি একটি করে নামাজ চালু না করলে কোনো রিমাইন্ডার থাকে না। চালু করার পরেই অ্যাপ নোটিফিকেশনের অনুমতি চায়।</string>
+    <string name="reminders_prayers_heading">যেসব নামাজের জন্য মনে করিয়ে দেবে</string>
+    <string name="reminders_none_enabled">কোনো রিমাইন্ডার চালু নেই। এগুলো ছাড়াও অ্যাপের বাকি সবকিছু কাজ করে।</string>
+    <string name="reminders_quiet_hours">নীরব সময়</string>
+    <string name="reminders_quiet_hours_help">এই সময়ের মধ্যে কোনো রিমাইন্ডার পাঠানো হয় না, আপনার বেছে নেওয়া শহরের স্থানীয় সময় অনুযায়ী। এই সময়ের ভেতরে পড়া রিমাইন্ডার পরে পাঠানো হয় না, বাদ দেওয়া হয়।</string>
+    <string name="reminders_quiet_hours_from">%1$s থেকে</string>
+    <string name="reminders_quiet_hours_to">%1$s পর্যন্ত</string>
+    <string name="reminders_privacy_note">নোটিফিকেশনে কেবল একটি সাধারণ বার্তা দেখানো হয়। আপনার নামাজের নাম ও সময় কখনো লক স্ক্রিনে দেখা যায় না।</string>
+    <string name="reminders_delivery_note">কখন রিমাইন্ডার পৌঁছাবে তা অ্যান্ড্রয়েড নির্ধারণ করে। সঠিক সময় অপারেটিং সিস্টেম ও ব্যাটারি নীতির উপর নির্ভর করে, তাই হিসাব করা সময়ের চেয়ে কিছুটা দেরিতে আসতে পারে।</string>
+    <string name="reminders_permission_title">নোটিফিকেশনের অনুমতি দেবেন?</string>
+    <string name="reminders_permission_body">আপনি যে সময় বেছে নিয়েছেন, সেই সময়ে ওই নামাজের জন্য একটি নোটিফিকেশন পাবেন। এরপর অ্যান্ড্রয়েড অনুমতি চাইবে। এতে কেবল একটি সাধারণ বার্তা দেখা যায়, কখনো নামাজের নাম বা সময় নয়; আর সঠিক সময় নির্ভর করে অপারেটিং সিস্টেম ও ব্যাটারি নীতির উপর। এগুলো ছাড়াও বাকি সবকিছু কাজ করে।</string>
+    <string name="reminders_permission_confirm">চালিয়ে যান</string>
+    <string name="reminders_permission_later">এখন নয়</string>
+    <string name="reminders_permission_denied">এই অ্যাপের জন্য নোটিফিকেশন বন্ধ, তাই রিমাইন্ডার পৌঁছাতে পারবে না। বাকি সবকিছু আগের মতোই কাজ করে। পরে সিস্টেম সেটিংসে গিয়ে নোটিফিকেশন চালু করতে পারেন।</string>
+    <string name="reminders_open_settings">নোটিফিকেশন সেটিংস খুলুন</string>
+    <string name="reminders_back">পেছনে</string>
+    <string name="reminder_notification_title">মনে করিয়ে দেওয়া</string>
+    <string name="reminder_notification_body">অ্যাপ খুলতে ট্যাপ করুন।</string>
+    <string name="reminders_channel_name">নামাজের রিমাইন্ডার</string>
+    <string name="reminders_channel_description">আপনি যে সময় বেছে নিয়েছেন, সেই সময়ে আপনার চালু করা রিমাইন্ডার। নোটিফিকেশনে কেবল একটি সাধারণ বার্তা দেখা যায়।</string>
+
     <!-- Loading and failure states -->
     <string name="state_loading">লোড হচ্ছে…</string>
     <string name="state_catalog_unavailable">শহরের তালিকা পড়া যায়নি। অ্যাপটি আবার ইনস্টল করুন, অথবা সমস্যাটি জানান।</string>
