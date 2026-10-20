@@ -2,6 +2,11 @@ package app.beingmuslim.android.citycatalog
 
 import java.text.Normalizer
 import java.util.Locale
+import kotlin.math.asin
+import kotlin.math.cos
+import kotlin.math.pow
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 /**
  * The offline city catalog: a country → city list with coordinates and IANA
@@ -39,6 +44,34 @@ class CityCatalog private constructor(
     fun byId(id: Long): City? = byId[id]
 
     /**
+     * The catalog city closest to [latitude] and [longitude], or null when the
+     * catalog is empty. Distances are great-circle, so a position near the date
+     * line or a pole resolves the same way a map would show it.
+     *
+     * Intended for a coarse device fix, which only has to suggest a city: the
+     * user sees the suggestion and can change it, so the nearest is always
+     * returned even when it is far away.
+     */
+    fun nearest(latitude: Double, longitude: Double): City? {
+        var closest: City? = null
+        var closestAngle = Double.MAX_VALUE
+        val fromLat = Math.toRadians(latitude)
+        val fromLon = Math.toRadians(longitude)
+
+        cities.forEach { city ->
+            val angle = centralAngle(
+                fromLat, fromLon,
+                Math.toRadians(city.latitude), Math.toRadians(city.longitude),
+            )
+            if (angle < closestAngle) {
+                closestAngle = angle
+                closest = city
+            }
+        }
+        return closest
+    }
+
+    /**
      * Cities whose English or Bengali name matches [query], most significant
      * first, with names that start with the query ranked ahead of names that
      * merely contain it.
@@ -73,6 +106,27 @@ class CityCatalog private constructor(
     companion object {
         /** How many cities [search] returns by default. */
         const val DEFAULT_SEARCH_LIMIT = 20
+
+        /**
+         * The central angle between two positions, in radians — the great-circle
+         * distance scaled by the Earth's radius, which [nearest] only ever
+         * compares. Radians in, so callers convert once.
+         *
+         * The haversine form is used because `sin(Δλ/2)` is periodic: longitudes
+         * either side of the date line come out as neighbours rather than most of
+         * the globe apart.
+         */
+        private fun centralAngle(
+            fromLat: Double,
+            fromLon: Double,
+            toLat: Double,
+            toLon: Double,
+        ): Double {
+            val halfLat = (toLat - fromLat) / 2
+            val halfLon = (toLon - fromLon) / 2
+            val a = sin(halfLat).pow(2) + cos(fromLat) * cos(toLat) * sin(halfLon).pow(2)
+            return 2 * asin(a.coerceIn(0.0, 1.0).let(::sqrt))
+        }
 
         private const val COLUMN_COUNT = 7
         private val COMBINING_MARKS = Regex("\\p{Mn}+")
