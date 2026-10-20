@@ -45,8 +45,10 @@ class HijriCalendarTest {
 
     @Test
     fun shiftsAcrossAMonthOf30Days() {
-        // Ramadan 1445 ran 30 days; the Eid date less one day is 30 Ramadan.
-        assertEquals(HijriDate(1445, 9, 30), HijriCalendar.dateFor(LocalDate.of(2024, 4, 10), dayShiftDays = -1))
+        // Ramadan 1445 ran 30 days and 1 Shawwal 1445 is 10 April 2024, so the
+        // day before it is 30 Ramadan and the user's +1 day crosses into Shawwal.
+        assertEquals(HijriDate(1445, 9, 30), HijriCalendar.dateFor(LocalDate.of(2024, 4, 9)))
+        assertEquals(HijriDate(1445, 10, 1), HijriCalendar.dateFor(LocalDate.of(2024, 4, 9), dayShiftDays = 1))
     }
 
     @Test

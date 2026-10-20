@@ -9,9 +9,9 @@ follows, and how the user's adjustment works.
 
 The times screen shows the Hijri date beside the Gregorian date for each day it
 lists, under the label **"Hijri date: calculated, on the Umm al-Qura
-convention"**, followed by copy stating that a country's or community's
-announcement may differ by a day or more and that this is **not a confirmed
-local sighting**.
+convention"**, followed by copy stating that the date a country or community
+announces may differ by a day or more, and that this is **not a confirmed local
+sighting**.
 
 The date is **calculated**, never observed. The label, the copy and the
 adjustment are one unit: the app states what the date is, and gives the user the
@@ -90,5 +90,6 @@ older stored selection, an unparsable value, and clamping on read.
 - **Not yet checked against a trusted local source for the launch market** (the
   §13 release gate), and **iOS parity is pending** — the MVP is Android first
   (`DECISIONS/0002`).
-- The month names are English and need the same review and translation as the
-  rest of the UI (issue #14).
+- The month names are the app's own string resources, translated like the rest of
+  the UI (Bengali in `values-bn/`); whether the wording is right is a human
+  review (`docs/PRODUCT_REQUIREMENTS.md` §8, §13).
