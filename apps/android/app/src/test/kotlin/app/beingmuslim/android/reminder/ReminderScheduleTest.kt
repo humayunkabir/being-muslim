@@ -143,6 +143,25 @@ class ReminderScheduleTest {
     }
 
     @Test
+    fun aDifferentCalculationMethodMovesTheReminder() {
+        // North America uses a 15° Fajr angle; the default method uses 18°.
+        val northAmerica = CalculationSettings(
+            method = CalculationMethodChoice.NORTH_AMERICA,
+            asrJuristicMethod = AsrJuristicMethod.STANDARD,
+            highLatitudeRule = HighLatitudeRuleChoice.MIDDLE_OF_THE_NIGHT,
+        )
+        val preferences = ReminderPreferences(enabledPrayers = setOf(Prayer.FAJR))
+
+        val defaultFajr = ReminderSchedule.upcoming(dhaka, settings, PrayerOffsets(), preferences, midnight)
+        val northAmericaFajr = ReminderSchedule.upcoming(dhaka, northAmerica, PrayerOffsets(), preferences, midnight)
+
+        assertTrue(
+            "the method's Fajr angle must change the scheduled instant",
+            defaultFajr.first().at != northAmericaFajr.first().at,
+        )
+    }
+
+    @Test
     fun remindersAreInTheOrderTheyWillFire() {
         val reminders = scheduled(
             ReminderPreferences(enabledPrayers = Prayer.entries.toSet()),

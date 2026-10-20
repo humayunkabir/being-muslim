@@ -79,7 +79,11 @@ fun RemindersScreen(
     var explainPermission by rememberSaveable { mutableStateOf(false) }
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
-    ) { granted -> notificationsAllowed = granted }
+    ) {
+        // Re-read every switch: a granted permission can still leave the app or
+        // its channel blocked in system settings, which this screen must show.
+        notificationsAllowed = ReminderNotifications.canPost(context)
+    }
 
     Scaffold(modifier = modifier.fillMaxSize()) { innerPadding ->
         Column(
@@ -132,6 +136,12 @@ fun RemindersScreen(
                 style = MaterialTheme.typography.bodySmall,
             )
             if (preferences.quietHoursEnabled) {
+                if (preferences.quietHours.start == preferences.quietHours.end) {
+                    Text(
+                        text = stringResource(R.string.reminders_quiet_hours_empty),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(
                         onClick = {

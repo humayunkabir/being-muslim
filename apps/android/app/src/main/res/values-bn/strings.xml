@@ -175,6 +175,7 @@
     <string name="reminders_none_enabled">কোনো রিমাইন্ডার চালু নেই। এগুলো ছাড়াও অ্যাপের বাকি সবকিছু কাজ করে।</string>
     <string name="reminders_quiet_hours">নীরব সময়</string>
     <string name="reminders_quiet_hours_help">এই সময়ের মধ্যে কোনো রিমাইন্ডার পাঠানো হয় না, আপনার বেছে নেওয়া শহরের স্থানীয় সময় অনুযায়ী। এই সময়ের ভেতরে পড়া রিমাইন্ডার পরে পাঠানো হয় না, বাদ দেওয়া হয়।</string>
+    <string name="reminders_quiet_hours_empty">শুরু ও শেষের সময় একই, তাই এই সময়সীমা কিছুই আটকায় না। আলাদা সময় বেছে নিন।</string>
     <string name="reminders_quiet_hours_from">%1$s থেকে</string>
     <string name="reminders_quiet_hours_to">%1$s পর্যন্ত</string>
     <string name="reminders_privacy_note">নোটিফিকেশনে কেবল একটি সাধারণ বার্তা দেখানো হয়। আপনার নামাজের নাম ও সময় কখনো লক স্ক্রিনে দেখা যায় না।</string>
