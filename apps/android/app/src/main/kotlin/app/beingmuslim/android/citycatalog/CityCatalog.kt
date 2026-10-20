@@ -45,14 +45,15 @@ class CityCatalog private constructor(
 
     /**
      * The catalog city closest to [latitude] and [longitude], or null when the
-     * catalog is empty. Distances are great-circle, so a position near the date
-     * line or a pole resolves the same way a map would show it.
+     * catalog is empty or the position is not finite. Distances are great-circle,
+     * so a position either side of the date line resolves to its true neighbour.
      *
      * Intended for a coarse device fix, which only has to suggest a city: the
-     * user sees the suggestion and can change it, so the nearest is always
-     * returned even when it is far away.
+     * user sees the suggestion and can change it, so the nearest is still
+     * returned when it is far away.
      */
     fun nearest(latitude: Double, longitude: Double): City? {
+        if (!latitude.isFinite() || !longitude.isFinite()) return null
         var closest: City? = null
         var closestAngle = Double.MAX_VALUE
         val fromLat = Math.toRadians(latitude)
@@ -114,7 +115,8 @@ class CityCatalog private constructor(
          *
          * The haversine form is used because `sin(Δλ/2)` is periodic: longitudes
          * either side of the date line come out as neighbours rather than most of
-         * the globe apart.
+         * the globe apart. It is also stable for the small angles a nearest-city
+         * lookup actually compares.
          */
         private fun centralAngle(
             fromLat: Double,
