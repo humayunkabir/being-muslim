@@ -88,6 +88,28 @@
     <string name="times_high_latitude_applied_to_both">এখানে ফজর ও এশা প্রকৃত ভোর ও সন্ধ্যা থেকে নয়, উচ্চ অক্ষাংশের নিয়ম থেকে এসেছে: এই তারিখে এই অক্ষাংশে এরা হয় পৌঁছায় না, নয়তো এই নিয়মের সীমা ছাড়িয়ে যায়।</string>
     <string name="times_unavailable">%1$s-এর জন্য এই তারিখে সময় হিসাব করা যায় না: এই অক্ষাংশে বছরের এই সময়ে সূর্য ওঠেও না, অস্তও যায় না।</string>
     <string name="times_open_tasbih">তাসবিহ</string>
+
+    <!-- হিজরি তারিখ (ইস্যু #১১)। হিসাব করা, কখনও দেখা চাঁদের ভিত্তিতে নয়: লেবেল ও
+         নোট যেন তা-ই বোঝায় (docs/PRODUCT_REQUIREMENTS.md §7)। -->
+    <string name="hijri_label">হিজরি তারিখ: হিসাব করা, উম্মুল কুরা পদ্ধতিতে</string>
+    <string name="hijri_calculated_note">এটি হিসাব করা, তাই আপনার দেশ বা সমাজ যে তারিখ ঘোষণা করে তার চেয়ে এক দিন বা বেশি আলাদা হতে পারে। এটি স্থানীয়ভাবে নিশ্চিত হওয়া চাঁদ দেখার তারিখ নয়।</string>
+    <string name="hijri_date">হিজরি: %1$d %2$s %3$d</string>
+    <string name="hijri_shift_earlier">হিজরি তারিখ এক দিন আগে</string>
+    <string name="hijri_shift_later">হিজরি তারিখ এক দিন পরে</string>
+    <string name="hijri_shifted_earlier">আপনার হিজরি তারিখ এক দিন আগে দেখানো হচ্ছে।</string>
+    <string name="hijri_shifted_later">আপনার হিজরি তারিখ এক দিন পরে দেখানো হচ্ছে।</string>
+    <string name="hijri_month_1">মুহাররম</string>
+    <string name="hijri_month_2">সফর</string>
+    <string name="hijri_month_3">রবিউল আউয়াল</string>
+    <string name="hijri_month_4">রবিউস সানি</string>
+    <string name="hijri_month_5">জমাদিউল আউয়াল</string>
+    <string name="hijri_month_6">জমাদিউস সানি</string>
+    <string name="hijri_month_7">রজব</string>
+    <string name="hijri_month_8">শাবান</string>
+    <string name="hijri_month_9">রমজান</string>
+    <string name="hijri_month_10">শাওয়াল</string>
+    <string name="hijri_month_11">জিলকদ</string>
+    <string name="hijri_month_12">জিলহজ</string>
     <string name="prayer_fajr">ফজর</string>
     <string name="prayer_dhuhr">যোহর</string>
     <string name="prayer_asr">আসর</string>
