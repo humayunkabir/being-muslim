@@ -160,7 +160,7 @@
     <string name="qibla_facing">আপনি কিবলার দিকে মুখ করে আছেন।</string>
     <string name="qibla_turn_right">ডানে %1$d° ঘুরুন।</string>
     <string name="qibla_turn_left">বামে %1$d° ঘুরুন।</string>
-    <string name="qibla_compass_limitation">কাছের ধাতু বা চুম্বক এবং ফোন ধরার ভঙ্গি কম্পাসের পাঠকে প্রভাবিত করতে পারে। ফোনটি সমানভাবে ধরে রাখুন।</string>
+    <string name="qibla_compass_limitation">কাছের ধাতু বা চুম্বক এবং ফোন ধরার ভঙ্গি কম্পাসের পাঠকে প্রভাবিত করতে পারে। ফোনটি সমানভাবে ধরে রাখুন। প্রকৃত উত্তরের সংশোধন বেছে নেওয়া শহরের অবস্থান ব্যবহার করে, তাই সেই শহর থেকে অনেক দূরে থাকলে এটি কম নির্ভুল হতে পারে।</string>
 
     <!-- Loading and failure states -->
     <string name="state_loading">লোড হচ্ছে…</string>

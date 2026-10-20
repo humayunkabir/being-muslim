@@ -17,7 +17,9 @@ that bearing (issue #10). The dial turns with the device so that north and the
 qibla marker sit at their true-north positions; a fixed pointer at the top is
 the direction the top of the phone faces. The screen also says how far to turn,
 or that the user is facing the qibla, in words and degrees — direction is never
-conveyed by colour or an icon alone.
+conveyed by colour or an icon alone. A reading the platform does not trust is
+not used to turn the dial; the dial then stays north-up and the screen asks for
+calibration.
 
 ## The bearing
 
@@ -60,9 +62,10 @@ screen treats it as follows:
 
 | State | What the screen shows |
 | --- | --- |
-| No rotation-vector sensor | The bearing, and that this device has no usable compass |
-| Sensor present, no reading yet | The bearing, and that it is waiting for the compass |
-| Accuracy `LOW` or `UNRELIABLE` | The bearing, and a figure-eight calibration prompt. The live dial is **not** shown: a direction the platform does not trust is worse than none |
+| No rotation-vector sensor | The bearing and the north-up dial, and that this device has no usable compass |
+| Sensor present, no reading within 5 s | The bearing and the north-up dial, and that this device has no usable compass |
+| Sensor present, no reading yet | The bearing and the north-up dial, and that it is waiting for the compass |
+| Accuracy `LOW` or `UNRELIABLE` | The bearing and the north-up dial, and a figure-eight calibration prompt. The dial is **not** turned by the reading: a direction the platform does not trust is worse than none |
 | Accuracy `MEDIUM` | The live dial, with a note that the reading is approximate |
 | Accuracy `HIGH` | The live dial, and how far to turn or that the user is facing the qibla |
 
@@ -86,6 +89,12 @@ affect a compass, and it should be held flat.
 - Compass accuracy depends on the device's own calibration and on the
   environment. The app can report what the platform reports; it cannot correct
   for a magnet nearby.
+- **Declination is taken at the selected city, not at the phone.** That is exact
+  for a user who is in their chosen city and drifts only slowly with distance —
+  a few degrees at most across a country — but it is wrong for a traveller who
+  has moved far from the city selected in setup. The bearing itself is likewise
+  for the selected city's coordinates. Re-selecting the current city fixes both;
+  device location is not used to correct the compass automatically.
 - **iOS parity is pending** — the MVP is Android first
   (`DECISIONS/0002`).
 

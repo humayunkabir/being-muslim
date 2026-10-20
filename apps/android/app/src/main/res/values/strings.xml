@@ -175,7 +175,7 @@
     <string name="qibla_facing">You are facing the qibla.</string>
     <string name="qibla_turn_right">Turn right %1$d°.</string>
     <string name="qibla_turn_left">Turn left %1$d°.</string>
-    <string name="qibla_compass_limitation">Compass readings can be affected by nearby metal or magnets and by how the phone is held. Hold it flat.</string>
+    <string name="qibla_compass_limitation">Compass readings can be affected by nearby metal or magnets and by how the phone is held. Hold it flat. The true-north correction uses the selected city\'s position, so it is less accurate when you are far from that city.</string>
 
     <!-- Required by the bundled city catalog\'s CC BY 4.0 license (docs/CITY_CATALOG.md). -->
     <string name="city_catalog_attribution">City data from GeoNames (https://www.geonames.org/), licensed under CC BY 4.0.</string>

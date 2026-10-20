@@ -16,8 +16,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -38,6 +41,7 @@ import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.delay
 
 /**
  * The qibla for the user's city, from the city's coordinates alone, plus a live
@@ -103,6 +107,15 @@ private fun QiblaContent(city: City, bearing: Double) {
     }
     val reading by readings.collectAsStateWithLifecycle(initialValue = null)
 
+    // A sensor that never delivers a reading must not leave the screen waiting
+    // forever; after a short wait the compass is reported as unavailable.
+    var compassTimedOut by remember(sensorAvailable) { mutableStateOf(false) }
+    LaunchedEffect(sensorAvailable) {
+        if (!sensorAvailable) return@LaunchedEffect
+        delay(COMPASS_WAIT_TIMEOUT_MS)
+        compassTimedOut = true
+    }
+
     // A reading the platform does not trust is treated as no reading at all: the
     // dial then shows the bearing from true north instead of a direction that
     // may be wrong.
@@ -127,9 +140,11 @@ private fun QiblaContent(city: City, bearing: Double) {
     }
 
     when {
-        !sensorAvailable -> CompassState(stringResource(R.string.qibla_compass_unavailable))
-        reading == null -> CompassState(stringResource(R.string.qibla_compass_waiting))
-        liveHeading == null -> CompassState(stringResource(R.string.qibla_calibration_required))
+        !sensorAvailable -> StateMessage(stringResource(R.string.qibla_compass_unavailable))
+        reading == null && compassTimedOut ->
+            StateMessage(stringResource(R.string.qibla_compass_unavailable))
+        reading == null -> StateMessage(stringResource(R.string.qibla_compass_waiting))
+        liveHeading == null -> StateMessage(stringResource(R.string.qibla_calibration_required))
         else -> {
             val turn = QiblaBearing.turnDegrees(liveHeading, bearing)
             Text(
@@ -144,7 +159,7 @@ private fun QiblaContent(city: City, bearing: Double) {
                 style = MaterialTheme.typography.titleMedium,
             )
             if (reading?.accuracy == CompassAccuracy.MEDIUM) {
-                CompassState(stringResource(R.string.qibla_reading_approximate))
+                StateMessage(stringResource(R.string.qibla_reading_approximate))
             }
         }
     }
@@ -161,7 +176,7 @@ private fun QiblaContent(city: City, bearing: Double) {
 }
 
 @Composable
-private fun CompassState(message: String) {
+private fun StateMessage(message: String) {
     Text(
         text = message,
         style = MaterialTheme.typography.bodyMedium,
@@ -239,5 +254,9 @@ private fun QiblaDial(
 
 /** Within this many degrees of the qibla, the user is told they are facing it. */
 private const val FACING_TOLERANCE_DEGREES = 3.0
+
+/** How long to wait for the first compass reading before calling it unavailable. */
+private const val COMPASS_WAIT_TIMEOUT_MS = 5_000L
+
 private const val TICK_COUNT = 12
 private const val TICK_DEGREES = 30f

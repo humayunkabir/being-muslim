@@ -72,7 +72,11 @@ class CompassSensor(context: Context) {
         ).declination.toDouble()
 
         val listener = object : SensorEventListener {
-            private var accuracy = CompassAccuracy.UNRELIABLE
+            // Until the platform reports accuracy, a reading is treated as
+            // approximate rather than trusted: some devices never send
+            // onAccuracyChanged, and a permanent calibration trap would hide a
+            // working compass.
+            private var accuracy = CompassAccuracy.MEDIUM
             private var heading: Double? = null
 
             override fun onSensorChanged(event: SensorEvent) {
