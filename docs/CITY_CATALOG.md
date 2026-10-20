@@ -96,13 +96,20 @@ not written to the asset.
   device fix that the user confirms or changes, so it always returns the nearest
   entry even when it is far away; a non-finite position returns null. It reads
   the local catalog only and stores, logs or transmits nothing.
+- **Device location is an optional shortcut (issue #6).** The city step explains
+  the benefit in the UI, then requests only `ACCESS_COARSE_LOCATION`. One fused
+  or network fix is reduced to `LocationFix` and passed to
+  `nearestCity`; a fix older than ten minutes, a denied permission, or an
+  unavailable provider leaves the offline search as the complete path. The
+  coordinates are not persisted, logged, or sent, and selecting the suggested
+  city stores only its GeoNames id like any manual choice.
 
 ## Unverified on this change
 
-- **The location permission flow is not implemented here.** This change adds only
-  the catalog lookup; the opt-in, permission request, and city pre-selection of
-  issue #6 remain, so the privacy and state handling in its acceptance criteria
-  are still to be built and verified.
+- **The location flow is not yet verified on a physical device.** The unit test
+  covers fresh, stale, missing, and non-finite fixes, but the system permission
+  prompt, provider availability, and approximate-fix behaviour on real hardware
+  still need a manual check before release.
 
 - **Load behaviour and memory on a low-end device is not yet verified.** The
   asset is ~1.9 MB and parsing is proportional to its size, so it must be loaded

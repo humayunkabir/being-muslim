@@ -28,9 +28,10 @@ import app.beingmuslim.android.prayer.HighLatitudeRuleChoice
 
 /**
  * First run: the user picks a city, a calculation method, an Asr juristic method
- * and the high-latitude rule. Nothing is pre-selected, and the "not sure" help
- * gives a user who cannot answer the method question an explicit way forward
- * (`docs/PRODUCT_REQUIREMENTS.md` §2.1, issues #4 and #7).
+ * and the high-latitude rule. Nothing is pre-selected unless the user asks for a
+ * location suggestion, and the "not sure" help gives a user who cannot answer
+ * the method question an explicit way forward (`docs/PRODUCT_REQUIREMENTS.md`
+ * §2.1, issues #4, #6 and #7).
  */
 @Composable
 fun SetupScreen(
@@ -75,6 +76,12 @@ fun SetupScreen(
                 onAsrMethodChange = { asrMethod = it },
                 onRuleChange = { rule = it },
                 onCityChange = { selectedCityId = it },
+                cityAction = {
+                    LocationCitySuggestion(
+                        catalog = catalog,
+                        onCityFound = { selectedCityId = it },
+                    )
+                },
             )
 
             val chosenCity = selectedCityId

@@ -7,6 +7,12 @@
       picker and AppCompat's stored locale take over (issue #14), which is why
       it is marked as targeting 33 only.
     -->
+    <!--
+      Optional nearest-city suggestion (issue #6). Coarse is the least precise
+      access that satisfies the feature; the app never requests fine location.
+    -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
