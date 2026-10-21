@@ -99,13 +99,12 @@ rate-limiting abuse), which is not part of this ticket.
   server client ID; the Android client ID is not the token audience. Appwrite's
   own guidance says Android and web tokens name the same web client
   (`add-google-one-tap-to-your-web-app`).
-- The provider also has `enabled=true` with the same web client ID, so the
-  browser redirect flow is available. Appwrite validated the client ID/secret
-  pair when it was enabled.
-- The web client secret is stored server-side in Appwrite, never in this
-  repository. It was pasted into chat on 2026-10-21: rotate it in Google Cloud
-  and update Appwrite, or set `enabled=false` if browser sign-in is not needed.
-  Native sign-in does not use the secret.
+- The client ID/secret pair was validated against Google while the browser
+  redirect flow was briefly enabled. That flow is now **disabled** and the
+  secret cleared: the project has no Web platform, and the secret was pasted
+  into chat on 2026-10-21. Rotate it in Google Cloud. Native sign-in does not
+  use the secret; enable the browser flow later only with a fresh secret and a
+  registered Web platform.
 - **End-to-end sign-in with a test account is still pending** the Android client
   flow in #15. The provider configuration is verified; the user journey is not.
 
