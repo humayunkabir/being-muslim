@@ -112,8 +112,9 @@ If a time looks wrong, **Report a wrong time or problem** on the times screen
 sends the calculation inputs behind the times shown: the city and its
 coordinates, time zone, calculation method and its parameters, the Asr juristic
 method, high-latitude rule, your Hijri day shift, your prayer-time offsets, the
-dates and the calculated times. It also sends anything you type in the note.
-The screen lists exactly what is attached before you send it.
+date, and the calculated times. It also sends the app and calculation-library
+versions, so the result can be reproduced, and anything you type in the note.
+The screen shows those inputs before you send them.
 
 It sends to the app's operator on the project's own server (Appwrite), and the
 screen says so. The report is used only to check the calculation and fix a wrong
@@ -124,8 +125,9 @@ time.
 - It is sent only when you tap **Send report**. Sending needs a connection; if
   it fails, the report stays on the screen so you can try again.
 - Reports are kept only while the operator investigates the problem they
-  describe, and are not used for anything else. Deleting your account does not
-  remove a report, because the report is not linked to the account.
+  describe, and are deleted once it is resolved — at the latest 90 days after
+  the report is sent. They are not used for anything else. Deleting your account
+  does not remove a report, because the report is not linked to the account.
 - The note is yours: do not include personal details in it.
 
 ## Choices and control

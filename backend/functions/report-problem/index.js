@@ -41,6 +41,8 @@ function isReport(value) {
   if (!hasOnlyKeys(value, [
     "version",
     "appVersion",
+    "library",
+    "date",
     "city",
     "method",
     "parameters",
@@ -53,7 +55,8 @@ function isReport(value) {
   ])) {
     return false;
   }
-  if (value.version !== 1 || !text(value.appVersion, 40)) return false;
+  if (value.version !== 1 || !text(value.appVersion, 40) || !text(value.library, 40)) return false;
+  if (typeof value.date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value.date)) return false;
 
   const city = value.city;
   if (!hasOnlyKeys(city, ["name", "countryCode", "latitude", "longitude", "timezone"])) {

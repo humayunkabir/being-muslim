@@ -1,7 +1,5 @@
 package app.beingmuslim.android.ui
 
-import android.content.Context
-import android.text.format.DateFormat
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,13 +20,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import app.beingmuslim.android.R
-import app.beingmuslim.android.prayer.DailyPrayerTimes
 import app.beingmuslim.android.prayer.Prayer
 import app.beingmuslim.android.report.ProblemReport
-import java.util.Date
-import java.util.TimeZone
 
 /**
  * The report about a wrong time or another problem (issue #18). It shows the
@@ -54,6 +52,7 @@ fun ReportScreen(
     val language = currentLanguage()
     val city = report.city
     val parameters = report.settings.method.adhan.parameters
+    val canEdit = sendState.isReportEditable
 
     Scaffold(modifier = modifier.fillMaxSize()) { innerPadding ->
         Column(
@@ -139,7 +138,7 @@ fun ReportScreen(
                 SummaryLine(
                     stringResource(
                         R.string.report_attached_today,
-                        formatReportDate(context, day),
+                        formatDate(context, day.date, day.zone),
                         day.date.toString(),
                     ),
                 )
@@ -148,7 +147,7 @@ fun ReportScreen(
                 SummaryLine(
                     stringResource(
                         R.string.report_attached_tomorrow,
-                        formatReportDate(context, day),
+                        formatDate(context, day.date, day.zone),
                         day.date.toString(),
                     ),
                 )
@@ -167,10 +166,15 @@ fun ReportScreen(
                 onValueChange = onNoteChange,
                 label = { Text(stringResource(R.string.report_note_label)) },
                 supportingText = {
-                    Text(stringResource(R.string.report_note_help))
+                    Text(
+                        stringResource(
+                            R.string.report_note_help,
+                            ProblemReport.MAX_NOTE_LENGTH,
+                        ),
+                    )
                 },
                 minLines = 3,
-                enabled = sendState == ReportSendState.NOT_SENT || sendState == ReportSendState.FAILED,
+                enabled = canEdit,
                 modifier = Modifier.fillMaxWidth(),
             )
 
@@ -179,11 +183,15 @@ fun ReportScreen(
                     text = stringResource(R.string.report_failed),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.error,
+                    // The sending button disables itself, so the outcome is
+                    // announced to a screen reader rather than left to be found.
+                    modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
                 )
 
                 ReportSendState.SENT -> Text(
                     text = stringResource(R.string.report_sent),
                     style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
                 )
 
                 ReportSendState.NOT_SENT, ReportSendState.SENDING -> Unit
@@ -192,7 +200,7 @@ fun ReportScreen(
             if (sendState != ReportSendState.SENT) {
                 Button(
                     onClick = onSend,
-                    enabled = sendState == ReportSendState.NOT_SENT || sendState == ReportSendState.FAILED,
+                    enabled = canEdit,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text(
@@ -237,12 +245,4 @@ private fun offsetsSummary(report: ProblemReport): String? {
         }
     }
     return items.takeIf { it.isNotEmpty() }?.joinToString(", ")
-}
-
-/** The day's date in the city's zone and locale, as the times screen shows it. */
-private fun formatReportDate(context: Context, day: DailyPrayerTimes): String {
-    val format = DateFormat.getMediumDateFormat(context)
-    format.timeZone = TimeZone.getTimeZone(day.zone)
-    val midday = day.date.atTime(12, 0).atZone(day.zone).toInstant()
-    return format.format(Date.from(midday))
 }

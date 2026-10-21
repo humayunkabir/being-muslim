@@ -1,11 +1,13 @@
 package app.beingmuslim.android.report
 
+import app.beingmuslim.android.BuildConfig
 import app.beingmuslim.android.citycatalog.City
 import app.beingmuslim.android.prayer.CalculationSettings
 import app.beingmuslim.android.prayer.DailyPrayerTimes
 import app.beingmuslim.android.prayer.Prayer
 import app.beingmuslim.android.prayer.PrayerOffsets
 import app.beingmuslim.android.prayer.TwoDayPrayerTimes
+import java.time.LocalDate
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -13,9 +15,9 @@ import org.json.JSONObject
  * One user-initiated problem report about a calculated time
  * (`docs/PRODUCT_REQUIREMENTS.md` §2.1, §5). It holds the inputs that reproduce
  * the result — city and coordinates, method and its parameters, the juristic and
- * high-latitude choices, the user's offsets, the dates and the raw times — plus
- * the user's own note. It deliberately holds nothing else: no account, device,
- * or location history (`docs/PRIVACY.md`).
+ * high-latitude choices, the user's offsets, the date the report is about, the
+ * dates and the raw times — plus the user's own note. It deliberately holds
+ * nothing else: no account, device, or location history (`docs/PRIVACY.md`).
  */
 data class ProblemReport(
     val appVersion: String,
@@ -23,6 +25,7 @@ data class ProblemReport(
     val settings: CalculationSettings,
     val offsets: PrayerOffsets,
     val hijriDayShift: Int,
+    val date: LocalDate,
     val days: TwoDayPrayerTimes,
     val note: String = "",
 ) {
@@ -51,6 +54,10 @@ object ProblemReportCodec {
     fun encode(report: ProblemReport): String = JSONObject().apply {
         put("version", VERSION)
         put("appVersion", report.appVersion)
+        // The calculation engine's version travels too: a fix in the library can
+        // change a time without the app version changing.
+        put("library", "adhan ${BuildConfig.ADHAN_VERSION}")
+        put("date", report.date.toString())
         put("city", JSONObject().apply {
             put("name", report.city.name)
             put("countryCode", report.city.countryCode)

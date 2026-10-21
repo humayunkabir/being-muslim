@@ -9,6 +9,8 @@ process.env.APPWRITE_FUNCTION_PROJECT_ID = "project";
 const report = {
   version: 1,
   appVersion: "0.1.0",
+  library: "adhan 1.2.1",
+  date: "2026-10-21",
   city: {
     name: "Dhaka",
     countryCode: "BD",
@@ -109,6 +111,11 @@ test("rejects a field the calculation inputs do not include", async () => {
 
   assert.equal(res.code, 400);
   assert.equal(called, false);
+});
+
+test("rejects a report whose date is not a civil date", async () => {
+  const res = await invoke({ ...report, date: "21/10/2026" });
+  assert.equal(res.code, 400);
 });
 
 test("rejects an unknown field nested in the city", async () => {

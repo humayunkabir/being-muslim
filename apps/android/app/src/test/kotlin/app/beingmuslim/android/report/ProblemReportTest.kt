@@ -14,6 +14,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -57,6 +58,7 @@ class ProblemReportTest {
         settings = settings,
         offsets = PrayerOffsets(mapOf(Prayer.FAJR to -3, Prayer.ISHA to 5)),
         hijriDayShift = -1,
+        date = LocalDate.of(2026, 10, 21),
         days = TwoDayPrayerTimes(today = firstDay, tomorrow = secondDay),
         note = "Fajr looks ten minutes early.",
     )
@@ -67,7 +69,7 @@ class ProblemReportTest {
     fun carriesOnlyTheCalculationInputsAndTheNoteTopLevel() {
         assertEquals(
             setOf(
-                "version", "appVersion", "city", "method", "parameters",
+                "version", "appVersion", "library", "date", "city", "method", "parameters",
                 "asrJuristicMethod", "highLatitudeRule", "hijriDayShift",
                 "offsets", "days", "note",
             ),
@@ -97,6 +99,8 @@ class ProblemReportTest {
 
         assertEquals(1, encoded.getInt("version"))
         assertEquals("0.1.0", encoded.getString("appVersion"))
+        assertTrue(encoded.getString("library").matches(Regex("adhan \\d+\\.\\d+\\.\\d+")))
+        assertEquals("2026-10-21", encoded.getString("date"))
         assertEquals("KARACHI", encoded.getString("method"))
         assertEquals("HANAFI", encoded.getString("asrJuristicMethod"))
         assertEquals("SEVENTH_OF_THE_NIGHT", encoded.getString("highLatitudeRule"))
@@ -153,10 +157,13 @@ class ProblemReportTest {
         val report = report.copy(
             days = TwoDayPrayerTimes(today = null, tomorrow = secondDay),
         )
-        val days = JSONObject(ProblemReportCodec.encode(report)).getJSONArray("days")
+        val encoded = JSONObject(ProblemReportCodec.encode(report))
+        val days = encoded.getJSONArray("days")
 
         assertEquals(1, days.length())
         assertEquals("2026-10-22", days.getJSONObject(0).getString("date"))
+        // The report still says which day it is about.
+        assertEquals("2026-10-21", encoded.getString("date"))
     }
 
     @Test

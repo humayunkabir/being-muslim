@@ -34,6 +34,7 @@ import app.beingmuslim.android.sync.withSynced
 import app.beingmuslim.android.sync.withTotal
 import app.beingmuslim.android.tasbih.TasbihCounter
 import app.beingmuslim.android.tasbih.TasbihStore
+import java.io.IOException
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
@@ -102,7 +103,28 @@ sealed interface AppUiState {
     data class Report(
         val report: ProblemReport,
         val sendState: ReportSendState,
-    ) : AppUiState
+    ) : AppUiState {
+
+        /**
+         * This report with [note] the user typed, or null once sending has begun
+         * and the note can no longer change what is sent.
+         */
+        fun withNote(note: String): Report? {
+            if (!sendState.isReportEditable) return null
+            return copy(report = report.withNote(note))
+        }
+
+        /**
+         * This report with the outcome of sending [of], or null when [of] is not
+         * the report now on screen — the user left and reopened the screen while
+         * it was in flight — or when no send is in progress. Compared by
+         * identity: a reopened report is a new object even if its inputs match.
+         */
+        fun withSendOutcome(of: ProblemReport, sent: Boolean): Report? {
+            if (report !== of || sendState != ReportSendState.SENDING) return null
+            return copy(sendState = if (sent) ReportSendState.SENT else ReportSendState.FAILED)
+        }
+    }
 }
 
 /** Where a problem report is in its one delivery: not sent, sending, sent, or failed and retryable. */
@@ -112,6 +134,10 @@ enum class ReportSendState {
     SENT,
     FAILED,
 }
+
+/** Whether the user can still change or send the report in this state. */
+val ReportSendState.isReportEditable: Boolean
+    get() = this == ReportSendState.NOT_SENT || this == ReportSendState.FAILED
 
 /**
  * Orchestrates the app: loads the offline catalog once, reads the persisted
@@ -280,6 +306,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun openReport() {
         val times = _state.value as? AppUiState.Times ?: return
+        // The date the report is about: today as shown, or the day that has
+        // times when today is polar. A civil date always travels, so a report
+        // with neither day record can still be placed in time.
+        val date = times.days.today?.date
+            ?: times.days.tomorrow?.date?.minusDays(1)
+            ?: Instant.now().atZone(ZoneId.of(times.city.timezone)).toLocalDate()
         _state.value = AppUiState.Report(
             report = ProblemReport(
                 appVersion = BuildConfig.VERSION_NAME,
@@ -287,6 +319,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 settings = times.settings,
                 offsets = times.offsets,
                 hijriDayShift = times.hijriDayShift,
+                date = date,
                 days = times.days,
             ),
             sendState = ReportSendState.NOT_SENT,
@@ -296,10 +329,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     /** Updates the user's own description; ignored once the report is under way. */
     fun setReportNote(note: String) {
         val current = _state.value as? AppUiState.Report ?: return
-        if (current.sendState == ReportSendState.SENDING || current.sendState == ReportSendState.SENT) {
-            return
-        }
-        _state.value = current.copy(report = current.report.withNote(note))
+        _state.value = current.withNote(note) ?: return
     }
 
     /**
@@ -308,9 +338,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun sendReport() {
         val current = _state.value as? AppUiState.Report ?: return
-        if (current.sendState == ReportSendState.SENDING || current.sendState == ReportSendState.SENT) {
-            return
-        }
+        if (!current.sendState.isReportEditable) return
         _state.value = current.copy(sendState = ReportSendState.SENDING)
         viewModelScope.launch {
             val sent = try {
@@ -318,16 +346,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 true
             } catch (exception: CancellationException) {
                 throw exception
-            } catch (_: Exception) {
+            } catch (_: IOException) {
+                // The service reports every failure as IOException: transport,
+                // timeout, or the function's own refusal.
                 false
             }
-            // A different report may be on screen now — left and reopened while
-            // the send was in flight — and must not inherit this outcome.
             val latest = _state.value as? AppUiState.Report ?: return@launch
-            if (latest.report !== current.report) return@launch
-            _state.value = latest.copy(
-                sendState = if (sent) ReportSendState.SENT else ReportSendState.FAILED,
-            )
+            _state.value = latest.withSendOutcome(current.report, sent) ?: return@launch
         }
     }
 

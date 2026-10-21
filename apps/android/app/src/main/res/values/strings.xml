@@ -250,7 +250,7 @@
          exact calculation inputs it attaches and states where the report goes. -->
     <string name="times_report_problem">Report a wrong time or problem</string>
     <string name="report_title">Report a problem</string>
-    <string name="report_destination">Your report goes to the app\'s operator, on the project\'s own server (Appwrite). It is used only to check the calculation behind the times you see.</string>
+    <string name="report_destination">Your report goes to the app\'s operator, on the project\'s own server (Appwrite). It is used only to check the calculation behind the times you see. A wrong time is fixed in a later release, and there is no reply because the report carries no contact details.</string>
     <string name="report_needs_connection">Sending needs a connection. If it cannot be sent, the report stays on this screen so you can try again.</string>
     <string name="report_attached_heading">What is attached</string>
     <string name="report_attached_location">City: %1$s, %2$s (%3$.4f, %4$.4f), time zone %5$s</string>
@@ -267,13 +267,13 @@
     <string name="report_offset_item">%1$s %2$s</string>
     <string name="report_attached_today">Today: %1$s (%2$s)</string>
     <string name="report_attached_tomorrow">Tomorrow: %1$s (%2$s)</string>
-    <string name="report_privacy">Only the calculation inputs above, the calculated times for those dates, and anything you type below are sent. No account, name, email, device details or location history is included.</string>
+    <string name="report_privacy">Only the inputs shown above, the app and calculation-library versions, your Hijri day shift, the calculated times for those dates, and anything you type below are sent. No account, name, email, device details or location history is included.</string>
     <string name="report_note_label">What looks wrong? (optional)</string>
-    <string name="report_note_help">Say which time looks wrong and what you expected. Do not include personal details.</string>
+    <string name="report_note_help">Say which time looks wrong and what you expected. Do not include personal details. Maximum length: %1$d.</string>
     <string name="report_send">Send report</string>
     <string name="report_sending">Sending…</string>
     <string name="report_retry">Try sending again</string>
-    <string name="report_sent">Report sent. The operator reviews it against the recorded inputs; a wrong time is fixed in a later release. There is no reply, because the report carries no contact details.</string>
+    <string name="report_sent">Report sent. The operator reviews it against the recorded inputs.</string>
     <string name="report_failed">Could not send the report. Check your connection and try again; the report is still on this screen.</string>
     <string name="report_back">Back</string>
 

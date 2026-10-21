@@ -257,7 +257,7 @@ any caller and stores the report with no read permission for anyone.
 
 | Column | Type | Notes |
 |---|---|---|
-| `payload` | varchar(16384) | The validated report as JSON: calculation inputs, dates and times, and the user's note. No account, device, or location history. |
+| `payload` | varchar(16384) | The validated report as JSON: calculation inputs, the app and calculation-library versions, the date, dates and times, and the user's note. No account, device, or location history. |
 
 - Row security is **on**; the table grants **no** table-level permissions.
 - Created rows carry `permissions: []`, so only the administrative key can read
@@ -265,8 +265,10 @@ any caller and stores the report with no read permission for anyone.
   guest and a signed-in caller are stored alike.
 - The function validates an allowlist before storing anything. Unknown keys at
   the top level or inside the city, parameters, adjustments, offsets or day
-  objects are rejected, as are out-of-range values, a note over 2000 characters,
-  and a request body over 16 KiB. The input schema is the `isReport` contract in
+  objects are rejected, as are out-of-range values, a malformed `date`, a note
+  over 2000 characters, and a request body over 16 KiB. The top-level `date` is
+  the civil date the report is about, so a polar day with no times still places
+  the report in time. The input schema is the `isReport` contract in
   `backend/functions/report-problem/index.js`, mirrored by
   `ProblemReportCodec` in the app and covered by tests on both sides.
 - The function never logs the report or the note; a storage failure logs only
@@ -336,6 +338,8 @@ function's contract is covered by `node --test` in
 | Action | Result |
 |---|---|
 | Guest executes `report-problem` with a valid report | execution `completed`, `201 {"sent":true}` |
+| Guest executes it again with `date` and `library` | execution `completed`, `201 {"sent":true}` |
+| Guest sends the same report without `date` | `400 {"message":"Invalid report"}`, no row |
 | Row as admin | `payload` is the report; permissions `[]` |
 | Guest lists `problem_reports` | `200`, total `0` — no read path |
 | Guest sends a body that is not JSON | `400 {"message":"Invalid report"}`, no row |

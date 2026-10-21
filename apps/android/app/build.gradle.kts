@@ -51,6 +51,9 @@ android {
             "APPWRITE_REPORT_FUNCTION_ID",
             "\"${providers.gradleProperty("appwriteReportFunctionId").getOrElse("report-problem")}\"",
         )
+        // The calculation engine's version, recorded in a problem report because
+        // a library change can move a time without the app version changing.
+        buildConfigField("String", "ADHAN_VERSION", "\"${libs.versions.adhan.get()}\"")
     }
 
     buildTypes {

@@ -1,6 +1,5 @@
 package app.beingmuslim.android.ui
 
-import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -27,11 +26,7 @@ import app.beingmuslim.android.hijri.HijriCalendar
 import app.beingmuslim.android.prayer.DailyPrayerTimes
 import app.beingmuslim.android.prayer.Prayer
 import app.beingmuslim.android.prayer.PrayerOffsets
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
-import java.util.Date
-import java.util.TimeZone
 
 /**
  * The five prayer times for the user's city, today and tomorrow, with the
@@ -181,7 +176,7 @@ private fun DaySection(
 
     val context = LocalContext.current
     Text(
-        text = formatDate(context, times),
+        text = formatDate(context, times.date, times.zone),
         style = MaterialTheme.typography.bodyMedium,
     )
     Text(
@@ -319,11 +314,3 @@ private val HIJRI_MONTH_LABELS = intArrayOf(
     R.string.hijri_month_11,
     R.string.hijri_month_12,
 )
-
-/** Formats the local date of [times], in the city's zone. */
-private fun formatDate(context: Context, times: DailyPrayerTimes): String {
-    val format = android.text.format.DateFormat.getMediumDateFormat(context)
-    format.timeZone = TimeZone.getTimeZone(times.zone)
-    val midday = times.date.atTime(12, 0).atZone(times.zone).toInstant()
-    return format.format(Date.from(midday))
-}
