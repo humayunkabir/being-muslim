@@ -1,4 +1,4 @@
-package app.beingmuslim.android.auth
+package app.beingmuslim.android.appwrite
 
 import android.annotation.SuppressLint
 import android.content.Context

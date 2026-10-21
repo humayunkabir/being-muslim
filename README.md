@@ -19,6 +19,7 @@ still not finalized (§14).
 ├── AGENTS.md, README.md, GLOSSARY.md     # engineering rules, entry point, vocabulary
 ├── apps/ios/                             # Swift + SwiftUI (Xcode project); AGENTS.md
 ├── apps/android/                         # Kotlin + Jetpack Compose (Gradle); AGENTS.md
+├── backend/functions/user-sync/          # Appwrite Function: creates a user's sync row
 ├── docs/                                 # spec docs, decisions, agent config
 ├── .agents/, .opencode/                  # vendored agent skills + command wrappers
 ├── .githooks/                            # versioned git hooks (see "Git hooks")
@@ -109,7 +110,9 @@ worth formatting.
   UX, and delivery limits.
 - `docs/APPWRITE.md` — the optional account backend: endpoint and project IDs,
   platform registrations, OAuth provider state, the sync table and its
-  permissions, and the admin-key runbook.
+  permissions, the row-creation function, and the admin-key runbook.
+- `docs/SYNC.md` — the sync contract: payload shape and versioning, the conflict
+  rule, error and retry behaviour, and retention.
 - `docs/DECISIONS/` — architecture decision records.
 - `docs/AGENT_SKILLS.md` — vendored agent skills: provenance, layout, update
   procedure.

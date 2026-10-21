@@ -6,8 +6,9 @@ is now the production backend (`DECISIONS/0008`).
 provider state, database/table schema and permission model, the verification
 evidence for issue #22, and the operational steps for the administrative key.
 **Defers:** what may be synced and retained → `PRODUCT_REQUIREMENTS.md` §10;
-account and sync behavior → `DECISIONS/0003` and issues #15–#17; secret storage
-and rotation policy → `ARCHITECTURE.md` §7.
+account and sync behavior → `DECISIONS/0003`, issues #15–#17, and the sync
+contract in `SYNC.md`; secret storage and rotation policy → `ARCHITECTURE.md`
+§7.
 
 ## Non-secret identifiers
 
@@ -24,7 +25,8 @@ and rotation policy → `ARCHITECTURE.md` §7.
 These are not secrets. The Android app reads the endpoint and project ID from
 Gradle `BuildConfig` fields (`app/build.gradle.kts`), overridable with
 `-PappwriteEndpoint=...` and `-PappwriteProjectId=...`; no key or OAuth secret
-is in the APK.
+is in the APK. The sync row-creation function id is `APPWRITE_SYNC_FUNCTION_ID`
+(default `user-sync`), overridable with `-PappwriteSyncFunctionId=...`.
 
 **Licensing:** the `io.appwrite:sdk-for-android` Maven POM declares GPL-3.0, but
 the upstream repository's `LICENSE.md` is **BSD-3-Clause** (verified
@@ -37,8 +39,8 @@ third-party notices before release; the POM metadata is wrong.
 
 | Column | Type | Notes |
 |---|---|---|
-| `settings` | varchar(8192) | Opaque JSON object of synced settings; nullable until first sync. Its shape and versioning belong to the sync implementation (#16), not this table. |
-| `tasbihTotal` | integer, min 0, default 0 | The tasbih total only, not the label or count |
+| `settings` | varchar(8192) | Opaque JSON object of synced settings; nullable until first sync. Its shape, versioning, and conflict rule are the sync contract (`SYNC.md`). |
+| `tasbihTotal` | integer, min 0, default 0 | The tasbih total only, not the label or target (`SYNC.md`). |
 
 - Row security is **on**; the table grants **no** table-level permissions.
 - The row ID is the Appwrite user ID. The creating server path sets
@@ -64,10 +66,91 @@ third-party notices before release; the POM metadata is wrong.
 | User B lists rows | `200`, total `0` |
 | User B updates or deletes A's row | `401 user_unauthorized` |
 
-**Before #15/#16:** implement the server-side row creation path (for example an
-Appwrite Function or another trusted endpoint). Until it exists, no client can
-create a sync row; that gap is intentional and safer than shipping client
-create.
+Rows are created by the `user-sync` function described below, never by a
+client. That gap is intentional and safer than shipping client create.
+
+## Sync row creation function (#16)
+
+`user-sync` creates the signed-in caller's row through the trusted server path.
+Clients have no create permission, so this is the only way a row comes into
+existence.
+
+| Setting | Value |
+|---|---|
+| Function ID | `user-sync` |
+| Runtime | `node-22` |
+| Entrypoint | `index.js` |
+| Build command | `npm install` (no dependencies) |
+| Scopes | `rows.read`, `rows.write` |
+| Execute permission | `any` — see the finding below |
+| Timeout | 15 s |
+| Source | `backend/functions/user-sync/` |
+
+The function:
+
+1. Reads `x-appwrite-user-id` from the execution. A call without a session
+   returns `401 {"message":"Sign in required"}` and creates nothing.
+2. Reads the caller's row. If it exists, returns `200 {"created":false}`.
+3. Otherwise creates row id = the caller's user id with
+   `read("user:<id>")`, `update("user:<id>")`, `delete("user:<id>")`, and
+   returns `201`/`200 {"created":true}`. A concurrent `409` is treated as
+   created.
+
+The app calls it only when a row read returns `404`, then retries the write
+(`SYNC.md`, *Errors and retries*). It never sends settings or the tasbih total
+to the function.
+
+**Finding — `execute: ["users"]` is rejected by this server.** Creating the
+function with that role returns
+`401 Missing "execute" permission for role "users". Only ["any","guests"] scopes are allowed`.
+The execute permission is therefore `["any"]`; authentication is enforced
+inside the function from the session user id, and no row can be created for
+another user because the id is never read from the request body. Rate limiting
+is the platform's per-project limit.
+
+**Deployment** (from the repository root; requires the administrative key from
+`.env.appwrite`, never committed):
+
+```sh
+set -a; . ./.env.appwrite; set +a
+base="${APPWRITE_ENDPOINT%/}"
+
+# Once, if the function does not exist yet.
+curl -X POST "$base/functions" \
+  -H "X-Appwrite-Project: being-muslim" -H "X-Appwrite-Key: $APPWRITE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"functionId":"user-sync","name":"User sync row","runtime":"node-22",
+       "execute":["any"],"scopes":["rows.read","rows.write"],
+       "entrypoint":"index.js","commands":"npm install","enabled":true,
+       "logging":true,"timeout":15}'
+
+# For each code change.
+tar -czf /tmp/user-sync.tar.gz -C backend/functions/user-sync .
+curl -X POST "$base/functions/user-sync/deployments" \
+  -H "X-Appwrite-Project: being-muslim" -H "X-Appwrite-Key: $APPWRITE_API_KEY" \
+  -F "entrypoint=index.js" -F "commands=npm install" -F "activate=true" \
+  -F "code=@/tmp/user-sync.tar.gz;type=application/gzip"
+```
+
+Poll `GET /v1/functions/user-sync/deployments/<id>` until `status` is `ready`;
+the function is live once the activated deployment is ready.
+
+**Verified 2026-10-21** with a throwaway email/password user, then deleted:
+
+| Action | Result |
+|---|---|
+| User executes the function with a session | `200 {"created":true}` |
+| Row as admin | id = user id; `tasbihTotal 0`, `settings null`; permissions are the three `user:<id>` grants |
+| User executes it again | `200 {"created":false}` |
+| User updates settings + total on the row | `200`, values stored |
+| User reads the row | `200`, values returned |
+| Execution without a session | `401 {"message":"Sign in required"}`, no row |
+| Execution without a session but with a forged `x-appwrite-user-id` header | `401`, no row; the executor drops the client-supplied header |
+| User and row deleted afterwards | `204`, `204`; table back to 0 rows |
+
+The Android client path is compiled and its payload/conflict tests pass; the
+two-device handover is covered by the contract and those tests, not by a second
+physical device.
 
 ## Platforms
 

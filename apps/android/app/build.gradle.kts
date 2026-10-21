@@ -31,6 +31,13 @@ android {
             "APPWRITE_PROJECT_ID",
             "\"${providers.gradleProperty("appwriteProjectId").getOrElse("being-muslim")}\"",
         )
+        // The function that creates the user's sync row through the trusted
+        // server path; clients have no create permission on the table.
+        buildConfigField(
+            "String",
+            "APPWRITE_SYNC_FUNCTION_ID",
+            "\"${providers.gradleProperty("appwriteSyncFunctionId").getOrElse("user-sync")}\"",
+        )
     }
 
     buildTypes {
@@ -86,6 +93,9 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+    // Android's org.json is a stub in local JVM tests; the real implementation
+    // exercises the sync payload codec without a device.
+    testImplementation(libs.json)
 
     debugImplementation(libs.androidx.compose.ui.tooling)
 }

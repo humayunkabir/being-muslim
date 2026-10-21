@@ -72,7 +72,7 @@ Feature-level acceptance criteria for the MVP. The full user-story set and the p
 
 **Account & sync (optional)**
 - Every MVP feature works logged out and when the sync service is unreachable; sign-in is via Apple or Google.
-- The synced payload is settings and the tasbih total only — no location and no devotional timestamps; in-app account deletion and data export are available, and what leaves the device is disclosed.
+- The synced payload is settings and the tasbih total only — no location and no devotional timestamps; in-app account deletion and data export are available, and what leaves the device is disclosed. The payload shape, conflict rule, retention, and error behaviour are the contract in `docs/SYNC.md`.
 
 **Report a problem**
 - A report carries the location, method and date so that a wrong time can be investigated.

@@ -18,6 +18,12 @@ import app.beingmuslim.android.reminder.ReminderScheduler
 import app.beingmuslim.android.reminder.ReminderStore
 import app.beingmuslim.android.selection.SelectionStore
 import app.beingmuslim.android.selection.UserSelection
+import app.beingmuslim.android.sync.AppwriteSyncService
+import app.beingmuslim.android.sync.SyncCoordinator
+import app.beingmuslim.android.sync.SyncOutcome
+import app.beingmuslim.android.sync.SyncPayload
+import app.beingmuslim.android.sync.SyncStateStore
+import app.beingmuslim.android.sync.toSyncedSettings
 import app.beingmuslim.android.tasbih.TasbihCounter
 import app.beingmuslim.android.tasbih.TasbihStore
 import java.time.Duration
@@ -97,6 +103,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val tasbihStore = TasbihStore(application)
     private val reminderStore = ReminderStore(application)
     private val reminderScheduler = ReminderScheduler(application)
+    private val syncState = SyncStateStore(application)
+    private val sync = SyncCoordinator(AppwriteSyncService(application), syncState)
     private val _state = MutableStateFlow<AppUiState>(AppUiState.Loading)
     val state: StateFlow<AppUiState> = _state.asStateFlow()
 
@@ -105,6 +113,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private var tasbih = TasbihCounter()
     private var reminders = ReminderPreferences()
     private var rolloverJob: Job? = null
+    private var syncJob: Job? = null
     private var timesRequest = 0
     private val remindersUpdate = Mutex()
 
@@ -125,6 +134,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 _state.value = AppUiState.Setup(loaded)
             } else {
                 showTimes(stored, loaded)
+                // The account may already hold settings; the first composition
+                // runs before this load finishes, so ask again now that there is
+                // a selection to reconcile.
+                requestSync(0)
             }
             // Re-schedule on launch only when the queue is empty, so a reminder
             // the OS has deferred is not cancelled and lost by opening the app.
@@ -147,6 +160,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             showTimes(chosen, loaded)
             // The city, method and offsets all move reminder times.
             reminderScheduler.reschedule()
+            requestSync(0)
         }
     }
 
@@ -174,6 +188,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             )
             store.save(shifted)
             showTimes(shifted, loaded)
+            requestSync(0)
         }
     }
 
@@ -197,6 +212,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
      * has not saved.
      */
     fun refreshTimes() {
+        requestSync(0)
         if (_state.value !is AppUiState.Times) return
         showStoredSelection()
     }
@@ -280,9 +296,99 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
      */
     private fun updateTasbih(next: TasbihCounter) {
         if (next == tasbih) return
+        val countChanged = next.count != tasbih.count
         tasbih = next
         _state.value = AppUiState.Tasbih(next)
         viewModelScope.launch { tasbihStore.save(next) }
+        // Counting is rapid; the total is sent once the user pauses. A label or
+        // target change alone is not synced and does not trigger a push.
+        if (countChanged) requestSync(TASBIH_SYNC_DELAY_MS)
+    }
+
+    /**
+     * Reconciles with the account's stored settings and tasbih total. Called
+     * when the app appears and when the user returns to the foreground; it is
+     * best-effort, so a signed-out or offline device behaves exactly as before.
+     */
+    fun syncNow() = requestSync(0)
+
+    /**
+     * Runs one sync attempt unless there is nothing to sync yet. Attempts are
+     * cancelled and replaced by a newer one, so a burst of changes sends only
+     * its latest state.
+     */
+    private fun requestSync(debounceMs: Long) {
+        val loaded = catalog ?: return
+        // The settings screen holds unsaved edits; applying a pull under them
+        // would discard work the user has not chosen to keep.
+        if (_state.value is AppUiState.Settings) return
+        val userId = syncState.signedInUserId() ?: return
+        val local = currentPayload() ?: return
+        syncJob?.cancel()
+        syncJob = viewModelScope.launch {
+            if (debounceMs > 0) delay(debounceMs)
+            val outcome = sync.sync(userId, local)
+            if (outcome is SyncOutcome.Apply) {
+                // A pull is only recorded once its result is what this device
+                // holds, so a change made while the request was in flight is
+                // uploaded next rather than silently dropped.
+                val applied = applySynced(outcome.payload, local, loaded)
+                if (applied != null) syncState.markSynced(userId, applied)
+            }
+        }
+    }
+
+    /** The payload this device would send: settings without the city, plus the tasbih total. */
+    private fun currentPayload(): SyncPayload? {
+        val current = selection ?: return null
+        return SyncPayload(current.toSyncedSettings(currentLanguage().tag), tasbih.count)
+    }
+
+    /**
+     * Applies the server's settings and total, keeping the device-local city,
+     * and returns the payload the device now holds. Returns null when the local
+     * snapshot changed while the sync was in flight, so that change is not lost.
+     */
+    private suspend fun applySynced(
+        remote: SyncPayload,
+        localSnapshot: SyncPayload,
+        loaded: CityCatalog,
+    ): SyncPayload? {
+        // An open settings screen holds unsaved edits; a pull that landed after
+        // it opened must not replace them.
+        if (_state.value is AppUiState.Settings) return null
+        val current = selection ?: return null
+        if (currentPayload() != localSnapshot) return null
+
+        val language = remote.settings.language
+            ?.let { tag -> Language.entries.firstOrNull { it.tag == tag } }
+        val settings = remote.settings.copy(language = language?.tag ?: currentLanguage().tag)
+        val next = current.copy(
+            settings = settings.calculationSettings,
+            hijriDayShift = settings.hijriDayShift,
+            offsets = settings.offsets,
+        )
+        store.save(next)
+        // The canonical in-memory selection must move with the stored one, even
+        // when the screen on top is not the times screen: the next screen shown
+        // and the next sync both read it.
+        selection = next
+
+        val nextCounter = tasbih.copy(count = remote.tasbihTotal)
+        if (nextCounter != tasbih) {
+            tasbih = nextCounter
+            tasbihStore.save(tasbih)
+        }
+
+        when (_state.value) {
+            is AppUiState.Times -> showTimes(next, loaded)
+            is AppUiState.Tasbih -> _state.value = AppUiState.Tasbih(tasbih)
+            else -> Unit
+        }
+        // Last, because the platform applies a language change by recreating the
+        // activity; everything above is already stored when that happens.
+        if (language != null && language != currentLanguage()) applyLanguage(language)
+        return SyncPayload(settings, tasbih.count)
     }
 
     private suspend fun showTimes(chosen: UserSelection, catalog: CityCatalog) {
@@ -332,3 +438,6 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 /** The city's next local midnight after [now] — when the shown day rolls over. */
 internal fun nextLocalMidnight(now: Instant, zone: ZoneId): Instant =
     now.atZone(zone).toLocalDate().plusDays(1).atStartOfDay(zone).toInstant()
+
+/** How long counting must pause before the tasbih total is sent. */
+private const val TASBIH_SYNC_DELAY_MS = 2_000L

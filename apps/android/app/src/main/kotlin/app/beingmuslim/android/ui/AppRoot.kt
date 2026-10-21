@@ -9,6 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,6 +36,9 @@ fun AppRoot(
 ) {
     // Recompute on return to the foreground so times roll over with the date.
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refreshTimes() }
+    // Also on entering the app: the account screen may have established a
+    // session since the last attempt, and the activity is already resumed.
+    LaunchedEffect(Unit) { viewModel.syncNow() }
 
     val state by viewModel.state.collectAsStateWithLifecycle()
 

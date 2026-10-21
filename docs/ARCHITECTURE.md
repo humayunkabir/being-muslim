@@ -21,12 +21,14 @@ repository/
 │   │   └── AGENTS.md               # iOS conventions + build/test commands
 │   └── android/                    # Kotlin + Compose: Gradle root, app/, gradlew
 │       └── AGENTS.md               # Android conventions + build/test commands
+├── backend/                        # server-side code, when a backend boundary is real
+│   └── functions/user-sync/        # Appwrite Function: creates the user's sync row (#16)
 ├── shared/                         # (when needed) contracts/, design-tokens/, documentation/
 ├── docs/                           # spec docs, AGENT_SKILLS.md, agents/, DECISIONS/
 └── tools/                          # (when needed) reproducible tooling only
 ```
 
-Within the apps, the iOS `Core/` and `DesignSystem/`, the Android `core/`, `design-system/`, and `build-logic/`, and the whole `shared/` tree are *(when needed)* and are added only when their boundary is real. Use standard Xcode and Gradle layouts inside the app directories; do not add a custom build orchestrator while ordinary platform tooling suffices. Generated output (e.g. `apps/android/app/build/`) and local caches (`graft/`, `.codegraph/`) are ignored, never committed.
+Within the apps, the iOS `Core/` and `DesignSystem/`, the Android `core/`, `design-system/`, and `build-logic/`, and the whole `shared/` tree are *(when needed)* and are added only when their boundary is real. `backend/` holds code that runs on the server (Appwrite Functions), added with the first such boundary (issue #16). Use standard Xcode and Gradle layouts inside the app directories; do not add a custom build orchestrator while ordinary platform tooling suffices. Generated output (e.g. `apps/android/app/build/`) and local caches (`graft/`, `.codegraph/`) are ignored, never committed.
 
 ### 2.1 Naming
 
@@ -57,6 +59,8 @@ Not every feature needs four layers; small features may stay in the app target o
 Depend on documented contracts, not assumptions about backend internals. When a backend is introduced, document: authentication/authorization expectations; API versioning and error format; pagination and filtering; time-zone and locale handling; data ownership, retention, deletion, and export; retry and idempotency for writes; offline and synchronization behavior if supported.
 
 Never place private server credentials or privileged API keys in either app; assume clients and their configuration can be inspected. *Which* data may be collected, retained, or exported is a product decision (`PRODUCT_REQUIREMENTS.md` §10); this section and §7 cover only how it is wired and stored.
+
+The optional account's sync contract — payload, versioning, conflict rule, errors, pagination, retention — is `SYNC.md`.
 
 ## 6. Islamic content and calculation boundaries
 
