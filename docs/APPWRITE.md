@@ -1,6 +1,7 @@
 # Appwrite backend configuration
 
-**Status:** Provisioned 2026-10-20 against a **self-hosted** Appwrite instance.
+**Status:** Provisioned 2026-10-20 against the self-hosted Appwrite instance that
+is now the production backend (`DECISIONS/0008`).
 **Owns:** the non-secret backend identifiers, platform registrations, OAuth
 provider state, database/table schema and permission model, the verification
 evidence for issue #22, and the operational steps for the administrative key.
@@ -125,17 +126,20 @@ repository. The Appwrite API accepts them over TLS and stores them server-side.
 
 ## API key
 
-A project API key named **Android** exists with broad scopes. It is an
+A project API key named **Android** exists with 94 scopes. It is an
 administrative key, not a client key: it must never be embedded in either app or
 written to a log.
 
-- It was pasted into a chat on 2026-10-20 and must be **rotated** in the console.
-- The local copy lives in `.env.appwrite` (gitignored, mode 600), never in a
-  tracked file.
+- The key exposed in chat on 2026-10-20 was rotated on 2026-10-21. The
+  replacement (key ID `6ad849f3003b92e812b6`) is the only project key and lives
+  in `.env.appwrite` (gitignored, mode 600), never in a tracked file.
+- Its scope set is broader than least privilege. Narrow it once the
+  administrative surface (database, platforms, OAuth, account deletion) is
+  known; do not use it as a client key.
 - Appwrite 2.5's Project service exposes `createEphemeralKey` but no
-  standard-key creation method; standard keys are created in the console. The
-  key ID observed here is `6ad4377b001ed384a05c`, name **Android**.
-- Create a replacement in the console, then delete the old key.
+  standard-key creation method; standard keys are created in the console.
+- The name **Android** is misleading for a server key; rename it to `admin` when
+  convenient.
 
 ## Verification of the endpoint and project
 
@@ -154,10 +158,12 @@ is covered when #15 adds the client.
 
 ## Deployment and staging
 
-The endpoint currently points at a **self-hosted** instance, while
-`DECISIONS/0003` names Appwrite Cloud as the MVP backend and defers
-self-hosting. That is an **unresolved conflict**, not a decision: do not treat
-this instance as the production backend until 0003 is amended or a new ADR says
-self-hosting replaces it. For now it is the development backend.
+The self-hosted endpoint is the **production backend** (`DECISIONS/0008`);
+Appwrite Cloud is not used. Environment separation follows `DECISIONS/0007`:
+the current `being-muslim` project is the development project, a staging project
+is created before the first external account, and a production project before
+the public release. All three may run on this instance.
 
-Staging decision: `DECISIONS/0007`.
+Self-hosting also makes TLS renewal, upgrades, backups/restore, monitoring, and
+security patching our responsibility. Those are release prerequisites, not
+assumptions; see `DECISIONS/0008` for the minimum bar.

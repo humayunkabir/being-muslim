@@ -1,6 +1,7 @@
 # 0003 — Offline-only core, optional account on Appwrite Cloud
 
 - **Status:** Accepted
+- **Amended by:** `0008` — the production backend is self-hosted, not Appwrite Cloud.
 - **Date:** 2026-10-18
 
 ## Context
