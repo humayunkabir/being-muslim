@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import app.beingmuslim.android.R
 import app.beingmuslim.android.auth.AccountError
 import app.beingmuslim.android.auth.AccountUiState
+import app.beingmuslim.android.auth.AuthProvider
 
 /**
  * The signed-out login screen and the signed-in dashboard, plus their loading
@@ -42,8 +43,9 @@ import app.beingmuslim.android.auth.AccountUiState
 @Composable
 fun AccountScreen(
     state: AccountUiState,
-    onSignIn: () -> Unit,
+    onSignIn: (AuthProvider) -> Unit,
     onSignOut: () -> Unit,
+    onCancel: () -> Unit,
     onExit: () -> Unit,
     @StringRes exitLabel: Int,
     onBack: (() -> Unit)?,
@@ -84,7 +86,7 @@ fun AccountScreen(
                     )
                     state.error?.let { ErrorText(it) }
                     Button(
-                        onClick = onSignIn,
+                        onClick = { onSignIn(AuthProvider.GOOGLE) },
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Image(
@@ -95,19 +97,30 @@ fun AccountScreen(
                         Spacer(Modifier.width(12.dp))
                         Text(stringResource(R.string.account_sign_in_google))
                     }
+                    OutlinedButton(
+                        onClick = { onSignIn(AuthProvider.APPLE) },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(stringResource(R.string.account_sign_in_apple))
+                    }
                     TextButton(onClick = onExit) {
                         Text(stringResource(exitLabel))
                     }
                 }
 
-                AccountUiState.SigningIn -> {
+                is AccountUiState.SigningIn -> {
                     CircularProgressIndicator()
                     Text(
                         text = stringResource(R.string.account_signing_in),
                         style = MaterialTheme.typography.bodyMedium,
                     )
-                    TextButton(onClick = onExit) {
-                        Text(stringResource(exitLabel))
+                    if (!state.exchanging) {
+                        TextButton(onClick = onCancel) {
+                            Text(stringResource(R.string.account_cancel_sign_in))
+                        }
+                        TextButton(onClick = onExit) {
+                            Text(stringResource(exitLabel))
+                        }
                     }
                 }
 
@@ -159,6 +172,7 @@ private fun ErrorText(error: AccountError) {
             when (error) {
                 AccountError.CHECK_FAILED -> R.string.account_error_check
                 AccountError.SIGN_IN_FAILED -> R.string.account_error_sign_in
+                AccountError.SIGN_IN_CANCELLED -> R.string.account_error_cancelled
                 AccountError.SIGN_OUT_FAILED -> R.string.account_error_sign_out
             },
         ),
@@ -169,7 +183,7 @@ private fun ErrorText(error: AccountError) {
 
 @StringRes
 private fun AccountUiState.titleRes(): Int = when (this) {
-    is AccountUiState.SignedOut, AccountUiState.SigningIn -> R.string.account_login_title
+    is AccountUiState.SignedOut, is AccountUiState.SigningIn -> R.string.account_login_title
     is AccountUiState.SignedIn -> R.string.account_dashboard_title
     AccountUiState.Loading, AccountUiState.SigningOut -> R.string.account_title
 }

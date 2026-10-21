@@ -115,7 +115,12 @@ rate-limiting abuse), which is not part of this ticket.
   dashboard showed the account name and email, and the session survived a cold
   start.
 
-**Apple — not configured.** Deferred to #32 and the iOS work.
+**Apple — client ready, provider not configured.** The Android app offers Apple
+wherever Google is and opens the same token endpoint with `apple`. #32 must
+configure the Appwrite Apple provider (Services ID, Key ID, Team ID, `.p8`) and
+enable the **browser** flow: the iOS `nativeEnabled` flow does not serve the
+Android browser. Until then the Apple button reaches an Appwrite error page, and
+Google remains the only provider that completes sign-in.
 
 Do not put the OAuth client secret, `.p8` key, or Apple key material in this
 repository. The Appwrite API accepts them over TLS and stores them server-side.
@@ -128,8 +133,8 @@ repository. The Appwrite API accepts them over TLS and stores them server-side.
   **Continue without an account** enters the existing offline app. The same
   guard runs whenever the account screen is opened from the times screen.
 - Sign-in opens
-  `{endpoint}/account/tokens/oauth2/google?project=being-muslim&success=…&failure=…`.
-  The success URL is
+  `{endpoint}/account/tokens/oauth2/{provider}?project=being-muslim&success=…&failure=…`
+  where `{provider}` is `google` or `apple`. The success URL is
   `appwrite-callback-being-muslim://auth/success?appstate=<state>`; Appwrite
   adds `userId` and `secret` to it. The failure URL carries the same
   `appstate`, so a forged failure callback is ignored too.
@@ -144,11 +149,22 @@ repository. The Appwrite API accepts them over TLS and stores them server-side.
   `userId`/`secret`. The app opens the same token endpoint and exchanges the
   token with `Account.createSession`, as the token-flow contract requires.
 - The SDK's session cookie jar keeps the session; `account.get()` is the guard
-  on every account-screen entry. No token or secret is logged. The cookie lives
-  in the SDK's `myCookie` preferences, which are excluded from platform backup
-  and device transfer (`res/xml/backup_rules.xml`,
-  `res/xml/data_extraction_rules.xml`). The SDK has no Keystore-backed cookie
-  store, so the file is protected by the app sandbox rather than Keystore.
+  on every account-screen entry. No token or secret is logged. The SDK builds
+  its cookie store from `getSharedPreferences("myCookie")` and has no store hook,
+  so `SecureCookieContext` hands it an `EncryptedSharedPreferences` file
+  (`myCookie_secure`) instead: AES256-GCM values under an AES256-GCM key in the
+  Android Keystore. A legacy `myCookie` file is copied once and cleared. Both
+  files are excluded from platform backup and device transfer
+  (`res/xml/backup_rules.xml`, `res/xml/data_extraction_rules.xml`).
+- The Appwrite client is built lazily inside `Dispatchers.IO`, so the Keystore
+  read never blocks the UI. A broken or invalidated key clears the secure file
+  and requires a fresh sign-in; the failure reaches the screen as
+  `CHECK_FAILED` or `SIGN_IN_FAILED` rather than crashing the offline app.
+- Cancelling from the "Waiting for sign-in" screen returns to the login screen
+  with a cancelled state and discards the pending `appstate`, so a later
+  callback cannot revive that attempt. A failure callback, an unreachable
+  Appwrite check (10-second timeout), and a browser that cannot open each have
+  their own understandable state.
 - **Residual risk — custom scheme:** any app can register
   `appwrite-callback-being-muslim`. The `appstate` check stops a forged callback
   from creating a session or cancelling a real one, but it cannot stop a hostile
@@ -163,8 +179,8 @@ repository. The Appwrite API accepts them over TLS and stores them server-side.
   WorkManager, which the reminders feature already uses.
 - Tests: `AuthRedirectsTest` covers the success/failure deep links;
   `AccountViewModelTest` covers the signed-in/out guards, the state check,
-  session creation, and sign-out. The JVM suite, lint, and debug/release builds
-  pass.
+  Google and Apple token URLs, session creation, cancellation, an unopenable
+  browser, and sign-out. The JVM suite, lint, and debug/release builds pass.
 
 **Callback URI — resolved 2026-10-21.** Appwrite now emits
 `https://appwrite.alveo.dev/v1/account/sessions/oauth2/callback/google/being-muslim`,

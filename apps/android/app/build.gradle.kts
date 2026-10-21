@@ -80,6 +80,9 @@ dependencies {
     // POM metadata says GPL-3.0; upstream LICENSE.md is BSD-3-Clause (verified
     // 2026-10-21). Keep the BSD notice in the distributed third-party notices.
     implementation(libs.appwrite)
+    // The Appwrite SDK takes a fixed SharedPreferences cookie store; this
+    // Keystore-backed file keeps the session token out of plaintext.
+    implementation(libs.androidx.security.crypto)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

@@ -83,12 +83,12 @@ class AccountViewModel(
      * state is generated here and checked on the callback, so a link that this
      * screen did not start cannot create a session.
      */
-    fun startSignIn(): String? {
+    fun startSignIn(provider: AuthProvider): String? {
         if (_state.value !is AccountUiState.SignedOut) return null
         val state = UUID.randomUUID().toString()
         pendingState = state
-        _state.value = AccountUiState.SigningIn
-        return AuthEndpoints.tokenUrl(state)
+        _state.value = AccountUiState.SigningIn()
+        return AuthEndpoints.tokenUrl(provider, state)
     }
 
     /**
@@ -109,7 +109,7 @@ class AccountViewModel(
 
             is AuthRedirect.Success -> {
                 if (redirect.state == null || redirect.state != pendingState) return
-                _state.value = AccountUiState.SigningIn
+                _state.value = AccountUiState.SigningIn(exchanging = true)
                 viewModelScope.launch {
                     authMutex.withLock {
                         _state.value = try {
@@ -151,12 +151,16 @@ class AccountViewModel(
         _state.value = AccountUiState.SignedOut(AccountError.SIGN_IN_FAILED)
     }
 
-    /** The user gave up on the browser; the next attempt starts a fresh state. */
+    /**
+     * The user gave up on the browser; the next attempt starts a fresh state.
+     * Once the callback has arrived, the one-time token is already being
+     * exchanged, so cancelling there would leave a session the screen denies.
+     */
     fun cancelSignIn() {
-        if (_state.value is AccountUiState.SigningIn) {
-            pendingState = null
-            _state.value = AccountUiState.SignedOut()
-        }
+        val current = _state.value as? AccountUiState.SigningIn ?: return
+        if (current.exchanging) return
+        pendingState = null
+        _state.value = AccountUiState.SignedOut(AccountError.SIGN_IN_CANCELLED)
     }
 
     companion object {

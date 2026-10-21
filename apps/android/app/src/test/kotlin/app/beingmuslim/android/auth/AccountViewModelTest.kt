@@ -77,14 +77,78 @@ class AccountViewModelTest {
         viewModel.resolve()
         advanceUntilIdle()
 
-        val url = viewModel.startSignIn()
+        val url = viewModel.startSignIn(AuthProvider.GOOGLE)
 
         assertNotNull(url)
-        assertEquals(AccountUiState.SigningIn, viewModel.state.value)
+        assertEquals(AccountUiState.SigningIn(), viewModel.state.value)
         assertTrue(url!!.startsWith("https://appwrite.alveo.dev/v1/account/tokens/oauth2/google?"))
         assertTrue(url.contains("project=being-muslim"))
         assertTrue(url.contains("success="))
         assertTrue(url.contains("appstate%3D"))
+    }
+
+    @Test
+    fun appleSignInUsesTheAppleProvider() = runTest(main.dispatcher) {
+        val viewModel = accountViewModel(FakeAuthService())
+        viewModel.resolve()
+        advanceUntilIdle()
+
+        val url = viewModel.startSignIn(AuthProvider.APPLE)
+
+        assertNotNull(url)
+        assertTrue(url!!.contains("/account/tokens/oauth2/apple?"))
+        assertEquals(AccountUiState.SigningIn(), viewModel.state.value)
+    }
+
+    @Test
+    fun cancellingSignInReturnsToLoginWithACancelledState() = runTest(main.dispatcher) {
+        val viewModel = accountViewModel(FakeAuthService())
+        viewModel.resolve()
+        advanceUntilIdle()
+        viewModel.startSignIn(AuthProvider.GOOGLE)
+
+        viewModel.cancelSignIn()
+
+        assertEquals(
+            AccountUiState.SignedOut(AccountError.SIGN_IN_CANCELLED),
+            viewModel.state.value,
+        )
+    }
+
+    @Test
+    fun cancellingAfterTheCallbackDoesNotDenyTheExchange() = runTest(main.dispatcher) {
+        val user = AuthUser("user-1", "Amina", null)
+        val auth = FakeAuthService(createDelayMs = 1_000)
+        val viewModel = accountViewModel(auth)
+        viewModel.resolve()
+        advanceUntilIdle()
+        val state = stateFrom(viewModel.startSignIn(AuthProvider.GOOGLE)!!)
+        auth.current = user
+
+        viewModel.handleRedirect(
+            "appwrite-callback-being-muslim://auth/success" +
+                "?userId=user-1&secret=secret-1&appstate=$state",
+        )
+        advanceTimeBy(100)
+        viewModel.cancelSignIn()
+        advanceUntilIdle()
+
+        assertEquals(AccountUiState.SignedIn(user), viewModel.state.value)
+    }
+
+    @Test
+    fun aBrowserThatCannotOpenReturnsToLoginWithAnError() = runTest(main.dispatcher) {
+        val viewModel = accountViewModel(FakeAuthService())
+        viewModel.resolve()
+        advanceUntilIdle()
+        viewModel.startSignIn(AuthProvider.GOOGLE)
+
+        viewModel.onBrowserUnavailable()
+
+        assertEquals(
+            AccountUiState.SignedOut(AccountError.SIGN_IN_FAILED),
+            viewModel.state.value,
+        )
     }
 
     @Test
@@ -94,7 +158,7 @@ class AccountViewModelTest {
         val viewModel = accountViewModel(auth)
         viewModel.resolve()
         advanceUntilIdle()
-        val state = stateFrom(viewModel.startSignIn()!!)
+        val state = stateFrom(viewModel.startSignIn(AuthProvider.GOOGLE)!!)
         auth.current = user
 
         viewModel.handleRedirect(
@@ -114,7 +178,7 @@ class AccountViewModelTest {
         val viewModel = accountViewModel(auth)
         viewModel.resolve()
         advanceUntilIdle()
-        viewModel.startSignIn()
+        viewModel.startSignIn(AuthProvider.GOOGLE)
 
         viewModel.handleRedirect(
             "appwrite-callback-being-muslim://auth/success" +
@@ -123,7 +187,7 @@ class AccountViewModelTest {
         advanceUntilIdle()
 
         assertEquals(null, auth.createdWith)
-        assertEquals(AccountUiState.SigningIn, viewModel.state.value)
+        assertEquals(AccountUiState.SigningIn(), viewModel.state.value)
         assertEquals(0, viewModel.redirects.value)
     }
 
@@ -133,14 +197,14 @@ class AccountViewModelTest {
         val viewModel = accountViewModel(auth)
         viewModel.resolve()
         advanceUntilIdle()
-        viewModel.startSignIn()
+        viewModel.startSignIn(AuthProvider.GOOGLE)
 
         viewModel.handleRedirect(
             "appwrite-callback-being-muslim://auth/failure?error=denied&appstate=not-the-state",
         )
         advanceUntilIdle()
 
-        assertEquals(AccountUiState.SigningIn, viewModel.state.value)
+        assertEquals(AccountUiState.SigningIn(), viewModel.state.value)
         assertEquals(0, viewModel.redirects.value)
     }
 
@@ -152,7 +216,7 @@ class AccountViewModelTest {
         val first = AccountViewModel(auth, savedState)
         first.resolve()
         advanceUntilIdle()
-        val state = stateFrom(first.startSignIn()!!)
+        val state = stateFrom(first.startSignIn(AuthProvider.GOOGLE)!!)
         auth.current = user
 
         val recreated = AccountViewModel(auth, savedState)
@@ -172,7 +236,7 @@ class AccountViewModelTest {
         val viewModel = accountViewModel(auth)
         viewModel.resolve()
         advanceUntilIdle()
-        val state = stateFrom(viewModel.startSignIn()!!)
+        val state = stateFrom(viewModel.startSignIn(AuthProvider.GOOGLE)!!)
 
         viewModel.handleRedirect(
             "appwrite-callback-being-muslim://auth/failure?error=denied&appstate=$state",
@@ -251,6 +315,7 @@ private class FakeAuthService(
     var current: AuthUser? = null,
     var checkError: Exception? = null,
     var checkDelayMs: Long = 0,
+    var createDelayMs: Long = 0,
     var createError: Exception? = null,
     var signOutError: Exception? = null,
     var failSignOutAfterFirst: Boolean = false,
@@ -267,6 +332,7 @@ private class FakeAuthService(
     }
 
     override suspend fun createSession(userId: String, secret: String): AuthUser {
+        if (createDelayMs > 0) delay(createDelayMs)
         createError?.let { throw it }
         createdWith = userId to secret
         return current ?: AuthUser("created", null, null)

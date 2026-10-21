@@ -9,8 +9,11 @@ sealed interface AccountUiState {
     /** No usable session; the login screen is shown. */
     data class SignedOut(val error: AccountError? = null) : AccountUiState
 
-    /** The browser is open, waiting for Google. */
-    data object SigningIn : AccountUiState
+    /**
+     * The browser is open, waiting for the chosen provider, or the returned
+     * token is being exchanged ([exchanging]).
+     */
+    data class SigningIn(val exchanging: Boolean = false) : AccountUiState
 
     /** A verified session; the dashboard is shown. */
     data class SignedIn(
@@ -26,5 +29,6 @@ sealed interface AccountUiState {
 enum class AccountError {
     CHECK_FAILED,
     SIGN_IN_FAILED,
+    SIGN_IN_CANCELLED,
     SIGN_OUT_FAILED,
 }

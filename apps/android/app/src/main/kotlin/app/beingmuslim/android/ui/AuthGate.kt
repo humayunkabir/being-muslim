@@ -49,8 +49,8 @@ fun AuthGate(accountViewModel: AccountViewModel) {
         LaunchedEffect(Unit) { accountViewModel.resolve() }
         AccountScreen(
             state = state,
-            onSignIn = {
-                accountViewModel.startSignIn()?.let { url ->
+            onSignIn = { provider ->
+                accountViewModel.startSignIn(provider)?.let { url ->
                     runCatching {
                         context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
                     }.onFailure {
@@ -64,6 +64,7 @@ fun AuthGate(accountViewModel: AccountViewModel) {
                 }
             },
             onSignOut = accountViewModel::signOut,
+            onCancel = accountViewModel::cancelSignIn,
             onExit = {
                 accountViewModel.cancelSignIn()
                 if (showApp) {

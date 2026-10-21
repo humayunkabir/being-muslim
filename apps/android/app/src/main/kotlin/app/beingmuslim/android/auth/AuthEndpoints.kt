@@ -12,14 +12,14 @@ import java.net.URLEncoder
 object AuthEndpoints {
 
     /**
-     * The token endpoint the browser visits. It redirects to Google and, after
-     * the callback, to our success/failure links. The success link carries the
-     * state we verify before exchanging the token.
+     * The token endpoint the browser visits. It redirects to the chosen
+     * provider and, after the callback, to our success/failure links. The
+     * success link carries the state we verify before exchanging the token.
      */
-    fun tokenUrl(state: String): String {
+    fun tokenUrl(provider: AuthProvider, state: String): String {
         val success = "${AuthRedirects.SCHEME}://${AuthRedirects.HOST}/success?appstate=$state"
         val failure = "${AuthRedirects.SCHEME}://${AuthRedirects.HOST}/failure?appstate=$state"
-        return "${BuildConfig.APPWRITE_ENDPOINT}/account/tokens/oauth2/google" +
+        return "${BuildConfig.APPWRITE_ENDPOINT}/account/tokens/oauth2/${provider.id}" +
             "?project=${encode(BuildConfig.APPWRITE_PROJECT_ID)}" +
             "&success=${encode(success)}" +
             "&failure=${encode(failure)}"
