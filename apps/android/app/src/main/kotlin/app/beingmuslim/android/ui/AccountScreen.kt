@@ -13,7 +13,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -21,6 +23,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -33,9 +39,9 @@ import app.beingmuslim.android.auth.AuthProvider
 
 /**
  * The signed-out login screen and the signed-in dashboard, plus their loading
- * and failure states (`docs/PRODUCT_REQUIREMENTS.md` §10). The screen is
- * stateless: every action is reported to the caller, which is the only place
- * that talks to Appwrite.
+ * and failure states (`docs/PRODUCT_REQUIREMENTS.md` §10). Every account action
+ * is reported to the caller, which is the only place that talks to Appwrite;
+ * only the delete confirmation's visibility is local transient state.
  *
  * The Google mark comes from the supplied SVG. It is decorative because the
  * button already names the provider.
@@ -45,6 +51,8 @@ fun AccountScreen(
     state: AccountUiState,
     onSignIn: (AuthProvider) -> Unit,
     onSignOut: () -> Unit,
+    onExportData: () -> Unit,
+    onDeleteAccount: () -> Unit,
     onCancel: () -> Unit,
     onExit: () -> Unit,
     @StringRes exitLabel: Int,
@@ -52,6 +60,34 @@ fun AccountScreen(
     modifier: Modifier = Modifier,
 ) {
     BackHandler(enabled = onBack != null) { onBack?.invoke() }
+
+    var confirmDelete by rememberSaveable { mutableStateOf(false) }
+
+    if (confirmDelete && state is AccountUiState.SignedIn) {
+        AlertDialog(
+            onDismissRequest = { confirmDelete = false },
+            title = { Text(stringResource(R.string.account_delete_title)) },
+            text = { Text(stringResource(R.string.account_delete_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        confirmDelete = false
+                        onDeleteAccount()
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error,
+                    ),
+                ) {
+                    Text(stringResource(R.string.account_delete_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmDelete = false }) {
+                    Text(stringResource(R.string.account_delete_cancel))
+                }
+            },
+        )
+    }
 
     Scaffold(modifier = modifier.fillMaxSize()) { innerPadding ->
         Column(
@@ -145,11 +181,35 @@ fun AccountScreen(
                     ) {
                         Text(stringResource(exitLabel))
                     }
+                    if (state.exporting) {
+                        CircularProgressIndicator()
+                        Text(
+                            text = stringResource(R.string.account_exporting),
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    } else {
+                        OutlinedButton(
+                            onClick = onExportData,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(stringResource(R.string.account_export_data))
+                        }
+                    }
                     OutlinedButton(
                         onClick = onSignOut,
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text(stringResource(R.string.account_sign_out))
+                    }
+                    TextButton(
+                        onClick = { confirmDelete = true },
+                        enabled = !state.exporting,
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error,
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(stringResource(R.string.account_delete_account))
                     }
                 }
 
@@ -157,6 +217,14 @@ fun AccountScreen(
                     CircularProgressIndicator()
                     Text(
                         text = stringResource(R.string.account_signing_out),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+
+                AccountUiState.Deleting -> {
+                    CircularProgressIndicator()
+                    Text(
+                        text = stringResource(R.string.account_deleting),
                         style = MaterialTheme.typography.bodyMedium,
                     )
                 }
@@ -174,6 +242,8 @@ private fun ErrorText(error: AccountError) {
                 AccountError.SIGN_IN_FAILED -> R.string.account_error_sign_in
                 AccountError.SIGN_IN_CANCELLED -> R.string.account_error_cancelled
                 AccountError.SIGN_OUT_FAILED -> R.string.account_error_sign_out
+                AccountError.EXPORT_FAILED -> R.string.account_error_export
+                AccountError.DELETE_FAILED -> R.string.account_error_delete
             },
         ),
         style = MaterialTheme.typography.bodyMedium,
@@ -185,5 +255,6 @@ private fun ErrorText(error: AccountError) {
 private fun AccountUiState.titleRes(): Int = when (this) {
     is AccountUiState.SignedOut, is AccountUiState.SigningIn -> R.string.account_login_title
     is AccountUiState.SignedIn -> R.string.account_dashboard_title
-    AccountUiState.Loading, AccountUiState.SigningOut -> R.string.account_title
+    AccountUiState.Loading, AccountUiState.SigningOut, AccountUiState.Deleting ->
+        R.string.account_title
 }

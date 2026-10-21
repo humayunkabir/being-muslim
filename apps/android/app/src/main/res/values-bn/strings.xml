@@ -213,6 +213,14 @@
     <string name="account_signing_out">সাইন আউট করা হচ্ছে…</string>
     <string name="account_signed_in_as">%1$s হিসেবে সাইন ইন করা হয়েছে</string>
     <string name="account_sign_out">সাইন আউট</string>
+    <string name="account_export_data">আমার তথ্য রপ্তানি করুন</string>
+    <string name="account_exporting">আপনার তথ্য প্রস্তুত করা হচ্ছে…</string>
+    <string name="account_delete_account">অ্যাকাউন্ট মুছুন</string>
+    <string name="account_delete_title">আপনার অ্যাকাউন্ট মুছবেন?</string>
+    <string name="account_delete_message">এতে আপনার অ্যাকাউন্ট এবং সার্ভারে সংরক্ষিত সেটিংস ও তাসবিহের মোট সংখ্যা স্থায়ীভাবে মুছে যাবে। আপনার শহর, নামাজের সময়, রিমাইন্ডার ও তাসবিহ এই ডিভাইসেই থাকবে।</string>
+    <string name="account_delete_confirm">মুছুন</string>
+    <string name="account_delete_cancel">অ্যাকাউন্ট রাখুন</string>
+    <string name="account_deleting">আপনার অ্যাকাউন্ট মুছে ফেলা হচ্ছে…</string>
     <string name="account_continue_offline">অ্যাকাউন্ট ছাড়া চালিয়ে যান</string>
     <string name="account_open_app">অ্যাপ খুলুন</string>
     <string name="account_back">পেছনে</string>
@@ -220,4 +228,6 @@
     <string name="account_error_sign_in">সাইন-ইন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।</string>
     <string name="account_error_cancelled">সাইন-ইন বাতিল হয়েছে।</string>
     <string name="account_error_sign_out">সাইন আউট করা যায়নি। আপনার সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।</string>
+    <string name="account_error_export">আপনার তথ্য প্রস্তুত করা যায়নি। আপনার সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।</string>
+    <string name="account_error_delete">আপনার অ্যাকাউন্ট মোছা যায়নি। আপনার সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।</string>
 </resources>

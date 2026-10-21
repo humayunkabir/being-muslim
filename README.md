@@ -112,7 +112,9 @@ worth formatting.
   platform registrations, OAuth provider state, the sync table and its
   permissions, the row-creation function, and the admin-key runbook.
 - `docs/SYNC.md` — the sync contract: payload shape and versioning, the conflict
-  rule, error and retry behaviour, and retention.
+  rule, error and retry behaviour, and retention, deletion, and export.
+- `docs/PRIVACY.md` — the plain-language account privacy notice: what is stored,
+  what is never stored, retention, deletion, and export.
 - `docs/DECISIONS/` — architecture decision records.
 - `docs/AGENT_SKILLS.md` — vendored agent skills: provenance, layout, update
   procedure.

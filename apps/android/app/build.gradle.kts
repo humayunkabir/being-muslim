@@ -38,6 +38,13 @@ android {
             "APPWRITE_SYNC_FUNCTION_ID",
             "\"${providers.gradleProperty("appwriteSyncFunctionId").getOrElse("user-sync")}\"",
         )
+        // The function that deletes the user's row and identity through the
+        // trusted server path (issue #17).
+        buildConfigField(
+            "String",
+            "APPWRITE_ACCOUNT_DELETE_FUNCTION_ID",
+            "\"${providers.gradleProperty("appwriteAccountDeleteFunctionId").getOrElse("account-delete")}\"",
+        )
     }
 
     buildTypes {

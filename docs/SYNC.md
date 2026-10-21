@@ -1,9 +1,11 @@
 # Sync contract — settings and tasbih total
 
-**Status:** Implemented 2026-10-21 (issue #16). **Owns:** the synced payload's
-shape and versioning, the conflict rule, sync error behaviour, and the retention
-of the server-side copy. **Defers:** what data may be collected or retained →
-`PRODUCT_REQUIREMENTS.md` §10; the backend's identifiers, permissions, and
+**Status:** Implemented 2026-10-21 (issue #16); deletion and export added in
+issue #17. **Owns:** the synced payload's
+shape and versioning, the conflict rule, sync error behaviour, the retention,
+deletion, and export contract for the server-side copy. **Defers:** what data
+may be collected or retained → `PRODUCT_REQUIREMENTS.md` §10; the plain-language
+explanation → `PRIVACY.md`; the backend's identifiers, permissions, and
 deployment → `APPWRITE.md`; local persistence and offline guarantees →
 `ARCHITECTURE.md` §4, §7 and `DECISIONS/0003`.
 
@@ -133,11 +135,70 @@ and an unknown tag is ignored rather than applied.
 
 - The row lives server-side while the account exists. Signing out leaves it in
   place so the user's choices return on the next sign-in.
-- Account deletion removes the row and the identity
-  (`PRODUCT_REQUIREMENTS.md` §10; issue #17). Data export includes this row.
 - Clearing app data or uninstalling removes the device's local copy and its
   last-synced marker; the next sign-in pulls the server copy.
 - No analytics or diagnostic logs receive the payload. The label is never sent.
+
+### Account deletion
+
+**Account → Delete account** calls the `account-delete` function
+(`APPWRITE.md`). The function derives the target from the caller's session and:
+
+1. deletes `being_muslim.user_sync` row `<userId>`;
+2. deletes the Appwrite user `<userId>`;
+3. deletes the row again.
+
+A `404` on either row delete means it is already gone and is treated as done.
+The third delete closes the small window in which a sync write already in
+flight could recreate the row between steps 1 and 2; once the identity is gone,
+no new sync can succeed. Any failure before step 2 returns `502` and leaves the
+identity usable, so the request can be retried. A failure of step 3 is reported
+as `502` even though the identity is already gone; that case needs operator
+cleanup and should not occur in normal operation. Deleting is permanent for
+that identity; signing in again with the same Google or Apple account creates a
+new identity with no synced data.
+
+The app does **not** clear local data on deletion. The city, prayer times,
+reminders, tasbih label/target/total, and settings remain on the device, and
+every local feature keeps working; only the account's server-side copy and the
+signed-in marker are gone. Changing the account or signing in again cannot
+resurrect the deleted row: the new user id is a different row.
+
+### Data export
+
+**Account → Export my data** reads the row and writes one UTF-8 JSON document,
+named `being-muslim-account.json`, through the system file picker. It never
+writes to the service. The document is:
+
+```json
+{
+  "format": "being-muslim-account",
+  "version": 1,
+  "account": { "id": "…", "name": "…", "email": "…" },
+  "stored": {
+    "settings": { "v": 1, "calculationMethod": "KARACHI", "…": "…" },
+    "tasbihTotal": 0
+  }
+}
+```
+
+- `format` and `version` identify the document; a future shape gets a new
+  version.
+- `stored` is `null` when there is no row.
+- `stored.settings` is the row's settings object, not an escaped string. It is
+  `null` when the row exists but no settings were saved; `tasbihTotal` is still
+  exported. `tasbihTotal` is read as a non-negative integer, matching the
+  column's minimum. A value that is not valid JSON is exported as a string
+  rather than dropped.
+- `account` carries the identity the service holds (id, name, email).
+- The export contains **no device-local data** — no city, coordinates, prayer
+  times, reminders, or tasbih label/target — because those never leave the
+  device.
+- Export is read-only. A service failure produces no file and no state change.
+
+The plain-language version of this contract is `PRIVACY.md`. The document's
+`format`/`version` and key set are covered by `AccountExportTest`; the delete
+function's ordering and failure rules by `backend/functions/account-delete/index.test.js`.
 
 ## Row creation
 

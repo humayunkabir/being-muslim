@@ -1,8 +1,11 @@
 package app.beingmuslim.android.auth
 
 import androidx.lifecycle.SavedStateHandle
+import app.beingmuslim.android.account.AccountService
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -234,13 +237,13 @@ class AccountViewModelTest {
         val user = AuthUser("user-1", "Amina", null)
         val auth = FakeAuthService()
         val savedState = SavedStateHandle()
-        val first = AccountViewModel(auth, savedState)
+        val first = AccountViewModel(auth, FakeAccountService(), savedState)
         first.resolve()
         advanceUntilIdle()
         val state = stateFrom(first.startSignIn(AuthProvider.GOOGLE)!!)
         auth.current = user
 
-        val recreated = AccountViewModel(auth, savedState)
+        val recreated = AccountViewModel(auth, FakeAccountService(), savedState)
         recreated.handleRedirect(
             "appwrite-callback-being-muslim://auth/success" +
                 "?userId=user-1&secret=secret-1&appstate=$state",
@@ -319,10 +322,93 @@ class AccountViewModelTest {
         )
     }
 
+    @Test
+    fun exportDataEmitsTheAccountDocument() = runTest(main.dispatcher) {
+        val user = AuthUser("user-1", "Amina", null)
+        val account = FakeAccountService(document = """{"format":"being-muslim-account"}""")
+        val viewModel = accountViewModel(FakeAuthService(current = user), account)
+        viewModel.resolve()
+        advanceUntilIdle()
+
+        val received = async { viewModel.exports.first() }
+        viewModel.exportData()
+        advanceUntilIdle()
+
+        assertEquals(account.document, received.await())
+        assertEquals(user, account.exportedFor)
+        assertEquals(AccountUiState.SignedIn(user), viewModel.state.value)
+    }
+
+    @Test
+    fun exportFailureKeepsTheDashboardAndExplains() = runTest(main.dispatcher) {
+        val user = AuthUser("user-1", "Amina", null)
+        val account = FakeAccountService(exportError = IOException("offline"))
+        val viewModel = accountViewModel(FakeAuthService(current = user), account)
+        viewModel.resolve()
+        advanceUntilIdle()
+
+        viewModel.exportData()
+        advanceUntilIdle()
+
+        assertEquals(
+            AccountUiState.SignedIn(user, AccountError.EXPORT_FAILED),
+            viewModel.state.value,
+        )
+    }
+
+    @Test
+    fun deletingTheAccountReturnsToLogin() = runTest(main.dispatcher) {
+        val user = AuthUser("user-1", "Amina", null)
+        val account = FakeAccountService()
+        val viewModel = accountViewModel(FakeAuthService(current = user), account)
+        viewModel.resolve()
+        advanceUntilIdle()
+
+        viewModel.deleteAccount()
+        advanceUntilIdle()
+
+        assertTrue(account.deleted)
+        assertEquals(AccountUiState.SignedOut(), viewModel.state.value)
+    }
+
+    @Test
+    fun aSecondDeleteDoesNothing() = runTest(main.dispatcher) {
+        val user = AuthUser("user-1", "Amina", null)
+        val account = FakeAccountService()
+        val viewModel = accountViewModel(FakeAuthService(current = user), account)
+        viewModel.resolve()
+        advanceUntilIdle()
+
+        viewModel.deleteAccount()
+        viewModel.deleteAccount()
+        advanceUntilIdle()
+
+        assertEquals(1, account.deleteCalls)
+        assertEquals(AccountUiState.SignedOut(), viewModel.state.value)
+    }
+
+    @Test
+    fun deleteFailureKeepsTheDashboardAndExplains() = runTest(main.dispatcher) {
+        val user = AuthUser("user-1", "Amina", null)
+        val account = FakeAccountService(deleteError = IOException("offline"))
+        val viewModel = accountViewModel(FakeAuthService(current = user), account)
+        viewModel.resolve()
+        advanceUntilIdle()
+
+        viewModel.deleteAccount()
+        advanceUntilIdle()
+
+        assertEquals(
+            AccountUiState.SignedIn(user, AccountError.DELETE_FAILED),
+            viewModel.state.value,
+        )
+    }
+
     private fun accountViewModel(
         auth: AuthService,
+        account: AccountService = FakeAccountService(),
         savedState: SavedStateHandle = SavedStateHandle(),
-    ) = AccountViewModel(auth, savedState)
+    ) = AccountViewModel(auth, account, savedState)
 
     private fun stateFrom(tokenUrl: String): String {
         val query = URI(tokenUrl).rawQuery
@@ -364,5 +450,28 @@ private class FakeAuthService(
         if (failSignOutAfterFirst && signOutCalls > 1) throw IOException("already signed out")
         signOutError?.let { throw it }
         signedOut = true
+    }
+}
+
+private class FakeAccountService(
+    var document: String = "{}",
+    var exportError: Exception? = null,
+    var deleteError: Exception? = null,
+) : AccountService {
+
+    var exportedFor: AuthUser? = null
+    var deleted = false
+    var deleteCalls = 0
+
+    override suspend fun export(user: AuthUser): String {
+        exportError?.let { throw it }
+        exportedFor = user
+        return document
+    }
+
+    override suspend fun delete() {
+        deleteCalls += 1
+        deleteError?.let { throw it }
+        deleted = true
     }
 }

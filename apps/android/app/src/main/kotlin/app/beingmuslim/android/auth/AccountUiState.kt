@@ -19,10 +19,15 @@ sealed interface AccountUiState {
     data class SignedIn(
         val user: AuthUser,
         val error: AccountError? = null,
+        /** The export document is being read from the service. */
+        val exporting: Boolean = false,
     ) : AccountUiState
 
     /** The sign-out call is in flight. */
     data object SigningOut : AccountUiState
+
+    /** The account and its synced data are being deleted from the service. */
+    data object Deleting : AccountUiState
 }
 
 /** A failure the account screen can explain without carrying a server message. */
@@ -31,4 +36,6 @@ enum class AccountError {
     SIGN_IN_FAILED,
     SIGN_IN_CANCELLED,
     SIGN_OUT_FAILED,
+    EXPORT_FAILED,
+    DELETE_FAILED,
 }

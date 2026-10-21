@@ -26,7 +26,9 @@ These are not secrets. The Android app reads the endpoint and project ID from
 Gradle `BuildConfig` fields (`app/build.gradle.kts`), overridable with
 `-PappwriteEndpoint=...` and `-PappwriteProjectId=...`; no key or OAuth secret
 is in the APK. The sync row-creation function id is `APPWRITE_SYNC_FUNCTION_ID`
-(default `user-sync`), overridable with `-PappwriteSyncFunctionId=...`.
+(default `user-sync`), overridable with `-PappwriteSyncFunctionId=...`; the
+account-deletion function id is `APPWRITE_ACCOUNT_DELETE_FUNCTION_ID` (default
+`account-delete`), overridable with `-PappwriteAccountDeleteFunctionId=...`.
 
 **Licensing:** the `io.appwrite:sdk-for-android` Maven POM declares GPL-3.0, but
 the upstream repository's `LICENSE.md` is **BSD-3-Clause** (verified
@@ -161,6 +163,83 @@ The Android client path is compiled and its payload/conflict tests pass. The
 handover has not been exercised on two physical devices; the pair of sessions
 above verifies the shared row and the last-write-wins ordering the app relies
 on.
+
+## Account deletion function (#17)
+
+`account-delete` removes the signed-in caller's synced row and then the identity.
+The Android SDK has no account-deletion call, and the client must not hold the
+administrative key, so this runs on the trusted server path.
+
+| Setting | Value |
+|---|---|
+| Function ID | `account-delete` |
+| Runtime | `node-22` |
+| Entrypoint | `index.js` |
+| Build command | `npm install` (no dependencies) |
+| Scopes | `rows.read`, `rows.write`, `users.read`, `users.write` |
+| Execute permission | `any` — authentication is enforced from the session, as below |
+| Timeout | 15 s |
+| Source | `backend/functions/account-delete/` |
+
+The function:
+
+1. Reads `x-appwrite-user-id` from the execution. A call without a session
+   returns `401 {"message":"Sign in required"}` and deletes nothing.
+2. Deletes `being_muslim.user_sync` row `<userId>`. A `404` means it is already
+   gone and is treated as done. Any other failure returns `502` and stops, so
+   the identity stays usable and the request can be retried.
+3. Deletes Appwrite user `<userId>`. A `404` is treated as done. Any other
+   failure returns `502`; the row is already gone, and a retry finishes the
+   deletion.
+4. Deletes the row once more, closing the window where a sync write already in
+   flight could recreate it between steps 2 and 3. Now that the session is
+   dead, no new write can succeed. A failure here returns `502` after the
+   identity is gone and needs operator cleanup.
+
+The order is deliberate: a failure before the identity is deleted leaves the
+account usable and the request retryable, while the final row delete closes the
+only window in which a write can race the deletion. Deleting the identity ends
+all of that user's sessions. The app clears only its signed-in marker; local
+device data is untouched (`SYNC.md`, `PRIVACY.md`).
+
+**Deployment** (from the repository root; same administrative key as above):
+
+```sh
+set -a; . ./.env.appwrite; set +a
+base="${APPWRITE_ENDPOINT%/}"
+
+# Once, if the function does not exist yet.
+curl -X POST "$base/functions" \
+  -H "X-Appwrite-Project: being-muslim" -H "X-Appwrite-Key: $APPWRITE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"functionId":"account-delete","name":"Account deletion","runtime":"node-22",
+       "execute":["any"],"scopes":["rows.read","rows.write","users.read","users.write"],
+       "entrypoint":"index.js","commands":"npm install","enabled":true,
+       "logging":true,"timeout":15}'
+
+# For each code change.
+tar -czf /tmp/account-delete.tar.gz -C backend/functions/account-delete index.js package.json
+curl -X POST "$base/functions/account-delete/deployments" \
+  -H "X-Appwrite-Project: being-muslim" -H "X-Appwrite-Key: $APPWRITE_API_KEY" \
+  -F "entrypoint=index.js" -F "commands=npm install" -F "activate=true" \
+  -F "code=@/tmp/account-delete.tar.gz;type=application/gzip"
+```
+
+The function's contract, including the row-then-identity order and `404`
+handling, is covered by `node --test` in
+`backend/functions/account-delete/`.
+
+**Verified 2026-10-21** with a throwaway email/password user, then deleted:
+
+| Action | Result |
+|---|---|
+| Create user and sign in | `201`, `201` |
+| Create the row through `user-sync`, write `tasbihTotal` 17 | `200`, `200` |
+| User executes `account-delete` | execution `completed`, response `200 {"deleted":true}` |
+| Row as admin | `404 row_not_found` |
+| User as admin | `404 user_not_found` |
+| Execution without a session | response `401 {"message":"Sign in required"}` |
+| The deleted user's old session (`GET /account`) | `401 general_unauthorized_scope` |
 
 ## Platforms
 

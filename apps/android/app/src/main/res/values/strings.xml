@@ -193,6 +193,14 @@
     <string name="account_signing_out">Signing out…</string>
     <string name="account_signed_in_as">Signed in as %1$s</string>
     <string name="account_sign_out">Sign out</string>
+    <string name="account_export_data">Export my data</string>
+    <string name="account_exporting">Preparing your data…</string>
+    <string name="account_delete_account">Delete account</string>
+    <string name="account_delete_title">Delete your account?</string>
+    <string name="account_delete_message">This permanently deletes your account and the settings and tasbih total saved on the server. Your city, prayer times, reminders and tasbih stay on this device.</string>
+    <string name="account_delete_confirm">Delete</string>
+    <string name="account_delete_cancel">Keep account</string>
+    <string name="account_deleting">Deleting your account…</string>
     <string name="account_continue_offline">Continue without an account</string>
     <string name="account_open_app">Open the app</string>
     <string name="account_back">Back</string>
@@ -200,6 +208,8 @@
     <string name="account_error_sign_in">Sign-in failed. Try again.</string>
     <string name="account_error_cancelled">Sign-in cancelled.</string>
     <string name="account_error_sign_out">Could not sign out. Check your connection and try again.</string>
+    <string name="account_error_export">Could not prepare your data. Check your connection and try again.</string>
+    <string name="account_error_delete">Could not delete your account. Check your connection and try again.</string>
 
     <!-- Loading and failure states -->
     <string name="state_loading">Loading…</string>

@@ -8,10 +8,15 @@ import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import app.beingmuslim.android.account.AccountService
+import app.beingmuslim.android.account.AppwriteAccountService
 import java.util.UUID
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -33,6 +38,7 @@ private const val AUTH_EXCHANGE_TIMEOUT_MS = 10_000L
  */
 class AccountViewModel(
     private val auth: AuthService,
+    private val account: AccountService,
     private val savedState: SavedStateHandle,
 ) : ViewModel() {
 
@@ -42,7 +48,19 @@ class AccountViewModel(
     private val _redirects = MutableStateFlow(0)
     val redirects: StateFlow<Int> = _redirects.asStateFlow()
 
-    private val authMutex = Mutex()
+    /** One export document, ready to be saved by the screen through the system picker. */
+    private val _exports = MutableSharedFlow<String>(extraBufferCapacity = 1)
+    val exports: SharedFlow<String> = _exports.asSharedFlow()
+
+    /**
+     * The document waiting for the file picker. It lives in the ViewModel, not
+     * in saved instance state, so the user's data is not written to the
+     * Activity's bundle; a process death only loses an unfinished export.
+     */
+    private var pendingExport: String? = null
+
+    /** Serialises every account operation, so a pull cannot race a sign-out or deletion. */
+    private val accountMutex = Mutex()
 
     private var pendingState: String?
         get() = savedState.get<String>(PENDING_STATE)
@@ -65,7 +83,7 @@ class AccountViewModel(
         if (current is AccountUiState.SignedOut && current.error == AccountError.SIGN_IN_FAILED) {
             return@launch
         }
-        authMutex.withLock {
+        accountMutex.withLock {
             if (_state.value is AccountUiState.SigningIn) return@withLock
             _state.value = AccountUiState.Loading
             _state.value = try {
@@ -112,7 +130,7 @@ class AccountViewModel(
                 if (redirect.state == null || redirect.state != pendingState) return
                 _state.value = AccountUiState.SigningIn(exchanging = true)
                 viewModelScope.launch {
-                    authMutex.withLock {
+                    accountMutex.withLock {
                         _state.value = try {
                             val user = withTimeoutOrNull(AUTH_EXCHANGE_TIMEOUT_MS) {
                                 auth.createSession(redirect.userId, redirect.secret)
@@ -134,7 +152,7 @@ class AccountViewModel(
 
     fun signOut() {
         viewModelScope.launch {
-            authMutex.withLock {
+            accountMutex.withLock {
                 val current = _state.value as? AccountUiState.SignedIn ?: return@withLock
                 _state.value = AccountUiState.SigningOut
                 _state.value = try {
@@ -152,6 +170,55 @@ class AccountViewModel(
     /** The browser could not be opened; the login screen explains and retries. */
     fun onBrowserUnavailable() {
         _state.value = AccountUiState.SignedOut(AccountError.SIGN_IN_FAILED)
+    }
+
+    /**
+     * Reads the account's stored data and hands the screen one self-describing
+     * JSON document. Read-only: nothing is changed on the device or the service.
+     */
+    fun exportData() {        viewModelScope.launch {
+            accountMutex.withLock {
+                val current = _state.value as? AccountUiState.SignedIn ?: return@withLock
+                if (current.exporting) return@withLock
+                _state.value = current.copy(exporting = true, error = null)
+                _state.value = try {
+                    val document = account.export(current.user)
+                    pendingExport = document
+                    _exports.tryEmit(document)
+                    current.copy(exporting = false, error = null)
+                } catch (exception: CancellationException) {
+                    throw exception
+                } catch (_: Exception) {
+                    current.copy(error = AccountError.EXPORT_FAILED)
+                }
+            }
+        }
+    }
+
+    /** Hands the prepared document to the picker callback, or null when none is pending. */
+    fun takePendingExport(): String? = pendingExport.also { pendingExport = null }
+
+    /**
+     * Deletes the synced row and the identity. Device data is deliberately not
+     * touched: every local feature keeps working after the account is gone
+     * (`docs/PRIVACY.md`).
+     */
+    fun deleteAccount() {
+        viewModelScope.launch {
+            accountMutex.withLock {
+                val current = _state.value as? AccountUiState.SignedIn ?: return@withLock
+                if (current.exporting) return@withLock
+                _state.value = AccountUiState.Deleting
+                _state.value = try {
+                    account.delete()
+                    AccountUiState.SignedOut()
+                } catch (exception: CancellationException) {
+                    throw exception
+                } catch (_: Exception) {
+                    AccountUiState.SignedIn(current.user, AccountError.DELETE_FAILED)
+                }
+            }
+        }
     }
 
     /**
@@ -174,6 +241,7 @@ class AccountViewModel(
             initializer {
                 AccountViewModel(
                     AppwriteAuthService(context.applicationContext),
+                    AppwriteAccountService(context.applicationContext),
                     createSavedStateHandle(),
                 )
             }
