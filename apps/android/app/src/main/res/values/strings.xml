@@ -184,7 +184,7 @@
     <string name="account_title">Account</string>
     <string name="account_login_title">Sign in</string>
     <string name="account_dashboard_title">Dashboard</string>
-    <string name="account_intro">Sign in with Google or Apple. Prayer times, qibla, tasbih and reminders still work without an account.</string>
+    <string name="account_intro">Sign in with Google or Apple to carry your settings and tasbih total to another device. Prayer times, qibla, tasbih and reminders still work without an account.</string>
     <string name="account_sign_in_google">Sign in with Google</string>
     <string name="account_sign_in_apple">Sign in with Apple</string>
     <string name="account_checking">Checking sign-in…</string>

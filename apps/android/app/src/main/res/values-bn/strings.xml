@@ -204,7 +204,7 @@
     <string name="account_title">অ্যাকাউন্ট</string>
     <string name="account_login_title">সাইন ইন</string>
     <string name="account_dashboard_title">ড্যাশবোর্ড</string>
-    <string name="account_intro">Google বা Apple দিয়ে সাইন ইন করুন। অ্যাকাউন্ট ছাড়াও নামাজের সময়, কিবলা, তাসবিহ ও রিমাইন্ডার কাজ করে।</string>
+    <string name="account_intro">Google বা Apple দিয়ে সাইন ইন করলে আপনার সেটিংস ও তাসবিহের মোট সংখ্যা অন্য ডিভাইসে চলে যায়। অ্যাকাউন্ট ছাড়াও নামাজের সময়, কিবলা, তাসবিহ ও রিমাইন্ডার কাজ করে।</string>
     <string name="account_sign_in_google">Google দিয়ে সাইন ইন করুন</string>
     <string name="account_sign_in_apple">Apple দিয়ে সাইন ইন করুন</string>
     <string name="account_checking">সাইন-ইন যাচাই করা হচ্ছে…</string>

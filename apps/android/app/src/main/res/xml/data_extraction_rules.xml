@@ -6,6 +6,7 @@
 <data-extraction-rules>
     <cloud-backup>
         <exclude domain="sharedpref" path="being_muslim_tasbih.xml" />
+        <exclude domain="sharedpref" path="being_muslim_sync.xml" />
         <exclude domain="sharedpref" path="being_muslim_reminders.xml" />
         <exclude domain="sharedpref" path="myCookie.xml" />
         <exclude domain="sharedpref" path="myCookie_secure.xml" />
@@ -16,6 +17,7 @@
     </cloud-backup>
     <device-transfer>
         <exclude domain="sharedpref" path="being_muslim_tasbih.xml" />
+        <exclude domain="sharedpref" path="being_muslim_sync.xml" />
         <exclude domain="sharedpref" path="being_muslim_reminders.xml" />
         <exclude domain="sharedpref" path="myCookie.xml" />
         <exclude domain="sharedpref" path="myCookie_secure.xml" />

@@ -24,6 +24,8 @@ import app.beingmuslim.android.sync.SyncOutcome
 import app.beingmuslim.android.sync.SyncPayload
 import app.beingmuslim.android.sync.SyncStateStore
 import app.beingmuslim.android.sync.toSyncedSettings
+import app.beingmuslim.android.sync.withSynced
+import app.beingmuslim.android.sync.withTotal
 import app.beingmuslim.android.tasbih.TasbihCounter
 import app.beingmuslim.android.tasbih.TasbihStore
 import java.time.Duration
@@ -363,18 +365,19 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         val language = remote.settings.language
             ?.let { tag -> Language.entries.firstOrNull { it.tag == tag } }
         val settings = remote.settings.copy(language = language?.tag ?: currentLanguage().tag)
-        val next = current.copy(
-            settings = settings.calculationSettings,
-            hijriDayShift = settings.hijriDayShift,
-            offsets = settings.offsets,
-        )
+        val next = current.withSynced(settings)
         store.save(next)
         // The canonical in-memory selection must move with the stored one, even
         // when the screen on top is not the times screen: the next screen shown
         // and the next sync both read it.
         selection = next
+        // A pulled method or offset moves reminder times just as an edited one
+        // does in applySelection.
+        if (next.settings != current.settings || next.offsets != current.offsets) {
+            reminderScheduler.reschedule()
+        }
 
-        val nextCounter = tasbih.copy(count = remote.tasbihTotal)
+        val nextCounter = tasbih.withTotal(remote.tasbihTotal)
         if (nextCounter != tasbih) {
             tasbih = nextCounter
             tasbihStore.save(tasbih)

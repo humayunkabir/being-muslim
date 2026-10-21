@@ -8,6 +8,7 @@ import app.beingmuslim.android.prayer.HighLatitudeRuleChoice
 import app.beingmuslim.android.prayer.Prayer
 import app.beingmuslim.android.prayer.PrayerOffsets
 import app.beingmuslim.android.selection.UserSelection
+import app.beingmuslim.android.tasbih.TasbihCounter
 import org.json.JSONException
 import org.json.JSONObject
 
@@ -36,6 +37,19 @@ fun UserSelection.toSyncedSettings(language: String?): SyncedSettings = SyncedSe
     offsets = offsets,
     language = language,
 )
+
+/**
+ * This selection with the account's settings, keeping the device-local city:
+ * the city is location data and never travels (`docs/SYNC.md`).
+ */
+fun UserSelection.withSynced(settings: SyncedSettings): UserSelection = copy(
+    settings = settings.calculationSettings,
+    hijriDayShift = settings.hijriDayShift,
+    offsets = settings.offsets,
+)
+
+/** This counter with the synced total, keeping the user's own label and target. */
+fun TasbihCounter.withTotal(total: Int): TasbihCounter = copy(count = total.coerceAtLeast(0))
 
 /**
  * The stored JSON form of [SyncedSettings], versioned so a future shape can be

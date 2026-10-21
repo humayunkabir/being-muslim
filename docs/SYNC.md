@@ -77,8 +77,11 @@ marker — **not a transmitted timestamp** — decides what happened since:
    concurrent changes, the write that reaches the server last is the state the
    other device adopts on its next sync. There is no field-level merge and no
    clock comparison.
-4. **Unavailable or newer server payload:** nothing is applied or overwritten.
-   A local change is retried on the next launch or the next local change.
+4. **Unavailable server:** nothing is applied; a local change that differs from
+   the last exchanged payload still attempts an upload on the next attempt, so
+   work done offline is not stranded. **Newer server payload:** neither applied
+   nor overwritten; the device keeps its local state until the app understands
+   it.
 
 A pull is discarded if the user changes something while it is in flight; the
 local change is then uploaded instead, so unsaved work is never silently
@@ -91,6 +94,10 @@ The backend uses Appwrite's standard error object:
 ```json
 { "message": "…", "code": 404, "type": "row_not_found", "version": "2.5.0" }
 ```
+
+The row-creation function's own `401`/`502` responses carry `{ "message": … }`
+only; the app inspects the status, not the body. Auth and table endpoints use
+the object above.
 
 Sync treats every transport error, non-2xx response, and unreadable body as
 **service unavailable**. It does not show an error, does not block a local
