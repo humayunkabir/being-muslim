@@ -19,6 +19,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
 
 private const val AUTH_CHECK_TIMEOUT_MS = 10_000L
+private const val AUTH_EXCHANGE_TIMEOUT_MS = 10_000L
 
 /**
  * Owns the account guard and the sign-in state machine. The screens never call
@@ -113,9 +114,11 @@ class AccountViewModel(
                 viewModelScope.launch {
                     authMutex.withLock {
                         _state.value = try {
-                            AccountUiState.SignedIn(
-                                auth.createSession(redirect.userId, redirect.secret),
-                            )
+                            val user = withTimeoutOrNull(AUTH_EXCHANGE_TIMEOUT_MS) {
+                                auth.createSession(redirect.userId, redirect.secret)
+                            }
+                            user?.let { AccountUiState.SignedIn(it) }
+                                ?: AccountUiState.SignedOut(AccountError.SIGN_IN_FAILED)
                         } catch (exception: CancellationException) {
                             throw exception
                         } catch (_: Exception) {

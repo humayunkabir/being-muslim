@@ -6,6 +6,8 @@ import android.content.ContextWrapper
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import java.io.IOException
+import java.security.KeyStore
 
 /**
  * The Appwrite SDK constructs its own `SharedPreferencesCookieStore` from
@@ -23,9 +25,14 @@ internal class SecureCookieContext(base: Context) : ContextWrapper(base) {
         try {
             createSecurePreferences()
         } catch (_: Exception) {
-            // A lost or invalid Keystore key makes the old file unreadable.
-            // Discard it and start clean; the user signs in again.
+            // A lost or invalidated Keystore key makes both the old file and
+            // the key unusable. Discard both so the retry makes a new key; the
+            // user signs in again.
             baseContext.deleteSharedPreferences(SECURE_PREFERENCES)
+            runCatching {
+                KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
+                    .deleteEntry(MASTER_KEY_ALIAS)
+            }
             createSecurePreferences()
         }
     }
@@ -38,7 +45,7 @@ internal class SecureCookieContext(base: Context) : ContextWrapper(base) {
     // Keystore-backed adapter; replace it when the SDK exposes a store.
     @Suppress("DEPRECATION")
     private fun createSecurePreferences(): SharedPreferences {
-        val masterKey = MasterKey.Builder(baseContext)
+        val masterKey = MasterKey.Builder(baseContext, MASTER_KEY_ALIAS)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
             .build()
         val preferences = EncryptedSharedPreferences.create(
@@ -62,16 +69,20 @@ internal class SecureCookieContext(base: Context) : ContextWrapper(base) {
         val legacy = baseContext.getSharedPreferences(LEGACY_PREFERENCES, Context.MODE_PRIVATE)
         val values = legacy.all
         if (values.isEmpty()) return
-        preferences.edit().apply {
+        val copied = preferences.edit().apply {
             values.forEach { (key, value) ->
                 if (value is String) putString(key, value)
             }
         }.commit()
-        legacy.edit().clear().commit()
+        if (!copied) throw IOException("Could not migrate the session cookie")
+        val cleared = legacy.edit().clear().commit()
+        if (!cleared) throw IOException("Could not clear the plaintext cookie")
     }
 
     private companion object {
         const val LEGACY_PREFERENCES = "myCookie"
         const val SECURE_PREFERENCES = "myCookie_secure"
+        val MASTER_KEY_ALIAS: String = MasterKey.DEFAULT_MASTER_KEY_ALIAS
+        const val ANDROID_KEYSTORE = "AndroidKeyStore"
     }
 }

@@ -157,14 +157,17 @@ repository. The Appwrite API accepts them over TLS and stores them server-side.
   files are excluded from platform backup and device transfer
   (`res/xml/backup_rules.xml`, `res/xml/data_extraction_rules.xml`).
 - The Appwrite client is built lazily inside `Dispatchers.IO`, so the Keystore
-  read never blocks the UI. A broken or invalidated key clears the secure file
-  and requires a fresh sign-in; the failure reaches the screen as
-  `CHECK_FAILED` or `SIGN_IN_FAILED` rather than crashing the offline app.
-- Cancelling from the "Waiting for sign-in" screen returns to the login screen
-  with a cancelled state and discards the pending `appstate`, so a later
-  callback cannot revive that attempt. A failure callback, an unreachable
-  Appwrite check (10-second timeout), and a browser that cannot open each have
-  their own understandable state.
+  read never blocks the UI. A broken or invalidated key deletes both the secure
+  file and the key alias and requires a fresh sign-in; the failure reaches the
+  screen as `CHECK_FAILED` or `SIGN_IN_FAILED` rather than crashing the offline
+  app.
+- Cancelling while the browser is open returns to the login screen with a
+  cancelled state and discards the pending `appstate`, so a later callback
+  cannot revive that attempt. Once the callback arrives, the one-time token is
+  exchanged and cancellation is no longer offered. A failure callback, an
+  unreachable Appwrite check (10-second timeout), a stalled exchange
+  (10-second timeout), and a browser that cannot open each have their own
+  understandable state.
 - **Residual risk — custom scheme:** any app can register
   `appwrite-callback-being-muslim`. The `appstate` check stops a forged callback
   from creating a session or cancelling a real one, but it cannot stop a hostile

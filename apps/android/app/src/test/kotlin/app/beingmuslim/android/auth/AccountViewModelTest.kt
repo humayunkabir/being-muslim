@@ -137,6 +137,27 @@ class AccountViewModelTest {
     }
 
     @Test
+    fun aHangingExchangeReturnsToLoginWithAnError() = runTest(main.dispatcher) {
+        val auth = FakeAuthService(createDelayMs = 30_000)
+        val viewModel = accountViewModel(auth)
+        viewModel.resolve()
+        advanceUntilIdle()
+        val state = stateFrom(viewModel.startSignIn(AuthProvider.GOOGLE)!!)
+
+        viewModel.handleRedirect(
+            "appwrite-callback-being-muslim://auth/success" +
+                "?userId=user-1&secret=secret-1&appstate=$state",
+        )
+        advanceTimeBy(10_001)
+        advanceUntilIdle()
+
+        assertEquals(
+            AccountUiState.SignedOut(AccountError.SIGN_IN_FAILED),
+            viewModel.state.value,
+        )
+    }
+
+    @Test
     fun aBrowserThatCannotOpenReturnsToLoginWithAnError() = runTest(main.dispatcher) {
         val viewModel = accountViewModel(FakeAuthService())
         viewModel.resolve()
