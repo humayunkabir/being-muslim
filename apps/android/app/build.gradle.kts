@@ -18,6 +18,19 @@ android {
         // carry every locale the libraries bundle (appcompat ships dozens) and
         // could resolve a locale the app does not support.
         resourceConfigurations += listOf("en", "bn")
+
+        // Override with -PappwriteEndpoint=... / -PappwriteProjectId=... for
+        // another environment; no code change or secret is involved.
+        buildConfigField(
+            "String",
+            "APPWRITE_ENDPOINT",
+            "\"${providers.gradleProperty("appwriteEndpoint").getOrElse("https://appwrite.alveo.dev/v1")}\"",
+        )
+        buildConfigField(
+            "String",
+            "APPWRITE_PROJECT_ID",
+            "\"${providers.gradleProperty("appwriteProjectId").getOrElse("being-muslim")}\"",
+        )
     }
 
     buildTypes {
@@ -39,6 +52,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -62,8 +76,13 @@ dependencies {
     // Reminders (issue #12): local, persisted scheduling that survives reboot
     // without an exact-alarm permission or a boot receiver.
     implementation(libs.androidx.work.runtime)
+    // Optional account: Appwrite auth and sync. Core features still work offline.
+    // POM metadata says GPL-3.0; upstream LICENSE.md is BSD-3-Clause (verified
+    // 2026-10-21). Keep the BSD notice in the distributed third-party notices.
+    implementation(libs.appwrite)
 
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
 
     debugImplementation(libs.androidx.compose.ui.tooling)
 }

@@ -7,6 +7,7 @@
     <cloud-backup>
         <exclude domain="sharedpref" path="being_muslim_tasbih.xml" />
         <exclude domain="sharedpref" path="being_muslim_reminders.xml" />
+        <exclude domain="sharedpref" path="myCookie.xml" />
         <exclude domain="database" path="androidx.work.workdb" />
         <exclude domain="database" path="androidx.work.workdb-journal" />
         <exclude domain="database" path="androidx.work.workdb-wal" />
@@ -15,6 +16,7 @@
     <device-transfer>
         <exclude domain="sharedpref" path="being_muslim_tasbih.xml" />
         <exclude domain="sharedpref" path="being_muslim_reminders.xml" />
+        <exclude domain="sharedpref" path="myCookie.xml" />
         <exclude domain="database" path="androidx.work.workdb" />
         <exclude domain="database" path="androidx.work.workdb-journal" />
         <exclude domain="database" path="androidx.work.workdb-wal" />

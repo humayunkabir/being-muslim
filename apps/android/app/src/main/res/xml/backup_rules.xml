@@ -14,10 +14,15 @@
   WorkManager's database queues the reminder work and carries the prayer name,
   instant and city zone in its input data and tags, so it is excluded too. Losing
   it on restore is harmless: the app reschedules on next launch.
+
+  Appwrite keeps the signed-in session in "myCookie" preferences. It is a
+  credential, so it is excluded from backup and transfer; the user signs in on
+  the new device instead of carrying the session across.
 -->
 <full-backup-content>
     <exclude domain="sharedpref" path="being_muslim_tasbih.xml" />
     <exclude domain="sharedpref" path="being_muslim_reminders.xml" />
+    <exclude domain="sharedpref" path="myCookie.xml" />
     <exclude domain="database" path="androidx.work.workdb" />
     <exclude domain="database" path="androidx.work.workdb-journal" />
     <exclude domain="database" path="androidx.work.workdb-wal" />

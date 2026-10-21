@@ -24,11 +24,15 @@ import app.beingmuslim.android.R
 /**
  * The app shell. It shows the first-run setup until the user has chosen a
  * calculation method, an Asr juristic method, and a city, then today's and
- * tomorrow's times, with the qibla, settings and the counter reachable from
- * there (`docs/PRODUCT_REQUIREMENTS.md` §2.1).
+ * tomorrow's times, with the qibla, settings, counter and account reachable from
+ * there (`docs/PRODUCT_REQUIREMENTS.md` §2.1). [onOpenAccount] opens the
+ * optional account screen; nothing here depends on being signed in.
  */
 @Composable
-fun AppRoot(viewModel: AppViewModel = viewModel()) {
+fun AppRoot(
+    onOpenAccount: () -> Unit,
+    viewModel: AppViewModel = viewModel(),
+) {
     // Recompute on return to the foreground so times roll over with the date.
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refreshTimes() }
 
@@ -47,6 +51,7 @@ fun AppRoot(viewModel: AppViewModel = viewModel()) {
             onOpenQibla = viewModel::openQibla,
             onOpenTasbih = viewModel::openTasbih,
             onOpenReminders = viewModel::openReminders,
+            onOpenAccount = onOpenAccount,
             onShiftHijriDay = viewModel::shiftHijriDay,
         )
         is AppUiState.Qibla -> QiblaScreen(

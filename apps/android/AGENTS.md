@@ -34,7 +34,10 @@ Run from `apps/android`:
 ./gradlew lint              # Android Lint
 ```
 
-Android Lint runs as part of `./gradlew lint` and currently reports no issues.
+Android Lint runs as part of `./gradlew lint`. After the Appwrite SDK was added
+it reports two `TrustAllX509TrustManager` warnings inside the SDK jar (the app
+never calls `setSelfSigned(true)`) and one pre-existing
+`AutoboxingStateCreation` warning in `SettingsScreen`; neither is a build error.
 Toolchain (JDK, SDK packages, API levels, `ANDROID_HOME`): `README.md`
 §Prerequisites. Formatter tooling (`ktlint`/`detekt`) is not set up yet — add it
 when the app has code worth formatting, and record the command here.

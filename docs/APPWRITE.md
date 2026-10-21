@@ -18,11 +18,18 @@ and rotation policy → `ARCHITECTURE.md` §7.
 | Server API version | `2.5.0` (`GET /v1/health/version`) |
 | Database ID | `being_muslim` |
 | Table ID | `user_sync` |
-| Android SDK | `io.appwrite:sdk-for-android:30.0.0` — the SDK line that targets server 2.5.x |
+| Android SDK | `io.appwrite:sdk-for-android:31.0.0` — the SDK line that targets server 2.5.x |
 | Verification SDK | `appwrite` (web client) `29.1.0`, used only for the call below |
 
-These are not secrets. They are safe to put in build configuration when the
-account feature (#15) adds it.
+These are not secrets. The Android app reads the endpoint and project ID from
+Gradle `BuildConfig` fields (`app/build.gradle.kts`), overridable with
+`-PappwriteEndpoint=...` and `-PappwriteProjectId=...`; no key or OAuth secret
+is in the APK.
+
+**Licensing:** the `io.appwrite:sdk-for-android` Maven POM declares GPL-3.0, but
+the upstream repository's `LICENSE.md` is **BSD-3-Clause** (verified
+2026-10-21). Treat it as BSD-3-Clause and include its notice in the app's
+third-party notices before release; the POM metadata is wrong.
 
 ## Database and permissions
 
@@ -88,35 +95,85 @@ rate-limiting abuse), which is not part of this ticket.
 
 ## OAuth providers
 
-**Google — configured and credential-validated on 2026-10-21.**
+**Google — configured on 2026-10-21.**
 
 - Google Cloud has an **Android** OAuth client for package
   `app.beingmuslim.android` and the SHA-1 above, plus a **Web application**
   client.
-- Appwrite has `nativeEnabled=true` and `nativeClientIds` set to the web client
-  ID `784912150069-loi4m221leaph7hn9oqjk0ogmtg6lav9.apps.googleusercontent.com`.
-  The Android app must request its ID token with that web client ID as the
-  server client ID; the Android client ID is not the token audience. Appwrite's
-  own guidance says Android and web tokens name the same web client
-  (`add-google-one-tap-to-your-web-app`).
-- The client ID/secret pair was validated against Google while the browser
-  redirect flow was briefly enabled. That flow is now **disabled** and the
-  secret cleared: the project has no Web platform, and the secret was pasted
-  into chat on 2026-10-21. Rotate it in Google Cloud. Native sign-in does not
-  use the secret; enable the browser flow later only with a fresh secret and a
-  registered Web platform.
-- If the browser flow is enabled later, add
-  `https://appwrite.alveo.dev/v1/account/sessions/oauth2/callback/google/being-muslim`
-  as an **authorized redirect URI** on the Web application client. Authorized
-  JavaScript origins are only needed for Google Identity Services used directly
-  in a browser; the Android native flow uses neither field.
-- **End-to-end sign-in with a test account is still pending** the Android client
-  flow in #15. The provider configuration is verified; the user journey is not.
+- Appwrite has the Google provider enabled with the web client ID
+  `784912150069-loi4m221leaph7hn9oqjk0ogmtg6lav9.apps.googleusercontent.com` and
+  its client secret. The secret is stored server-side in Appwrite, never in the
+  APK. It was pasted into chat on 2026-10-21: rotate it in Google Cloud and
+  update Appwrite's provider settings (the app does not need the new value).
+- `nativeEnabled=true` and `nativeClientIds` are also set to the web client ID
+  for a future native ID-token flow. The app built for #15 uses the OAuth2
+  token flow, which needs the web client's ID and secret on the server.
+- The Web application client must authorize the Appwrite callback URI. See
+  **Android client flow** below for the exact URL and the current blocker.
+- **End-to-end sign-in with a test account is still pending** the callback URI
+  fix below. The app's client flow is implemented and its state machine is
+  tested; the provider handshake is not yet verified against Google.
 
 **Apple — not configured.** Deferred to #32 and the iOS work.
 
 Do not put the OAuth client secret, `.p8` key, or Apple key material in this
 repository. The Appwrite API accepts them over TLS and stores them server-side.
+
+## Android client flow (#15)
+
+- The app opens on an account gate. `AccountViewModel.resolve()` calls
+  `account.get()` before the dashboard may render: a live session opens the
+  dashboard, no session (or a failed check) opens the login screen, and
+  **Continue without an account** enters the existing offline app. The same
+  guard runs whenever the account screen is opened from the times screen.
+- Sign-in opens
+  `{endpoint}/account/tokens/oauth2/google?project=being-muslim&success=…&failure=…`.
+  The success URL is
+  `appwrite-callback-being-muslim://auth/success?appstate=<state>`; Appwrite
+  adds `userId` and `secret` to it. The failure URL carries the same
+  `appstate`, so a forged failure callback is ignored too.
+- `AuthCallbackActivity` receives that custom scheme and forwards it to
+  `MainActivity`. `AccountViewModel` checks the `appstate` it generated, calls
+  `Account.createSession(userId, secret)`, and only then shows the dashboard.
+  The state is stored in `SavedStateHandle`, so a callback still works after
+  Android recreates the process while the browser is open.
+- **Why not the SDK's `createOAuth2Token` method:** its Android implementation
+  intercepts the callback and expects `key`/`secret` from the
+  `createOAuth2Session` flow, while the 2.5 token endpoint returns
+  `userId`/`secret`. The app opens the same token endpoint and exchanges the
+  token with `Account.createSession`, as the token-flow contract requires.
+- The SDK's session cookie jar keeps the session; `account.get()` is the guard
+  on every account-screen entry. No token or secret is logged. The cookie lives
+  in the SDK's `myCookie` preferences, which are excluded from platform backup
+  and device transfer (`res/xml/backup_rules.xml`,
+  `res/xml/data_extraction_rules.xml`). The SDK has no Keystore-backed cookie
+  store, so the file is protected by the app sandbox rather than Keystore.
+- **Residual risk — custom scheme:** any app can register
+  `appwrite-callback-being-muslim`. The `appstate` check stops a forged callback
+  from creating a session or cancelling a real one, but it cannot stop a hostile
+  app from receiving the token if it wins the scheme. Before release, move to an
+  Android App Link on a domain we control (with a Web platform in Appwrite), or
+  accept the risk explicitly for the MVP.
+- The Appwrite SDK also ships push; this feature uses neither push nor its
+  foreground service, so the unused push components and
+  `FOREGROUND_SERVICE_REMOTE_MESSAGING` permission are removed from the merged
+  manifest. The remaining `WAKE_LOCK`/`ACCESS_NETWORK_STATE`/
+  `RECEIVE_BOOT_COMPLETED`/`FOREGROUND_SERVICE` permissions come from
+  WorkManager, which the reminders feature already uses.
+- Tests: `AuthRedirectsTest` covers the success/failure deep links;
+  `AccountViewModelTest` covers the signed-in/out guards, the state check,
+  session creation, and sign-out. The JVM suite, lint, and debug/release builds
+  pass.
+
+**Blocker — the Appwrite callback URI.** Appwrite currently emits
+`http://appwrite.alveo.dev/v1/account/sessions/oauth2/callback/google/being-muslim`
+because `_APP_OPTIONS_FORCE_HTTPS` is disabled. Google returns
+`redirect_uri_mismatch` for it. Set `_APP_OPTIONS_FORCE_HTTPS=enabled` (or make
+the proxy report https) and restart Appwrite, then add
+`https://appwrite.alveo.dev/v1/account/sessions/oauth2/callback/google/being-muslim`
+to the Web application client's **Authorized redirect URIs**. The app's custom
+scheme does not need a Google Cloud entry; Google only sees the Appwrite
+callback.
 
 ## API key
 
@@ -147,8 +204,9 @@ new Account(client).get() -> 401 (guest, expected without a session)
 
 A bad project ID returns `404 project_not_found`, so the `401` above confirms
 the project was found rather than silently failing. The Android SDK targets the
-same 2.5.0 API; an Android instrumented call still needs a device/emulator and
-is covered when #15 adds the client.
+same 2.5.0 API, and the account state machine is covered by JVM tests. No
+instrumented/device run has been made, and the end-to-end Google flow is blocked
+by the callback URI above.
 
 ## Deployment and staging
 

@@ -176,6 +176,28 @@
     <string name="reminders_channel_name">Prayer reminders</string>
     <string name="reminders_channel_description">The reminders you turn on, at the times you chose. Notifications show a neutral message.</string>
 
+    <!--
+      Optional account (issue #15). Signing in is never required: every core
+      feature works offline and signed out.
+    -->
+    <string name="times_open_account">Account</string>
+    <string name="account_title">Account</string>
+    <string name="account_login_title">Sign in</string>
+    <string name="account_dashboard_title">Dashboard</string>
+    <string name="account_intro">Sign in with Google. Prayer times, qibla, tasbih and reminders still work without an account.</string>
+    <string name="account_sign_in_google">Sign in with Google</string>
+    <string name="account_checking">Checking sign-in…</string>
+    <string name="account_signing_in">Waiting for Google…</string>
+    <string name="account_signing_out">Signing out…</string>
+    <string name="account_signed_in_as">Signed in as %1$s</string>
+    <string name="account_sign_out">Sign out</string>
+    <string name="account_continue_offline">Continue without an account</string>
+    <string name="account_open_app">Open the app</string>
+    <string name="account_back">Back</string>
+    <string name="account_error_check">Could not check sign-in. You can continue without an account.</string>
+    <string name="account_error_sign_in">Sign-in failed. Try again.</string>
+    <string name="account_error_sign_out">Could not sign out. Check your connection and try again.</string>
+
     <!-- Loading and failure states -->
     <string name="state_loading">Loading…</string>
     <string name="state_catalog_unavailable">The city list could not be read. Reinstall the app, or report the problem.</string>

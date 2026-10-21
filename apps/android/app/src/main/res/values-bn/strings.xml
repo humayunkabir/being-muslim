@@ -198,4 +198,23 @@
 
     <!-- Required by the bundled city catalog's CC BY 4.0 license (docs/CITY_CATALOG.md). -->
     <string name="city_catalog_attribution">শহরের তথ্য GeoNames (https://www.geonames.org/) থেকে, CC BY 4.0 লাইসেন্সের অধীনে।</string>
+
+    <!-- Optional account (issue #15) -->
+    <string name="times_open_account">অ্যাকাউন্ট</string>
+    <string name="account_title">অ্যাকাউন্ট</string>
+    <string name="account_login_title">সাইন ইন</string>
+    <string name="account_dashboard_title">ড্যাশবোর্ড</string>
+    <string name="account_intro">Google দিয়ে সাইন ইন করুন। অ্যাকাউন্ট ছাড়াও নামাজের সময়, কিবলা, তাসবিহ ও রিমাইন্ডার কাজ করে।</string>
+    <string name="account_sign_in_google">Google দিয়ে সাইন ইন করুন</string>
+    <string name="account_checking">সাইন-ইন যাচাই করা হচ্ছে…</string>
+    <string name="account_signing_in">Google-এর জন্য অপেক্ষা করা হচ্ছে…</string>
+    <string name="account_signing_out">সাইন আউট করা হচ্ছে…</string>
+    <string name="account_signed_in_as">%1$s হিসেবে সাইন ইন করা হয়েছে</string>
+    <string name="account_sign_out">সাইন আউট</string>
+    <string name="account_continue_offline">অ্যাকাউন্ট ছাড়া চালিয়ে যান</string>
+    <string name="account_open_app">অ্যাপ খুলুন</string>
+    <string name="account_back">পেছনে</string>
+    <string name="account_error_check">সাইন-ইন যাচাই করা যায়নি। অ্যাকাউন্ট ছাড়াও চালিয়ে যেতে পারেন।</string>
+    <string name="account_error_sign_in">সাইন-ইন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।</string>
+    <string name="account_error_sign_out">সাইন আউট করা যায়নি। আপনার সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।</string>
 </resources>

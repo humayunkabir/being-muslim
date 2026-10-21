@@ -20,6 +20,23 @@
     -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!--
+      Optional account (issues #15/#16). Sign-in and sync use the network; every
+      core feature still works offline and signed out.
+    -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!--
+      The Appwrite SDK ships push delivery, which this app does not use. Keep its
+      foreground-service permission out of the manifest; the components below are
+      removed for the same reason. WAKE_LOCK, ACCESS_NETWORK_STATE,
+      RECEIVE_BOOT_COMPLETED and FOREGROUND_SERVICE also merge from WorkManager,
+      which the reminders feature uses; those stay.
+    -->
+    <uses-permission
+        android:name="android.permission.FOREGROUND_SERVICE_REMOTE_MESSAGING"
+        tools:node="remove" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -36,12 +53,51 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTop"
             android:theme="@style/Theme.BeingMuslim">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!--
+          The OAuth2 token flow's success/failure deep link. This is the app's
+          own callback, not io.appwrite.views.CallbackActivity: the SDK's
+          activity belongs to createOAuth2Session and expects a session cookie.
+        -->
+        <activity
+            android:name=".auth.AuthCallbackActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:noHistory="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:host="auth"
+                    android:scheme="appwrite-callback-being-muslim" />
+            </intent-filter>
+        </activity>
+
+        <!-- Unused Appwrite push components (see the permission note above). -->
+        <activity
+            android:name="io.appwrite.services.PushOpenActivity"
+            tools:node="remove" />
+        <service
+            android:name="io.appwrite.services.PushService"
+            tools:node="remove" />
+        <service
+            android:name="io.appwrite.services.PushJobService"
+            tools:node="remove" />
+        <receiver
+            android:name="io.appwrite.services.PushAlarmReceiver"
+            tools:node="remove" />
+        <receiver
+            android:name="io.appwrite.services.PushBootReceiver"
+            tools:node="remove" />
 
         <!--
           Lets AppCompat persist the chosen language on API 32 and below, where

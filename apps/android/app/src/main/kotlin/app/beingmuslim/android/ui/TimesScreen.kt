@@ -43,8 +43,8 @@ import java.util.TimeZone
  * formatted for the device's locale and the city's time zone. [onChangeSettings]
  * opens the screen where the user changes their city or method, [onShiftHijriDay]
  * shifts the calculated Hijri dates by ±1 day (§7), [onOpenQibla] opens the
- * qibla, [onOpenTasbih] opens the counter, and [onOpenReminders] opens the
- * opt-in reminders (issue #12).
+ * qibla, [onOpenTasbih] opens the counter, [onOpenReminders] opens the opt-in
+ * reminders (issue #12), and [onOpenAccount] opens the optional account.
  */
 @Composable
 fun TimesScreen(
@@ -53,6 +53,7 @@ fun TimesScreen(
     onOpenQibla: () -> Unit,
     onOpenTasbih: () -> Unit,
     onOpenReminders: () -> Unit,
+    onOpenAccount: () -> Unit,
     onShiftHijriDay: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -144,6 +145,9 @@ fun TimesScreen(
             }
             TextButton(onClick = onOpenReminders) {
                 Text(stringResource(R.string.times_open_reminders))
+            }
+            TextButton(onClick = onOpenAccount) {
+                Text(stringResource(R.string.times_open_account))
             }
         }
     }
