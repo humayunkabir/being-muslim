@@ -44,6 +44,7 @@
     <string name="setup_city_location_denied">Location permission was not granted. Search for a city instead.</string>
     <string name="setup_city_location_unavailable">Couldn\'t get your location. Search for a city instead.</string>
     <string name="setup_continue">Continue</string>
+    <string name="setup_continue_hint">Choose a city and the three calculation choices above to continue.</string>
 
     <!-- Settings: changing the same choices after first run (issue #5) -->
     <string name="settings_title">Settings</string>
@@ -213,7 +214,7 @@
 
     <!-- Loading and failure states -->
     <string name="state_loading">Loading…</string>
-    <string name="state_catalog_unavailable">The city list could not be read. Reinstall the app, or report the problem.</string>
+    <string name="state_catalog_unavailable">The city list could not be read. Reinstall the app to restore it.</string>
 
     <!-- Tasbih (issue #13). The app bundles no text of its own for this feature:
          the label is whatever the user types, and nothing is attributed to a source. -->

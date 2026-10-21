@@ -214,6 +214,9 @@ A release containing religious content or calculations must meet the relevant ga
 - [ ] Known limitations are disclosed clearly.
 - [ ] A correction/reporting path exists for published content.
 
+The Android build's verification record for these gates is
+`docs/ACCESSIBILITY.md`, which names the checks still open.
+
 A feature that does not meet its relevant gates must not be represented as verified or production-ready.
 
 ## 14. Open decisions

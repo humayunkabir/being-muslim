@@ -98,6 +98,9 @@ worth formatting.
   configuration and secrets, testing strategy.
 - `docs/DESIGN_STANDARDS.md` — design intent, semantic tokens, typography,
   accessibility, content integrity.
+- `docs/ACCESSIBILITY.md` — the Android verification record for accessibility,
+  locales, state coverage, and the calculation edge cases, including the gates
+  still open.
 - `GLOSSARY.md` — the canonical product vocabulary shared by both apps and the
   specification documents.
 - `docs/CITY_CATALOG.md` — the bundled city catalog's source, license, format,

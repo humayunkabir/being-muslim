@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -301,6 +302,9 @@ internal fun SelectableRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            // A one-line row is only 40dp of text and padding; keep the whole
+            // row a 48dp target, not just the radio button inside it.
+            .defaultMinSize(minHeight = 48.dp)
             .selectable(
                 selected = selected,
                 role = Role.RadioButton,

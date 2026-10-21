@@ -19,6 +19,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import app.beingmuslim.android.R
 import app.beingmuslim.android.citycatalog.City
@@ -66,10 +68,12 @@ fun TimesScreen(
             Text(
                 text = state.city.displayName(currentLanguage()),
                 style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.semantics { heading() },
             )
             Text(
                 text = stringResource(R.string.times_title),
                 style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.semantics { heading() },
             )
 
             DaySection(
@@ -165,6 +169,7 @@ private fun DaySection(
     Text(
         text = stringResource(headingRes),
         style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier.semantics { heading() },
     )
     if (times == null) {
         Text(
@@ -188,6 +193,9 @@ private fun DaySection(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                // One TalkBack stop per prayer: the name, its Arabic, and the
+                // time are read together instead of as three separate labels.
+                .semantics(mergeDescendants = true) {}
                 .padding(vertical = 4.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
@@ -267,12 +275,16 @@ private fun HijriDateSection(dayShift: Int, onShiftHijriDay: (Int) -> Unit) {
         TextButton(
             onClick = { onShiftHijriDay(-1) },
             enabled = dayShift > -HijriCalendar.MAX_DAY_SHIFT,
+            // Half the row each, so at a large text size the labels wrap
+            // instead of one squeezing the other to zero width.
+            modifier = Modifier.weight(1f),
         ) {
             Text(stringResource(R.string.hijri_shift_earlier))
         }
         TextButton(
             onClick = { onShiftHijriDay(1) },
             enabled = dayShift < HijriCalendar.MAX_DAY_SHIFT,
+            modifier = Modifier.weight(1f),
         ) {
             Text(stringResource(R.string.hijri_shift_later))
         }

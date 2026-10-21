@@ -35,6 +35,7 @@
     <string name="setup_city_location_denied">অবস্থানের অনুমতি দেওয়া হয়নি। পরিবর্তে শহর খুঁজুন।</string>
     <string name="setup_city_location_unavailable">আপনার অবস্থান পাওয়া যায়নি। পরিবর্তে শহর খুঁজুন।</string>
     <string name="setup_continue">চালিয়ে যান</string>
+    <string name="setup_continue_hint">চালিয়ে যেতে উপরে একটি শহর এবং তিনটি হিসাবের বিকল্প বেছে নিন।</string>
 
     <!-- Settings: changing the same choices after first run (issue #5) -->
     <string name="settings_title">সেটিংস</string>
@@ -194,7 +195,7 @@
 
     <!-- Loading and failure states -->
     <string name="state_loading">লোড হচ্ছে…</string>
-    <string name="state_catalog_unavailable">শহরের তালিকা পড়া যায়নি। অ্যাপটি আবার ইনস্টল করুন, অথবা সমস্যাটি জানান।</string>
+    <string name="state_catalog_unavailable">শহরের তালিকা পড়া যায়নি। ফিরিয়ে আনতে অ্যাপটি আবার ইনস্টল করুন।</string>
 
     <!-- Required by the bundled city catalog's CC BY 4.0 license (docs/CITY_CATALOG.md). -->
     <string name="city_catalog_attribution">শহরের তথ্য GeoNames (https://www.geonames.org/) থেকে, CC BY 4.0 লাইসেন্সের অধীনে।</string>

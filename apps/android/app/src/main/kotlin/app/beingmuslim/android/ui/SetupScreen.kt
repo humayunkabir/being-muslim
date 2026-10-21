@@ -18,6 +18,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import app.beingmuslim.android.R
 import app.beingmuslim.android.citycatalog.CityCatalog
@@ -58,6 +62,7 @@ fun SetupScreen(
             Text(
                 text = stringResource(R.string.setup_title),
                 style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.semantics { heading() },
             )
             Text(
                 text = stringResource(R.string.setup_intro),
@@ -82,17 +87,30 @@ fun SetupScreen(
             val chosenMethod = method
             val chosenAsr = asrMethod
             val chosenRule = rule
+            // One value decides both the button's state and what it submits, so
+            // the two cannot disagree.
+            val selection: Pair<Long, CalculationSettings>? =
+                if (chosenCity != null && chosenMethod != null && chosenAsr != null && chosenRule != null) {
+                    chosenCity to CalculationSettings(chosenMethod, chosenAsr, chosenRule)
+                } else {
+                    null
+                }
+            val continueHint = stringResource(R.string.setup_continue_hint)
+            if (selection == null) {
+                // A disabled button alone gives a screen-reader user no reason.
+                // The same hint is on the button, so this copy is visual only.
+                Text(
+                    text = continueHint,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.clearAndSetSemantics {},
+                )
+            }
             Button(
-                onClick = {
-                    if (chosenCity != null && chosenMethod != null && chosenAsr != null && chosenRule != null) {
-                        onComplete(
-                            chosenCity,
-                            CalculationSettings(chosenMethod, chosenAsr, chosenRule),
-                        )
-                    }
-                },
-                enabled = chosenCity != null && chosenMethod != null && chosenAsr != null && chosenRule != null,
-                modifier = Modifier.fillMaxWidth(),
+                onClick = { selection?.let { (cityId, settings) -> onComplete(cityId, settings) } },
+                enabled = selection != null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics { if (selection == null) stateDescription = continueHint },
             ) {
                 Text(stringResource(R.string.setup_continue))
             }

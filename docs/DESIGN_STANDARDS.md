@@ -67,6 +67,9 @@ Release gate: `PRODUCT_REQUIREMENTS.md` §13.
 - Make location-based features usable when permission is denied, with an understandable manual alternative where feasible.
 - Test with real accessibility tools on both platforms.
 
+The Android verification record, including the checks still open, is
+`docs/ACCESSIBILITY.md`.
+
 ## 8. Permission and privacy UX
 
 Scope: *when and how* the UI asks for and explains access. Data policy: `PRODUCT_REQUIREMENTS.md` §6, §10, §11; secret storage: `ARCHITECTURE.md` §7.
