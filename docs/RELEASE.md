@@ -41,6 +41,10 @@ while they are open.
 - [ ] **Third-party notices** — Adhan (MIT) and the Appwrite SDK (BSD-3-Clause)
       notices are not yet surfaced in a distributed notice. Add an About/notices
       surface before distributing outside internal testing.
+- [ ] **Apple sign-in (#32)** — the app offers an Apple sign-in button, but the
+      Appwrite Apple provider is not configured, so it reaches an error page.
+      Configure it (or hide the option) before the beta; do not describe Apple
+      sign-in as working in the listing.
 - [ ] **Quran listening is not in this build** (#33–#37). The streaming
       disclosures, data-safety answers, and offline checks in #38 apply only
       once it ships; the answers below are for the current feature set.
@@ -92,17 +96,28 @@ Run from `apps/android`:
 ./gradlew clean test lint bundleRelease assembleRelease
 ```
 
+Without a configured keystore this fails at `:app:verifyReleaseSigning` with a
+message pointing here; it never produces an unsigned release artifact.
+
 Outputs:
 
 - `app/build/outputs/bundle/release/app-release.aab` — upload this.
 - `app/build/outputs/apk/release/app-release.apk` — install on a device.
 
-Confirm the APK is signed and uses the upload key:
+Confirm both are signed with the upload key:
 
 ```sh
+jarsigner -verify -verbose:summary \
+  app/build/outputs/bundle/release/app-release.aab
+
 $ANDROID_HOME/build-tools/36.0.0/apksigner verify --print-certs \
   app/build/outputs/apk/release/app-release.apk
 ```
+
+`apksigner` ships in the SDK build-tools; the path above assumes `$ANDROID_HOME`
+is set. If the SDK is configured only through `sdk.dir` in
+`apps/android/local.properties`, use the `build-tools` directory under that
+path.
 
 Install and launch it on a physical device:
 
@@ -193,6 +208,7 @@ feature.
 | Collects or shares required data? | **Yes** |
 | Personal info → Name | Collected, not shared, optional, account management, encrypted in transit, deletable |
 | Personal info → Email address | Collected, not shared, optional, account management, encrypted in transit, deletable |
+| Personal info → User IDs | Collected, not shared, optional, account management, encrypted in transit, deletable — the Appwrite account id |
 | Location → Approximate location | Collected, not shared, optional, app functionality — only the selected city's coordinates inside a report the user chooses to send; device location never leaves the phone |
 | App activity → Other user-generated content | Collected, not shared, optional, app functionality — synced settings and tasbih total, and the note in a problem report |
 | App info and performance → Other app performance data | Collected, not shared, optional, app functionality — app and calculation-library versions in a problem report |

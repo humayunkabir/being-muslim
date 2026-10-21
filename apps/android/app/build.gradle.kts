@@ -6,8 +6,8 @@ plugins {
 }
 
 // The upload keystore is per-developer and never committed (`.gitignore`).
-// `keystore.properties` sits next to this file; CI passes the same values as
-// environment variables. Without either, release builds stay unsigned.
+// The four values come from `apps/android/keystore.properties` or, when that
+// file is absent, from the `ANDROID_KEYSTORE_*` environment variables.
 val uploadKeystore = Properties().apply {
     val file = rootProject.file("keystore.properties")
     if (file.isFile) file.inputStream().use(::load)
@@ -69,18 +69,25 @@ android {
         buildConfigField("String", "ADHAN_VERSION", "\"${libs.versions.adhan.get()}\"")
     }
 
-    buildTypes {
+    signingConfigs {
         val storeFile = uploadKeystoreValue("storeFile", "ANDROID_KEYSTORE_FILE")
         if (storeFile != null) {
-            signingConfigs.create("release") {
+            create("release") {
                 this.storeFile = rootProject.file(storeFile)
-                storePassword =
-                    uploadKeystoreValue("storePassword", "ANDROID_KEYSTORE_PASSWORD")
-                keyAlias = uploadKeystoreValue("keyAlias", "ANDROID_KEY_ALIAS")
-                keyPassword = uploadKeystoreValue("keyPassword", "ANDROID_KEY_PASSWORD")
+                storePassword = requireNotNull(
+                    uploadKeystoreValue("storePassword", "ANDROID_KEYSTORE_PASSWORD"),
+                ) { "Release signing is missing storePassword (keystore.properties or ANDROID_KEYSTORE_PASSWORD)." }
+                keyAlias = requireNotNull(
+                    uploadKeystoreValue("keyAlias", "ANDROID_KEY_ALIAS"),
+                ) { "Release signing is missing keyAlias (keystore.properties or ANDROID_KEY_ALIAS)." }
+                keyPassword = requireNotNull(
+                    uploadKeystoreValue("keyPassword", "ANDROID_KEY_PASSWORD"),
+                ) { "Release signing is missing keyPassword (keystore.properties or ANDROID_KEY_PASSWORD)." }
             }
         }
+    }
 
+    buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
@@ -102,6 +109,22 @@ android {
         compose = true
         buildConfig = true
     }
+}
+
+// An unsigned release artifact is a mistake, not a variant: fail before
+// packaging instead of producing an AAB that Play rejects on upload.
+val releaseSigningConfigured = android.signingConfigs.findByName("release") != null
+val verifyReleaseSigning by tasks.registering {
+    doLast {
+        check(releaseSigningConfigured) {
+            "Release signing is not configured. Add apps/android/keystore.properties " +
+                "or the ANDROID_KEYSTORE_* environment variables (docs/RELEASE.md)."
+        }
+    }
+}
+
+tasks.matching { it.name == "preReleaseBuild" }.configureEach {
+    dependsOn(verifyReleaseSigning)
 }
 
 dependencies {

@@ -39,7 +39,9 @@ is stored separately and is not linked to the account (see **Problem reports**).
 - Calculated prayer times, the Hijri date, or qibla direction.
 - Reminder choices, schedules, or notifications.
 - The tasbih label or target.
-- Any timestamp of your activity or worship.
+- Any record of when you prayed or used a devotional feature. The row's
+  `$createdAt`/`$updatedAt` metadata only records when the synced row was
+  created or updated (`SYNC.md`).
 - Analytics, advertising identifiers, or diagnostic logs containing the above.
 
 These stay on the device. Losing the account does not lose them, and sync cannot

@@ -36,9 +36,9 @@ Run from `apps/android`:
 ```
 
 Release signing reads `apps/android/keystore.properties` (gitignored) or the
-`ANDROID_KEYSTORE_*` environment variables. Without them, release builds stay
-unsigned. The upload build, store listing, and closed-beta runbook are in
-`docs/RELEASE.md`.
+`ANDROID_KEYSTORE_*` environment variables. Without them, release builds fail
+before packaging instead of producing an unsigned artifact. The upload build,
+store listing, and closed-beta runbook are in `docs/RELEASE.md`.
 
 Android Lint runs as part of `./gradlew lint`. After the Appwrite SDK was added
 it reports two `TrustAllX509TrustManager` warnings inside the SDK jar (the app

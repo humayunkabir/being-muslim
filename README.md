@@ -77,7 +77,7 @@ Android:
 - Android SDK with, at minimum, `platforms;android-37.0` (API 37 uses minor versions, so there is no plain `platforms;android-37`), `build-tools;36.0.0`, and `platform-tools`.
 - `ANDROID_HOME` (or `ANDROID_SDK_ROOT`) pointing at the SDK, or `apps/android/local.properties` with `sdk.dir=...` — machine-specific and not committed.
 - The Gradle wrapper (9.8.1) is committed; no separate Gradle install needed.
-- API levels: `compileSdk`/`targetSdk` 37, `minSdk` 26. Release builds apply R8 and resource shrinking. A release build is signed when `apps/android/keystore.properties` (gitignored) or the matching environment variables are present; otherwise it stays unsigned. The signing setup and upload runbook are in `docs/RELEASE.md`.
+- API levels: `compileSdk`/`targetSdk` 37, `minSdk` 26. Release builds apply R8 and resource shrinking. A release build is signed when `apps/android/keystore.properties` (gitignored) or the matching environment variables are present; without them it fails before packaging rather than producing an unsigned artifact. The signing setup and upload runbook are in `docs/RELEASE.md`.
 
 ## Build, test, lint
 

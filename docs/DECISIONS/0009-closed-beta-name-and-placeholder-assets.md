@@ -33,6 +33,10 @@ visual identity are still open (`PRODUCT_REQUIREMENTS.md` §14,
 - Bengali-language store listing copy is deferred until the Bengali review in
   issue #39 signs the locale off; until then the listing is English-only, as the
   app's Bengali strings are still marked unreviewed (`DECISIONS/0006`).
+- The **iOS placeholders** recorded in `DECISIONS/0001` (the empty `AppIcon`
+  and `AccentColor`, and `app.beingmuslim.ios`) are outside this release: iOS is
+  not distributed (`DECISIONS/0002`). Their retention is accepted until iOS
+  parity work, when they must be replaced.
 - This acceptance is limited to the closed beta. It does not approve the
   placeholders for public distribution.
 

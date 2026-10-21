@@ -33,9 +33,9 @@ sent to us:
 - your tasbih label, target, and count;
 - the prayer times, qibla bearing, and Hijri date calculated from them.
 
-If you sign in, only your settings and tasbih total are copied to the account
-(see below). Reminders, the tasbih label and target, and everything else in this
-list stay on the phone.
+If you sign in, only your settings and tasbih total (the current count) are
+copied to the account (see below). The city, reminders, the tasbih label and
+target, and every calculated result stay on the phone.
 
 Devotional data is excluded from Android cloud backup and device-to-device
 transfer. Your chosen city and calculation settings are ordinary app settings,
@@ -66,11 +66,13 @@ When you create an account, the app stores on its self-hosted Appwrite service:
 - the name and email address your Google or Apple sign-in shares with the app;
 - your settings: calculation method, Asr juristic method, high-latitude rule,
   Hijri day shift, per-prayer offsets, and language;
-- your tasbih total.
+- your tasbih total;
+- when the synced row was created and last updated — the service's own row
+  metadata, not a record of when you prayed.
 
 It does **not** store your location, calculated prayer times, the Hijri date,
-qibla direction, reminder choices, tasbih label or target, or any timestamp of
-your activity.
+qibla direction, reminder choices, tasbih label or target, or any record of when
+you prayed or used a devotional feature.
 
 The account data is kept while the account exists. Signing out leaves it in
 place so it returns if you sign in again. It is sent over HTTPS, and the app
@@ -94,9 +96,10 @@ lists everything attached before you send it:
 
 The report is used only to check the calculation and fix a wrong time. It is not
 linked to your account, and it carries no device identifier, location history,
-or email address unless you put personal details in the note yourself. Reports
-are deleted once the problem is resolved. Please do not include personal
-details in the note.
+or email address unless you put personal details in the note yourself. The
+operator deletes a report once the problem is resolved; there is no automatic
+expiry, and you can ask us to delete yours at any time. Please do not include
+personal details in the note.
 
 ## What we never do
 
