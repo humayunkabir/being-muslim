@@ -88,38 +88,28 @@ rate-limiting abuse), which is not part of this ticket.
 
 ## OAuth providers
 
-Both providers are **disabled** as of 2026-10-20. The console/API is ready, but
-the provider credentials and the end-to-end test account are still human work.
+**Google — configured and credential-validated on 2026-10-21.**
 
-**Google**
+- Google Cloud has an **Android** OAuth client for package
+  `app.beingmuslim.android` and the SHA-1 above, plus a **Web application**
+  client.
+- Appwrite has `nativeEnabled=true` and `nativeClientIds` set to the web client
+  ID `784912150069-loi4m221leaph7hn9oqjk0ogmtg6lav9.apps.googleusercontent.com`.
+  The Android app must request its ID token with that web client ID as the
+  server client ID; the Android client ID is not the token audience. Appwrite's
+  own guidance says Android and web tokens name the same web client
+  (`add-google-one-tap-to-your-web-app`).
+- The provider also has `enabled=true` with the same web client ID, so the
+  browser redirect flow is available. Appwrite validated the client ID/secret
+  pair when it was enabled.
+- The web client secret is stored server-side in Appwrite, never in this
+  repository. It was pasted into chat on 2026-10-21: rotate it in Google Cloud
+  and update Appwrite, or set `enabled=false` if browser sign-in is not needed.
+  Native sign-in does not use the secret.
+- **End-to-end sign-in with a test account is still pending** the Android client
+  flow in #15. The provider configuration is verified; the user journey is not.
 
-1. In Google Cloud, create an **Android** OAuth client for package
-   `app.beingmuslim.android` and the SHA-1 above. This authorizes the app to
-   obtain Google ID tokens.
-2. Also create a **Web application** client in Google Cloud. Appwrite checks the
-   ID token's audience against web client IDs, so the trusted value is the **web**
-   client ID — not the Android client ID.
-3. In Appwrite, set the Google provider's `nativeClientIds` to the web client ID
-   and `nativeEnabled` to true. Native sign-in verifies the token signature, so
-   it needs no client secret. These fields are the 30.0.1 Project service's
-   `updateOAuth2Google` parameters.
-4. Browser-based sign-in additionally needs the web client ID and secret with
-   `enabled` true. The app's Android flow should use the native path.
-5. Sign in on a device with a test account.
-
-Appwrite's native-signin guidance says a Google ID token from Android and one
-from the web name the same **web** client ID ("One Tap tokens name the same web
-client as Android tokens", Appwrite blog, `add-google-one-tap-to-your-web-app`).
-Using the Android client ID here would break sign-in.
-
-**Apple**
-
-1. Create a Services ID, a Sign in with Apple key, and record the Key ID and
-   Team ID.
-2. In Appwrite, set `serviceId`, `keyId`, `teamId`, and the `.p8` contents;
-   optionally add `nativeClientIds` = `app.beingmuslim.ios` and
-   `nativeEnabled` = true for the native iOS flow.
-3. Sign in on a device with a test account.
+**Apple — not configured.** Deferred to #32 and the iOS work.
 
 Do not put the OAuth client secret, `.p8` key, or Apple key material in this
 repository. The Appwrite API accepts them over TLS and stores them server-side.
