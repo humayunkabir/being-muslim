@@ -75,7 +75,8 @@ Feature-level acceptance criteria for the MVP. The full user-story set and the p
 - The synced payload is settings and the tasbih total only — no location and no devotional timestamps; in-app account deletion and data export are available, and what leaves the device is disclosed. The payload shape, conflict rule, retention, deletion, and export behaviour are the contract in `docs/SYNC.md`; the user-facing notice is `docs/PRIVACY.md`.
 
 **Report a problem**
-- A report carries the location, method and date so that a wrong time can be investigated.
+- A report carries the location, method, parameters, offsets and date so that a wrong time can be investigated.
+- The screen names where the report goes and what happens next; sending needs a connection, and a failed send keeps the report on the screen to retry.
 
 ## 3. Quran content requirements
 

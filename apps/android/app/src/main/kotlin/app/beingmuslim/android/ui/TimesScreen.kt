@@ -41,7 +41,8 @@ import java.util.TimeZone
  * (issue #7). A time the user has adjusted shows the adjusted time with the raw
  * calculated one beside it, never silently folded in (issue #8). Times are
  * formatted for the device's locale and the city's time zone. [onChangeSettings]
- * opens the screen where the user changes their city or method, [onShiftHijriDay]
+ * opens the screen where the user changes their city or method, [onReportProblem]
+ * opens the report about a wrong time (issue #18), [onShiftHijriDay]
  * shifts the calculated Hijri dates by ±1 day (§7), [onOpenQibla] opens the
  * qibla, [onOpenTasbih] opens the counter, [onOpenReminders] opens the opt-in
  * reminders (issue #12), and [onOpenAccount] opens the optional account.
@@ -50,6 +51,7 @@ import java.util.TimeZone
 fun TimesScreen(
     state: AppUiState.Times,
     onChangeSettings: () -> Unit,
+    onReportProblem: () -> Unit,
     onOpenQibla: () -> Unit,
     onOpenTasbih: () -> Unit,
     onOpenReminders: () -> Unit,
@@ -133,6 +135,9 @@ fun TimesScreen(
             )
             TextButton(onClick = onChangeSettings) {
                 Text(stringResource(R.string.times_change_settings))
+            }
+            TextButton(onClick = onReportProblem) {
+                Text(stringResource(R.string.times_report_problem))
             }
             // shortcut: the qibla and the counter are reached from here rather
             // than from real navigation; give each its own destination when the

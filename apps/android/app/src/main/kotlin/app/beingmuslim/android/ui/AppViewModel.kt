@@ -3,6 +3,7 @@ package app.beingmuslim.android.ui
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import app.beingmuslim.android.BuildConfig
 import app.beingmuslim.android.account.SignedInUserStore
 import app.beingmuslim.android.citycatalog.BundledCityCatalog
 import app.beingmuslim.android.citycatalog.City
@@ -17,6 +18,10 @@ import app.beingmuslim.android.reminder.QuietHours
 import app.beingmuslim.android.reminder.ReminderPreferences
 import app.beingmuslim.android.reminder.ReminderScheduler
 import app.beingmuslim.android.reminder.ReminderStore
+import app.beingmuslim.android.report.AppwriteProblemReportService
+import app.beingmuslim.android.report.ProblemReport
+import app.beingmuslim.android.report.ProblemReportCodec
+import app.beingmuslim.android.report.ProblemReportService
 import app.beingmuslim.android.selection.SelectionStore
 import app.beingmuslim.android.selection.UserSelection
 import app.beingmuslim.android.sync.AppwriteSyncService
@@ -32,6 +37,7 @@ import app.beingmuslim.android.tasbih.TasbihStore
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -43,7 +49,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
-/** What the app is showing: a load, the first-run setup, the times, the qibla, the settings, the tasbih, or the reminders. */
+/** What the app is showing: a load, the first-run setup, the times, the qibla, the settings, the tasbih, the reminders, or a problem report. */
 sealed interface AppUiState {
 
     data object Loading : AppUiState
@@ -86,6 +92,25 @@ sealed interface AppUiState {
      * persisted until they save, so opening settings never changes anything.
      */
     data class Settings(val catalog: CityCatalog, val selection: UserSelection) : AppUiState
+
+    /**
+     * A problem report about the times, with its sending state. The report is
+     * built when the screen opens from the times on screen, so it records the
+     * inputs that produced them. A failed send keeps the report here to retry
+     * (issue #18).
+     */
+    data class Report(
+        val report: ProblemReport,
+        val sendState: ReportSendState,
+    ) : AppUiState
+}
+
+/** Where a problem report is in its one delivery: not sent, sending, sent, or failed and retryable. */
+enum class ReportSendState {
+    NOT_SENT,
+    SENDING,
+    SENT,
+    FAILED,
 }
 
 /**
@@ -109,6 +134,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val accountState = SignedInUserStore(application)
     private val syncState = SyncStateStore(application)
     private val sync = SyncCoordinator(AppwriteSyncService(application), syncState)
+    private val reportService: ProblemReportService = AppwriteProblemReportService(application)
     private val _state = MutableStateFlow<AppUiState>(AppUiState.Loading)
     val state: StateFlow<AppUiState> = _state.asStateFlow()
 
@@ -247,6 +273,66 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     /** Leaves the qibla and shows the times again. */
     fun dismissQibla() = showStoredSelection()
+
+    /**
+     * Opens a problem report built from the times currently on screen, so it
+     * carries the inputs that produced them (`docs/PRODUCT_REQUIREMENTS.md` §5).
+     */
+    fun openReport() {
+        val times = _state.value as? AppUiState.Times ?: return
+        _state.value = AppUiState.Report(
+            report = ProblemReport(
+                appVersion = BuildConfig.VERSION_NAME,
+                city = times.city,
+                settings = times.settings,
+                offsets = times.offsets,
+                hijriDayShift = times.hijriDayShift,
+                days = times.days,
+            ),
+            sendState = ReportSendState.NOT_SENT,
+        )
+    }
+
+    /** Updates the user's own description; ignored once the report is under way. */
+    fun setReportNote(note: String) {
+        val current = _state.value as? AppUiState.Report ?: return
+        if (current.sendState == ReportSendState.SENDING || current.sendState == ReportSendState.SENT) {
+            return
+        }
+        _state.value = current.copy(report = current.report.withNote(note))
+    }
+
+    /**
+     * Sends the report. A failed or offline send leaves the report on screen,
+     * unchanged, so the attempt can be repeated later (issue #18).
+     */
+    fun sendReport() {
+        val current = _state.value as? AppUiState.Report ?: return
+        if (current.sendState == ReportSendState.SENDING || current.sendState == ReportSendState.SENT) {
+            return
+        }
+        _state.value = current.copy(sendState = ReportSendState.SENDING)
+        viewModelScope.launch {
+            val sent = try {
+                reportService.send(ProblemReportCodec.encode(current.report))
+                true
+            } catch (exception: CancellationException) {
+                throw exception
+            } catch (_: Exception) {
+                false
+            }
+            // A different report may be on screen now — left and reopened while
+            // the send was in flight — and must not inherit this outcome.
+            val latest = _state.value as? AppUiState.Report ?: return@launch
+            if (latest.report !== current.report) return@launch
+            _state.value = latest.copy(
+                sendState = if (sent) ReportSendState.SENT else ReportSendState.FAILED,
+            )
+        }
+    }
+
+    /** Leaves the report without sending it; nothing local changes. */
+    fun dismissReport() = showStoredSelection()
 
     /** Opens the counter as the user last left it. */
     fun openTasbih() {

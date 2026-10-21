@@ -1,11 +1,11 @@
 # Privacy — the account and your data
 
-**Status:** Implemented 2026-10-21 (issue #17). **Owns:** the plain-language
-inventory of what an optional account stores, how long it is kept, what
-deletion removes, and what export contains. **Defers:** the exact synced
-payload and conflict rule → `SYNC.md`; backend identifiers, permissions, and
-function deployment → `APPWRITE.md`; the product rule that this document
-explains → `PRODUCT_REQUIREMENTS.md` §10.
+**Status:** Implemented 2026-10-21 (issues #17 and #18). **Owns:** the
+plain-language inventory of what an optional account stores, how long it is
+kept, what deletion removes, what export contains, and what a problem report
+sends. **Defers:** the exact synced payload and conflict rule → `SYNC.md`;
+backend identifiers, permissions, and function deployment → `APPWRITE.md`; the
+product rule that this document explains → `PRODUCT_REQUIREMENTS.md` §10.
 
 ## You do not need an account
 
@@ -25,7 +25,8 @@ The account is held on a self-hosted Appwrite service (`APPWRITE.md`). It stores
   settings screen controls.
 - **Your tasbih total.** The current count only.
 
-The full shape is the versioned payload in `SYNC.md`.
+The full shape is the versioned payload in `SYNC.md`. A problem report you send
+is stored separately and is not linked to the account (see **Problem reports**).
 
 ## What an account never stores
 
@@ -48,7 +49,8 @@ move them.
   and its record of the last sync. The account's copy remains until you delete
   the account.
 - Deleting the account removes the synced row and the identity from the service.
-  The app has no other server-side copy.
+  Apart from a problem report you chose to send (see below), the app has no
+  other server-side copy.
 
 ## Deleting your account
 
@@ -103,6 +105,28 @@ picker. The file is self-describing:
 
 Export needs the service. If it is unreachable, no file is produced and the
 screen says so.
+
+## Problem reports
+
+If a time looks wrong, **Report a wrong time or problem** on the times screen
+sends the calculation inputs behind the times shown: the city and its
+coordinates, time zone, calculation method and its parameters, the Asr juristic
+method, high-latitude rule, your Hijri day shift, your prayer-time offsets, the
+dates and the calculated times. It also sends anything you type in the note.
+The screen lists exactly what is attached before you send it.
+
+It sends to the app's operator on the project's own server (Appwrite), and the
+screen says so. The report is used only to check the calculation and fix a wrong
+time.
+
+- A report carries no account, name, email, device details, or location
+  history, and is not linked to your account even when you are signed in.
+- It is sent only when you tap **Send report**. Sending needs a connection; if
+  it fails, the report stays on the screen so you can try again.
+- Reports are kept only while the operator investigates the problem they
+  describe, and are not used for anything else. Deleting your account does not
+  remove a report, because the report is not linked to the account.
+- The note is yours: do not include personal details in it.
 
 ## Choices and control
 

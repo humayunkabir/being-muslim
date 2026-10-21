@@ -20,6 +20,8 @@ still not finalized (§14).
 ├── apps/ios/                             # Swift + SwiftUI (Xcode project); AGENTS.md
 ├── apps/android/                         # Kotlin + Jetpack Compose (Gradle); AGENTS.md
 ├── backend/functions/user-sync/          # Appwrite Function: creates a user's sync row
+├── backend/functions/account-delete/     # Appwrite Function: deletes a user's row and identity
+├── backend/functions/report-problem/     # Appwrite Function: validates and stores problem reports
 ├── docs/                                 # spec docs, decisions, agent config
 ├── .agents/, .opencode/                  # vendored agent skills + command wrappers
 ├── .githooks/                            # versioned git hooks (see "Git hooks")

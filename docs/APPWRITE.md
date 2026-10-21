@@ -18,7 +18,7 @@ contract in `SYNC.md`; secret storage and rotation policy → `ARCHITECTURE.md`
 | Project ID | `being-muslim` |
 | Server API version | `2.5.0` (`GET /v1/health/version`) |
 | Database ID | `being_muslim` |
-| Table ID | `user_sync` |
+| Table IDs | `user_sync` (account settings and tasbih total); `problem_reports` (user-initiated problem reports) |
 | Android SDK | `io.appwrite:sdk-for-android:31.0.0` — the SDK line that targets server 2.5.x |
 | Verification SDK | `appwrite` (web client) `29.1.0`, used only for the call below |
 
@@ -28,7 +28,9 @@ Gradle `BuildConfig` fields (`app/build.gradle.kts`), overridable with
 is in the APK. The sync row-creation function id is `APPWRITE_SYNC_FUNCTION_ID`
 (default `user-sync`), overridable with `-PappwriteSyncFunctionId=...`; the
 account-deletion function id is `APPWRITE_ACCOUNT_DELETE_FUNCTION_ID` (default
-`account-delete`), overridable with `-PappwriteAccountDeleteFunctionId=...`.
+`account-delete`), overridable with `-PappwriteAccountDeleteFunctionId=...`; the
+problem-report function id is `APPWRITE_REPORT_FUNCTION_ID` (default
+`report-problem`), overridable with `-PappwriteReportFunctionId=...`.
 
 **Licensing:** the `io.appwrite:sdk-for-android` Maven POM declares GPL-3.0, but
 the upstream repository's `LICENSE.md` is **BSD-3-Clause** (verified
@@ -243,6 +245,102 @@ handling, is covered by `node --test` in
 | User as admin | `404 user_not_found` |
 | Execution without a session | response `401 {"message":"Sign in required"}` |
 | The deleted user's old session (`GET /account`) | `401 general_unauthorized_scope` |
+
+## Problem report function (#18)
+
+A problem report records the inputs that reproduce a wrong time so it can be
+investigated (`docs/PRODUCT_REQUIREMENTS.md` §2.1, §5). Reporting needs no
+account — every feature is usable signed out — so the function executes for
+any caller and stores the report with no read permission for anyone.
+
+`being_muslim.problem_reports` holds one row per report:
+
+| Column | Type | Notes |
+|---|---|---|
+| `payload` | varchar(16384) | The validated report as JSON: calculation inputs, dates and times, and the user's note. No account, device, or location history. |
+
+- Row security is **on**; the table grants **no** table-level permissions.
+- Created rows carry `permissions: []`, so only the administrative key can read
+  them. There is no client read path, and no report is tied to a user id — a
+  guest and a signed-in caller are stored alike.
+- The function validates an allowlist before storing anything. Unknown keys at
+  the top level or inside the city, parameters, adjustments, offsets or day
+  objects are rejected, as are out-of-range values, a note over 2000 characters,
+  and a request body over 16 KiB. The input schema is the `isReport` contract in
+  `backend/functions/report-problem/index.js`, mirrored by
+  `ProblemReportCodec` in the app and covered by tests on both sides.
+- The function never logs the report or the note; a storage failure logs only
+  the HTTP status.
+
+| Setting | Value |
+|---|---|
+| Function ID | `report-problem` |
+| Runtime | `node-22` |
+| Entrypoint | `index.js` |
+| Build command | `npm install` (no dependencies) |
+| Scopes | `rows.write` |
+| Execute permission | `any` — reporting must work without an account |
+| Timeout | 15 s |
+| Source | `backend/functions/report-problem/` |
+
+Responses: `201 {"sent":true}` when stored; `400 {"message":"Invalid report"}`
+for a body outside the allowlist; `413` for a body over the limit; `502
+{"message":"Report not sent"}` when the row cannot be created, so the app keeps
+the report on screen and offers a retry. The app sends the report only when the
+user taps **Send report**; being offline is not an error it hides — the screen
+says a connection is needed and keeps the report for a retry.
+
+Because reporting works signed out, this is an unauthenticated write path by
+necessity. Abuse is bounded by the platform's per-project rate limit and the
+16 KiB body and 2,000-character note caps; the rows hold no identifier to block
+or delete by, so the operator prunes test or junk rows as they arrive.
+
+**Deployment** (from the repository root; same administrative key as above):
+
+```sh
+set -a; . ./.env.appwrite; set +a
+base="${APPWRITE_ENDPOINT%/}"
+
+# Once: the table, its one column, and the function.
+curl -X POST "$base/tablesdb/being_muslim/tables" \
+  -H "X-Appwrite-Project: being-muslim" -H "X-Appwrite-Key: $APPWRITE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"tableId":"problem_reports","name":"Problem reports",
+       "permissions":[],"rowSecurity":true,"enabled":true}'
+curl -X POST "$base/tablesdb/being_muslim/tables/problem_reports/columns/string" \
+  -H "X-Appwrite-Project: being-muslim" -H "X-Appwrite-Key: $APPWRITE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"key":"payload","required":true,"size":16384,"array":false}'
+curl -X POST "$base/functions" \
+  -H "X-Appwrite-Project: being-muslim" -H "X-Appwrite-Key: $APPWRITE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"functionId":"report-problem","name":"Problem report","runtime":"node-22",
+       "execute":["any"],"scopes":["rows.write"],
+       "entrypoint":"index.js","commands":"npm install","enabled":true,
+       "logging":true,"timeout":15}'
+
+# For each code change.
+tar -czf /tmp/report-problem.tar.gz -C backend/functions/report-problem index.js package.json
+curl -X POST "$base/functions/report-problem/deployments" \
+  -H "X-Appwrite-Project: being-muslim" -H "X-Appwrite-Key: $APPWRITE_API_KEY" \
+  -F "entrypoint=index.js" -F "commands=npm install" -F "activate=true" \
+  -F "code=@/tmp/report-problem.tar.gz;type=application/gzip"
+```
+
+Wait for the column to report `available` and the deployment `ready`. The
+function's contract is covered by `node --test` in
+`backend/functions/report-problem/`.
+
+**Verified 2026-10-21** on the development project, then the test row deleted:
+
+| Action | Result |
+|---|---|
+| Guest executes `report-problem` with a valid report | execution `completed`, `201 {"sent":true}` |
+| Row as admin | `payload` is the report; permissions `[]` |
+| Guest lists `problem_reports` | `200`, total `0` — no read path |
+| Guest sends a body that is not JSON | `400 {"message":"Invalid report"}`, no row |
+| Guest sends a report with an extra `email` field | `400 {"message":"Invalid report"}`, no row |
+| Test row deleted as admin | `204`; table back to 0 rows |
 
 ## Platforms
 

@@ -23,7 +23,8 @@ repository/
 │       └── AGENTS.md               # Android conventions + build/test commands
 ├── backend/                        # server-side code, when a backend boundary is real
 │   ├── functions/user-sync/        # Appwrite Function: creates the user's sync row (#16)
-│   └── functions/account-delete/   # Appwrite Function: deletes the row and identity (#17)
+│   ├── functions/account-delete/   # Appwrite Function: deletes the row and identity (#17)
+│   └── functions/report-problem/   # Appwrite Function: validates and stores problem reports (#18)
 ├── shared/                         # (when needed) contracts/, design-tokens/, documentation/
 ├── docs/                           # spec docs, AGENT_SKILLS.md, agents/, DECISIONS/
 └── tools/                          # (when needed) reproducible tooling only
@@ -61,7 +62,7 @@ Depend on documented contracts, not assumptions about backend internals. When a 
 
 Never place private server credentials or privileged API keys in either app; assume clients and their configuration can be inspected. *Which* data may be collected, retained, or exported is a product decision (`PRODUCT_REQUIREMENTS.md` §10); this section and §7 cover only how it is wired and stored.
 
-The optional account's sync contract — payload, versioning, conflict rule, errors, pagination, retention, deletion, and export — is `SYNC.md`; the plain-language notice to the user is `PRIVACY.md`.
+The optional account's sync contract — payload, versioning, conflict rule, errors, pagination, retention, deletion, and export — is `SYNC.md`; the plain-language notice to the user is `PRIVACY.md`. The problem-report contract — its allowlisted inputs, storage table, function, and responses — is `APPWRITE.md`; what the user is told before sending is `PRIVACY.md`.
 
 ## 6. Islamic content and calculation boundaries
 

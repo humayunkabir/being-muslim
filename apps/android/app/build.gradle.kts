@@ -45,6 +45,12 @@ android {
             "APPWRITE_ACCOUNT_DELETE_FUNCTION_ID",
             "\"${providers.gradleProperty("appwriteAccountDeleteFunctionId").getOrElse("account-delete")}\"",
         )
+        // The function that validates and stores a problem report (issue #18).
+        buildConfigField(
+            "String",
+            "APPWRITE_REPORT_FUNCTION_ID",
+            "\"${providers.gradleProperty("appwriteReportFunctionId").getOrElse("report-problem")}\"",
+        )
     }
 
     buildTypes {

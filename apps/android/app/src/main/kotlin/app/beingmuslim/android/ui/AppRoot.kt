@@ -52,6 +52,7 @@ fun AppRoot(
         is AppUiState.Times -> TimesScreen(
             state = current,
             onChangeSettings = viewModel::openSettings,
+            onReportProblem = viewModel::openReport,
             onOpenQibla = viewModel::openQibla,
             onOpenTasbih = viewModel::openTasbih,
             onOpenReminders = viewModel::openReminders,
@@ -82,6 +83,13 @@ fun AppRoot(
             onCount = viewModel::countTasbih,
             onReset = viewModel::resetTasbih,
             onBack = viewModel::dismissTasbih,
+        )
+        is AppUiState.Report -> ReportScreen(
+            report = current.report,
+            sendState = current.sendState,
+            onNoteChange = viewModel::setReportNote,
+            onSend = viewModel::sendReport,
+            onBack = viewModel::dismissReport,
         )
     }
 }
