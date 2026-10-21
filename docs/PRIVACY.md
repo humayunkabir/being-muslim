@@ -68,10 +68,13 @@ prayer times, reminders, tasbih counter, and settings remain, and every local
 feature keeps working. You can continue without an account or sign in with a
 different one.
 
-If the service cannot be reached or an attempt fails, the screen says so. Some
-of the account's data may already have been deleted; retrying finishes the
-removal. A failed attempt never removes local data. If the account was in fact
-removed, the next sign-in check shows you as signed out.
+If the service cannot be reached or an attempt fails before the identity is
+deleted, the screen says so. Some of the account's data may already have been
+deleted; retrying finishes the removal. If a sync copy is recreated during
+deletion and its final cleanup fails, the account is still deleted and the
+leftover copy is removed by the service operator. A failed attempt never
+removes local data. If the account was in fact removed, the next sign-in check
+shows you as signed out.
 
 ## Exporting your data
 

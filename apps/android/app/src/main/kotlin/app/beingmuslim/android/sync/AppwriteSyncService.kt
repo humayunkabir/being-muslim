@@ -28,33 +28,21 @@ class AppwriteSyncService(context: Context) : SyncService {
     private val functions by lazy { Functions(client) }
 
     override suspend fun read(userId: String): StoredSync? = withContext(Dispatchers.IO) {
-        try {
-            val row = tables.getRow(DATABASE_ID, TABLE_ID, userId)
-            val settings = row.data[SETTINGS] as? String ?: return@withContext null
-            val total = (row.data[TASBIH_TOTAL] as? Number)?.toInt()?.coerceAtLeast(0) ?: 0
-            StoredSync(settings, total)
-        } catch (exception: AppwriteException) {
-            if (exception.code == 404) null else throw exception
-        }
+        val row = tables.readSyncRow(userId) ?: return@withContext null
+        val settings = row.settings ?: return@withContext null
+        StoredSync(settings, row.tasbihTotal)
     }
 
     override suspend fun write(userId: String, settings: String, tasbihTotal: Int) {
         withContext(Dispatchers.IO) {
-            val data = mapOf(SETTINGS to settings, TASBIH_TOTAL to tasbihTotal)
+            val data = mapOf(SYNC_SETTINGS to settings, SYNC_TASBIH_TOTAL to tasbihTotal)
             try {
-                tables.updateRow(DATABASE_ID, TABLE_ID, userId, data)
+                tables.updateRow(SYNC_DATABASE_ID, SYNC_TABLE_ID, userId, data)
             } catch (exception: AppwriteException) {
                 if (exception.code != 404) throw exception
                 functions.createExecution(BuildConfig.APPWRITE_SYNC_FUNCTION_ID, async = false)
-                tables.updateRow(DATABASE_ID, TABLE_ID, userId, data)
+                tables.updateRow(SYNC_DATABASE_ID, SYNC_TABLE_ID, userId, data)
             }
         }
-    }
-
-    private companion object {
-        const val DATABASE_ID = "being_muslim"
-        const val TABLE_ID = "user_sync"
-        const val SETTINGS = "settings"
-        const val TASBIH_TOTAL = "tasbihTotal"
     }
 }

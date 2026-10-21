@@ -21,6 +21,8 @@ sealed interface AccountUiState {
         val error: AccountError? = null,
         /** The export document is being read from the service. */
         val exporting: Boolean = false,
+        /** The export document is ready and waits for the system file picker. */
+        val exportReady: Boolean = false,
     ) : AccountUiState
 
     /** The sign-out call is in flight. */

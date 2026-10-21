@@ -1,9 +1,9 @@
 package app.beingmuslim.android.account
 
 import app.beingmuslim.android.auth.AuthUser
+import app.beingmuslim.android.sync.StoredRow
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -22,7 +22,7 @@ class AccountExportTest {
 
     @Test
     fun theDocumentSaysWhatItIsAndWhatVersionItIs() {
-        val export = JSONObject(AccountExport.document(user, StoredAccountData(settings, 42)))
+        val export = JSONObject(AccountExport.document(user, StoredRow(settings, 42)))
 
         assertEquals("being-muslim-account", export.getString("format"))
         assertEquals(1, export.getInt("version"))
@@ -43,7 +43,7 @@ class AccountExportTest {
 
     @Test
     fun theStoredSettingsStayReadableObjects() {
-        val stored = JSONObject(AccountExport.document(user, StoredAccountData(settings, 42)))
+        val stored = JSONObject(AccountExport.document(user, StoredRow(settings, 42)))
             .getJSONObject("stored")
 
         assertEquals("KARACHI", stored.getJSONObject("settings").getString("calculationMethod"))
@@ -59,7 +59,7 @@ class AccountExportTest {
 
     @Test
     fun aRowWithoutSettingsStillExportsTheTotal() {
-        val stored = JSONObject(AccountExport.document(user, StoredAccountData(null, 7)))
+        val stored = JSONObject(AccountExport.document(user, StoredRow(null, 7)))
             .getJSONObject("stored")
 
         assertTrue(stored.isNull("settings"))
@@ -68,7 +68,7 @@ class AccountExportTest {
 
     @Test
     fun anUnreadableSettingsValueIsKeptRatherThanDropped() {
-        val stored = JSONObject(AccountExport.document(user, StoredAccountData("not json", 0)))
+        val stored = JSONObject(AccountExport.document(user, StoredRow("not json", 0)))
             .getJSONObject("stored")
 
         assertEquals("not json", stored.getString("settings"))
@@ -76,7 +76,7 @@ class AccountExportTest {
 
     @Test
     fun theExportCarriesNoDeviceLocalData() {
-        val export = JSONObject(AccountExport.document(user, StoredAccountData(settings, 42)))
+        val export = JSONObject(AccountExport.document(user, StoredRow(settings, 42)))
 
         assertEquals(
             setOf("format", "version", "account", "stored"),
@@ -90,33 +90,5 @@ class AccountExportTest {
             setOf("settings", "tasbihTotal"),
             export.getJSONObject("stored").keys().asSequence().toSet(),
         )
-    }
-
-    @Test
-    fun aStoredRowMapsItsFields() {
-        assertEquals(
-            StoredAccountData(settings, 42),
-            storedAccountData(mapOf("settings" to settings, "tasbihTotal" to 42)),
-        )
-    }
-
-    @Test
-    fun aMissingRowHasNothingToExport() {
-        assertNull(storedAccountData(null))
-    }
-
-    @Test
-    fun missingOrNegativeFieldsFallBackToTheColumnDefaults() {
-        val missing = storedAccountData(emptyMap())
-        val negative = storedAccountData(mapOf("settings" to settings, "tasbihTotal" to -5))
-
-        assertNull(missing?.settings)
-        assertEquals(0, missing?.tasbihTotal)
-        assertEquals(0, negative?.tasbihTotal)
-    }
-
-    @Test
-    fun aSettingsValueThatIsNotTextIsDropped() {
-        assertNull(storedAccountData(mapOf("settings" to 7))?.settings)
     }
 }

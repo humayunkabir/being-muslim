@@ -12,11 +12,8 @@ import app.beingmuslim.android.account.AccountService
 import app.beingmuslim.android.account.AppwriteAccountService
 import java.util.UUID
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -47,10 +44,6 @@ class AccountViewModel(
 
     private val _redirects = MutableStateFlow(0)
     val redirects: StateFlow<Int> = _redirects.asStateFlow()
-
-    /** One export document, ready to be saved by the screen through the system picker. */
-    private val _exports = MutableSharedFlow<String>(extraBufferCapacity = 1)
-    val exports: SharedFlow<String> = _exports.asSharedFlow()
 
     /**
      * The document waiting for the file picker. It lives in the ViewModel, not
@@ -176,7 +169,8 @@ class AccountViewModel(
      * Reads the account's stored data and hands the screen one self-describing
      * JSON document. Read-only: nothing is changed on the device or the service.
      */
-    fun exportData() {        viewModelScope.launch {
+    fun exportData() {
+        viewModelScope.launch {
             accountMutex.withLock {
                 val current = _state.value as? AccountUiState.SignedIn ?: return@withLock
                 if (current.exporting) return@withLock
@@ -184,14 +178,28 @@ class AccountViewModel(
                 _state.value = try {
                     val document = account.export(current.user)
                     pendingExport = document
-                    _exports.tryEmit(document)
-                    current.copy(exporting = false, error = null)
+                    current.copy(exporting = false, error = null, exportReady = true)
                 } catch (exception: CancellationException) {
                     throw exception
                 } catch (_: Exception) {
                     current.copy(error = AccountError.EXPORT_FAILED)
                 }
             }
+        }
+    }
+
+    /** The picker has opened; the document stays in [pendingExport] for its callback. */
+    fun onExportLauncherOpened() {
+        val current = _state.value as? AccountUiState.SignedIn ?: return
+        if (current.exportReady) _state.value = current.copy(exportReady = false)
+    }
+
+    /** The picker could not open; discard the document and explain why. */
+    fun onExportLauncherUnavailable() {
+        pendingExport = null
+        val current = _state.value as? AccountUiState.SignedIn ?: return
+        if (current.exportReady) {
+            _state.value = current.copy(exportReady = false, error = AccountError.EXPORT_FAILED)
         }
     }
 

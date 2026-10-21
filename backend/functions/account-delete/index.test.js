@@ -116,7 +116,7 @@ test("a failed identity deletion is reported, with the row already gone", async 
   assert.equal(res.code, 502);
 });
 
-test("a failed final cleanup is reported after the identity is gone", async () => {
+test("a failed final cleanup still reports the account as deleted", async () => {
   let rowDeletes = 0;
   const res = await invoke(async (url) => {
     if (url.includes("/users/")) return noContent();
@@ -125,6 +125,6 @@ test("a failed final cleanup is reported after the identity is gone", async () =
   });
 
   assert.equal(rowDeletes, 2);
-  assert.equal(res.code, 502);
-  assert.deepEqual(res.body, { message: "Account deleted; sync row cleanup failed" });
+  assert.equal(res.code, 200);
+  assert.deepEqual(res.body, { deleted: true, cleanedUp: false });
 });

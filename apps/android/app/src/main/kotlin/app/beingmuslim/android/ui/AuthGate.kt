@@ -65,10 +65,12 @@ fun AuthGate(accountViewModel: AccountViewModel) {
         }
     }
 
-    LaunchedEffect(accountViewModel) {
-        accountViewModel.exports.collect {
-            createExport.launch(AccountExport.FILE_NAME)
-        }
+    LaunchedEffect(state) {
+        val signedIn = state as? AccountUiState.SignedIn ?: return@LaunchedEffect
+        if (!signedIn.exportReady) return@LaunchedEffect
+        runCatching { createExport.launch(AccountExport.FILE_NAME) }
+            .onSuccess { accountViewModel.onExportLauncherOpened() }
+            .onFailure { accountViewModel.onExportLauncherUnavailable() }
     }
 
     LaunchedEffect(redirects) {

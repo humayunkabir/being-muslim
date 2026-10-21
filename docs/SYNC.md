@@ -149,14 +149,16 @@ and an unknown tag is ignored rather than applied.
 3. deletes the row again.
 
 A `404` on either row delete means it is already gone and is treated as done.
-The third delete closes the small window in which a sync write already in
-flight could recreate the row between steps 1 and 2; once the identity is gone,
-no new sync can succeed. Any failure before step 2 returns `502` and leaves the
-identity usable, so the request can be retried. A failure of step 3 is reported
-as `502` even though the identity is already gone; that case needs operator
-cleanup and should not occur in normal operation. Deleting is permanent for
-that identity; signing in again with the same Google or Apple account creates a
-new identity with no synced data.
+The third delete narrows the window in which a sync write already in flight
+could recreate the row between steps 1 and 2; once the identity is gone, no new
+sync can succeed, but a write authorized before that can still land afterwards.
+Any failure before step 2 returns `502` and leaves the identity usable, so the
+request can be retried. A failure of step 3 returns `200
+{"deleted":true,"cleanedUp":false}`: the identity is gone, so the app reports
+the deletion as complete, and the leftover row is logged for operator cleanup.
+That case should not occur in normal operation. Deleting is permanent for that
+identity; signing in again with the same Google or Apple account creates a new
+identity with no synced data.
 
 The app does **not** clear local data on deletion. The city, prayer times,
 reminders, tasbih label/target/total, and settings remain on the device, and
@@ -197,8 +199,9 @@ writes to the service. The document is:
 - Export is read-only. A service failure produces no file and no state change.
 
 The plain-language version of this contract is `PRIVACY.md`. The document's
-`format`/`version` and key set are covered by `AccountExportTest`; the delete
-function's ordering and failure rules by `backend/functions/account-delete/index.test.js`.
+`format`/`version` and key set are covered by `AccountExportTest`, the row's
+field mapping by `SyncRowTest`, and the delete function's ordering and failure
+rules by `backend/functions/account-delete/index.test.js`.
 
 ## Row creation
 

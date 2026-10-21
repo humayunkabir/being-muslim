@@ -8,9 +8,10 @@
 //
 // Row first, identity second, row again: a retry after a partial failure finds
 // the row already gone (404) and still deletes the identity. The final delete
-// closes the window where a sync write already in flight could recreate the row
-// between the first delete and the identity deletion. Neither step touches the
-// device's local data.
+// narrows the window where a sync write already in flight could recreate the row
+// between the first delete and the identity deletion; a request authorized
+// before the identity was deleted can still land afterwards. Neither step
+// touches the device's local data.
 
 const DATABASE_ID = "being_muslim";
 const TABLE_ID = "user_sync";
@@ -60,11 +61,13 @@ export default async ({ req, res, error }) => {
   }
 
   // The session is dead now, so no further sync can succeed; remove anything a
-  // write already in flight recreated after the first delete.
+  // write already in flight recreated after the first delete. The account is
+  // already gone, so a cleanup failure is logged for the operator rather than
+  // reported as a failed deletion the client cannot retry.
   const finalDelete = await deleteRow(endpoint, headers, userId);
   if (finalDelete !== null) {
     error(`Could not clean up the sync row: ${finalDelete}`);
-    return res.json({ message: "Account deleted; sync row cleanup failed" }, 502);
+    return res.json({ deleted: true, cleanedUp: false });
   }
 
   return res.json({ deleted: true });

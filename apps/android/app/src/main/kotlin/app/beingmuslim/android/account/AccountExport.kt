@@ -1,11 +1,9 @@
 package app.beingmuslim.android.account
 
 import app.beingmuslim.android.auth.AuthUser
+import app.beingmuslim.android.sync.StoredRow
 import org.json.JSONException
 import org.json.JSONObject
-
-/** The account's server-side row exactly as stored; null settings means none saved yet. */
-data class StoredAccountData(val settings: String?, val tasbihTotal: Int)
 
 /**
  * The user's copy of what the account holds, as one JSON document
@@ -19,7 +17,7 @@ object AccountExport {
     const val VERSION = 1
     const val FILE_NAME = "being-muslim-account.json"
 
-    fun document(user: AuthUser, stored: StoredAccountData?): String = JSONObject().apply {
+    fun document(user: AuthUser, stored: StoredRow?): String = JSONObject().apply {
         put("format", FORMAT)
         put("version", VERSION)
         put(

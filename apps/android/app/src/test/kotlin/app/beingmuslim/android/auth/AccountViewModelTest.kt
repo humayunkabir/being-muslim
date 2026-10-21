@@ -3,14 +3,13 @@ package app.beingmuslim.android.auth
 import androidx.lifecycle.SavedStateHandle
 import app.beingmuslim.android.account.AccountService
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -323,20 +322,44 @@ class AccountViewModelTest {
     }
 
     @Test
-    fun exportDataEmitsTheAccountDocument() = runTest(main.dispatcher) {
+    fun exportDataPreparesTheDocumentForThePicker() = runTest(main.dispatcher) {
         val user = AuthUser("user-1", "Amina", null)
         val account = FakeAccountService(document = """{"format":"being-muslim-account"}""")
         val viewModel = accountViewModel(FakeAuthService(current = user), account)
         viewModel.resolve()
         advanceUntilIdle()
 
-        val received = async { viewModel.exports.first() }
         viewModel.exportData()
         advanceUntilIdle()
 
-        assertEquals(account.document, received.await())
+        assertEquals(account.document, viewModel.takePendingExport())
         assertEquals(user, account.exportedFor)
+        assertEquals(
+            AccountUiState.SignedIn(user, exportReady = true),
+            viewModel.state.value,
+        )
+
+        viewModel.onExportLauncherOpened()
         assertEquals(AccountUiState.SignedIn(user), viewModel.state.value)
+    }
+
+    @Test
+    fun aPickerThatCannotOpenDropsTheDocumentAndExplains() = runTest(main.dispatcher) {
+        val user = AuthUser("user-1", "Amina", null)
+        val account = FakeAccountService()
+        val viewModel = accountViewModel(FakeAuthService(current = user), account)
+        viewModel.resolve()
+        advanceUntilIdle()
+
+        viewModel.exportData()
+        advanceUntilIdle()
+        viewModel.onExportLauncherUnavailable()
+
+        assertNull(viewModel.takePendingExport())
+        assertEquals(
+            AccountUiState.SignedIn(user, AccountError.EXPORT_FAILED),
+            viewModel.state.value,
+        )
     }
 
     @Test

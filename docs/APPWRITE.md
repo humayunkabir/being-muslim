@@ -191,14 +191,17 @@ The function:
 3. Deletes Appwrite user `<userId>`. A `404` is treated as done. Any other
    failure returns `502`; the row is already gone, and a retry finishes the
    deletion.
-4. Deletes the row once more, closing the window where a sync write already in
+4. Deletes the row once more, narrowing the window where a sync write already in
    flight could recreate it between steps 2 and 3. Now that the session is
-   dead, no new write can succeed. A failure here returns `502` after the
-   identity is gone and needs operator cleanup.
+   dead, no new write can succeed, but a request authorized before step 3 can
+   still land afterwards. A failure here returns `200
+   {"deleted":true,"cleanedUp":false}` and logs the leftover row for operator
+   cleanup; the app treats the account as deleted because the identity is gone
+   and cannot be retried.
 
 The order is deliberate: a failure before the identity is deleted leaves the
-account usable and the request retryable, while the final row delete closes the
-only window in which a write can race the deletion. Deleting the identity ends
+account usable and the request retryable, while the final row delete narrows
+the window in which a write can race the deletion. Deleting the identity ends
 all of that user's sessions. The app clears only its signed-in marker; local
 device data is untouched (`SYNC.md`, `PRIVACY.md`).
 
