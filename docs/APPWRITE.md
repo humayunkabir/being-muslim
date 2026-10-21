@@ -105,6 +105,11 @@ rate-limiting abuse), which is not part of this ticket.
   into chat on 2026-10-21. Rotate it in Google Cloud. Native sign-in does not
   use the secret; enable the browser flow later only with a fresh secret and a
   registered Web platform.
+- If the browser flow is enabled later, add
+  `https://appwrite.alveo.dev/v1/account/sessions/oauth2/callback/google/being-muslim`
+  as an **authorized redirect URI** on the Web application client. Authorized
+  JavaScript origins are only needed for Google Identity Services used directly
+  in a browser; the Android native flow uses neither field.
 - **End-to-end sign-in with a test account is still pending** the Android client
   flow in #15. The provider configuration is verified; the user journey is not.
 
