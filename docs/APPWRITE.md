@@ -109,10 +109,11 @@ rate-limiting abuse), which is not part of this ticket.
   for a future native ID-token flow. The app built for #15 uses the OAuth2
   token flow, which needs the web client's ID and secret on the server.
 - The Web application client must authorize the Appwrite callback URI. See
-  **Android client flow** below for the exact URL and the current blocker.
-- **End-to-end sign-in with a test account is still pending** the callback URI
-  fix below. The app's client flow is implemented and its state machine is
-  tested; the provider handshake is not yet verified against Google.
+  **Android client flow** below for the exact URL.
+- The callback URI is now **https** and Google accepts it (checked 2026-10-21:
+  the token endpoint returns `301` and Google shows its sign-in page, not
+  `redirect_uri_mismatch`). A device sign-in with a test account is the remaining
+  verification.
 
 **Apple — not configured.** Deferred to #32 and the iOS work.
 
@@ -165,14 +166,16 @@ repository. The Appwrite API accepts them over TLS and stores them server-side.
   session creation, and sign-out. The JVM suite, lint, and debug/release builds
   pass.
 
-**Blocker — the Appwrite callback URI.** Appwrite currently emits
-`http://appwrite.alveo.dev/v1/account/sessions/oauth2/callback/google/being-muslim`
-because `_APP_OPTIONS_FORCE_HTTPS` is disabled. Google returns
-`redirect_uri_mismatch` for it. Set `_APP_OPTIONS_FORCE_HTTPS=enabled` (or make
-the proxy report https) and restart Appwrite, then add
-`https://appwrite.alveo.dev/v1/account/sessions/oauth2/callback/google/being-muslim`
-to the Web application client's **Authorized redirect URIs**. The app's custom
-scheme does not need a Google Cloud entry; Google only sees the Appwrite
+**Callback URI — resolved 2026-10-21.** Appwrite now emits
+`https://appwrite.alveo.dev/v1/account/sessions/oauth2/callback/google/being-muslim`,
+and Google accepts it. The token endpoint returns `301` to Google and Google
+shows its sign-in page instead of `redirect_uri_mismatch`.
+
+This depends on the **server** environment variable
+`_APP_OPTIONS_FORCE_HTTPS=enabled` (or an equivalent proxy setup), not the
+project-level variables under `projects/being-muslim/settings/variables`. Keep
+the URI registered on the Web application client in Google Cloud. The app's
+custom scheme does not need a Google Cloud entry; Google only sees the Appwrite
 callback.
 
 ## API key
@@ -204,9 +207,9 @@ new Account(client).get() -> 401 (guest, expected without a session)
 
 A bad project ID returns `404 project_not_found`, so the `401` above confirms
 the project was found rather than silently failing. The Android SDK targets the
-same 2.5.0 API, and the account state machine is covered by JVM tests. No
-instrumented/device run has been made, and the end-to-end Google flow is blocked
-by the callback URI above.
+same 2.5.0 API, and the account state machine is covered by JVM tests. The
+callback handshake is unblocked (https callback; Google accepts it); a device
+sign-in with a real account has not been run.
 
 ## Deployment and staging
 
