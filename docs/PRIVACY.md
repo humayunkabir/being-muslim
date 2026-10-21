@@ -7,6 +7,11 @@ sends. **Defers:** the exact synced payload and conflict rule → `SYNC.md`;
 backend identifiers, permissions, and function deployment → `APPWRITE.md`; the
 product rule that this document explains → `PRODUCT_REQUIREMENTS.md` §10.
 
+The public policy shown to users and linked from the Play listing is
+`docs/index.md`, published at <https://humayunkabir.github.io/being-muslim/>. Keep
+the two in step: this file is the engineering record, the public page is the
+notice.
+
 ## You do not need an account
 
 Every feature works without signing in: prayer times, qibla, the Hijri date,

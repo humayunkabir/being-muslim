@@ -1,7 +1,20 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.compiler)
 }
+
+// The upload keystore is per-developer and never committed (`.gitignore`).
+// `keystore.properties` sits next to this file; CI passes the same values as
+// environment variables. Without either, release builds stay unsigned.
+val uploadKeystore = Properties().apply {
+    val file = rootProject.file("keystore.properties")
+    if (file.isFile) file.inputStream().use(::load)
+}
+
+fun uploadKeystoreValue(property: String, environment: String): String? =
+    uploadKeystore.getProperty(property) ?: System.getenv(environment)
 
 android {
     namespace = "app.beingmuslim.android"
@@ -57,6 +70,17 @@ android {
     }
 
     buildTypes {
+        val storeFile = uploadKeystoreValue("storeFile", "ANDROID_KEYSTORE_FILE")
+        if (storeFile != null) {
+            signingConfigs.create("release") {
+                this.storeFile = rootProject.file(storeFile)
+                storePassword =
+                    uploadKeystoreValue("storePassword", "ANDROID_KEYSTORE_PASSWORD")
+                keyAlias = uploadKeystoreValue("keyAlias", "ANDROID_KEY_ALIAS")
+                keyPassword = uploadKeystoreValue("keyPassword", "ANDROID_KEY_PASSWORD")
+            }
+        }
+
         release {
             isMinifyEnabled = true
             isShrinkResources = true
@@ -64,6 +88,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            signingConfig = signingConfigs.findByName("release")
         }
     }
 

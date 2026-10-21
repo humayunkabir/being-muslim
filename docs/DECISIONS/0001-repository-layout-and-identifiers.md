@@ -59,4 +59,8 @@ still required, because Xcode targets, bundle identifiers, and the Android
   (`docs/DESIGN_STANDARDS.md` §1).
 - **The apps are not distributable as committed.** iOS has no Development Team
   (simulator-only builds), and the Android release build produces an unsigned
-  APK. Signing is per-developer/per-environment and deliberately uncommitted.
+  APK until a local upload keystore is configured (`docs/RELEASE.md`). Signing
+  is per-developer/per-environment and deliberately uncommitted.
+- The closed beta keeps the working name, `applicationId`, and placeholder
+  launcher icon under `DECISIONS/0009`; they must be revisited before the public
+  release.

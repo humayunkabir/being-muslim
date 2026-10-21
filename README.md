@@ -77,7 +77,7 @@ Android:
 - Android SDK with, at minimum, `platforms;android-37.0` (API 37 uses minor versions, so there is no plain `platforms;android-37`), `build-tools;36.0.0`, and `platform-tools`.
 - `ANDROID_HOME` (or `ANDROID_SDK_ROOT`) pointing at the SDK, or `apps/android/local.properties` with `sdk.dir=...` — machine-specific and not committed.
 - The Gradle wrapper (9.8.1) is committed; no separate Gradle install needed.
-- API levels: `compileSdk`/`targetSdk` 37, `minSdk` 26. Release builds apply R8 and resource shrinking and produce an **unsigned** APK; a release signing config is intentionally not committed.
+- API levels: `compileSdk`/`targetSdk` 37, `minSdk` 26. Release builds apply R8 and resource shrinking. A release build is signed when `apps/android/keystore.properties` (gitignored) or the matching environment variables are present; otherwise it stays unsigned. The signing setup and upload runbook are in `docs/RELEASE.md`.
 
 ## Build, test, lint
 
@@ -120,6 +120,11 @@ worth formatting.
   rule, error and retry behaviour, and retention, deletion, and export.
 - `docs/PRIVACY.md` — the plain-language account privacy notice: what is stored,
   what is never stored, retention, deletion, and export.
+- `docs/RELEASE.md` — release signing, the Play upload build, the store listing
+  and data-safety answers, and the closed-beta runbook.
+- `docs/index.md` — the public privacy policy published at
+  <https://humayunkabir.github.io/being-muslim/> (built by GitHub Pages; the rest
+  of `docs/` is excluded by `docs/_config.yml`).
 - `docs/DECISIONS/` — architecture decision records.
 - `docs/AGENT_SKILLS.md` — vendored agent skills: provenance, layout, update
   procedure.

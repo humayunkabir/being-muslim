@@ -1,0 +1,24 @@
+# GitHub Pages publishes only the public privacy policy (`index.md`).
+# Everything else in `docs/` is engineering material; add new files here so they
+# are not served as site pages.
+title: Being Muslim
+description: Privacy policy for the Being Muslim Android app.
+theme: jekyll-theme-minimal
+lang: en
+exclude:
+  - ACCESSIBILITY.md
+  - AGENT_SKILLS.md
+  - APPWRITE.md
+  - ARCHITECTURE.md
+  - CITY_CATALOG.md
+  - DESIGN_STANDARDS.md
+  - HIJRI_CALENDAR.md
+  - PRAYER_TIMES.md
+  - PRIVACY.md
+  - PRODUCT_REQUIREMENTS.md
+  - QIBLA.md
+  - RELEASE.md
+  - REMINDERS.md
+  - SYNC.md
+  - DECISIONS/
+  - agents/

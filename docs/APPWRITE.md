@@ -359,9 +359,10 @@ function's contract is covered by `node --test` in
 
 The debug certificate's SHA-1, needed by Google Cloud for the Android OAuth
 client, is `16:B6:2F:59:1B:53:8C:91:CD:B3:DD:D3:72:79:DB:26:96:F6:76:77`.
-A release fingerprint is deliberately not registered because the repository has
-no release signing configuration (`DECISIONS/0001`); add the Play App Signing
-SHA-256 before a release build signs in.
+A release fingerprint is not registered yet: the repository's release signing is
+per-developer and the Play App Signing certificate does not exist until the first
+upload. Add its SHA-1 to the Google Cloud OAuth client and its SHA-256 to this
+platform before release builds sign in (`docs/RELEASE.md`, issue #20).
 
 **Finding — the ticket's platform restriction premise does not hold.** Appwrite
 2.5 exposes an Android `fingerprints` field (observed in the `PlatformAndroid`

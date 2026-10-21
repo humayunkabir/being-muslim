@@ -32,7 +32,13 @@ Run from `apps/android`:
 ./gradlew assembleDebug     # build
 ./gradlew test              # JVM unit tests
 ./gradlew lint              # Android Lint
+./gradlew bundleRelease     # signed AAB when an upload keystore is configured
 ```
+
+Release signing reads `apps/android/keystore.properties` (gitignored) or the
+`ANDROID_KEYSTORE_*` environment variables. Without them, release builds stay
+unsigned. The upload build, store listing, and closed-beta runbook are in
+`docs/RELEASE.md`.
 
 Android Lint runs as part of `./gradlew lint`. After the Appwrite SDK was added
 it reports two `TrustAllX509TrustManager` warnings inside the SDK jar (the app
