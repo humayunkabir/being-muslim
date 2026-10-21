@@ -110,10 +110,10 @@ rate-limiting abuse), which is not part of this ticket.
   token flow, which needs the web client's ID and secret on the server.
 - The Web application client must authorize the Appwrite callback URI. See
   **Android client flow** below for the exact URL.
-- The callback URI is now **https** and Google accepts it (checked 2026-10-21:
-  the token endpoint returns `301` and Google shows its sign-in page, not
-  `redirect_uri_mismatch`). A device sign-in with a test account is the remaining
-  verification.
+- The callback URI is now **https** and Google accepts it. Verified end to end on
+  the Android emulator on 2026-10-21: Google sign-in returned to the app, the
+  dashboard showed the account name and email, and the session survived a cold
+  start.
 
 **Apple — not configured.** Deferred to #32 and the iOS work.
 
@@ -208,8 +208,9 @@ new Account(client).get() -> 401 (guest, expected without a session)
 A bad project ID returns `404 project_not_found`, so the `401` above confirms
 the project was found rather than silently failing. The Android SDK targets the
 same 2.5.0 API, and the account state machine is covered by JVM tests. The
-callback handshake is unblocked (https callback; Google accepts it); a device
-sign-in with a real account has not been run.
+callback handshake and a real Google sign-in were verified on the Android
+emulator on 2026-10-21; the dashboard showed the account name and the session
+survived a cold start.
 
 ## Deployment and staging
 
