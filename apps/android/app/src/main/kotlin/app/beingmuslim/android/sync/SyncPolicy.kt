@@ -15,7 +15,15 @@ sealed interface RemoteState {
     data class Present(val payload: SyncPayload) : RemoteState
 }
 
-enum class SyncAction { PUSH, PULL, NONE }
+/** What one sync attempt should do, with the payload to apply when it should pull. */
+sealed interface SyncDecision {
+
+    data object Push : SyncDecision
+
+    data class Pull(val payload: SyncPayload) : SyncDecision
+
+    data object None : SyncDecision
+}
 
 /**
  * The conflict rule, as pure data in and a decision out (`docs/SYNC.md`):
@@ -25,8 +33,9 @@ enum class SyncAction { PUSH, PULL, NONE }
  *   nothing, the device seeds it with its local payload.
  * - Afterwards, a local change not yet uploaded wins and is pushed. With no
  *   local change, a different server payload is pulled.
- * - A server payload is never overwritten when it is unavailable or written in
- *   a newer format: the local state simply stays as it is.
+ * - A server payload is never applied or overwritten when it is unavailable or
+ *   written in a newer format: the local state simply stays as it is. A local
+ *   change still attempts an upload when the service was merely unavailable.
  */
 object SyncPolicy {
 
@@ -35,16 +44,16 @@ object SyncPolicy {
         local: SyncPayload,
         remote: RemoteState,
         lastSynced: SyncPayload?,
-    ): SyncAction = when (remote) {
-        RemoteState.Unsupported -> SyncAction.NONE
+    ): SyncDecision = when (remote) {
+        RemoteState.Unsupported -> SyncDecision.None
         RemoteState.Unavailable ->
-            if (!firstSync && local != lastSynced) SyncAction.PUSH else SyncAction.NONE
-        RemoteState.Empty -> SyncAction.PUSH
+            if (!firstSync && local != lastSynced) SyncDecision.Push else SyncDecision.None
+        RemoteState.Empty -> SyncDecision.Push
         is RemoteState.Present -> when {
-            firstSync -> SyncAction.PULL
-            local != lastSynced -> SyncAction.PUSH
-            remote.payload != lastSynced -> SyncAction.PULL
-            else -> SyncAction.NONE
+            firstSync -> SyncDecision.Pull(remote.payload)
+            local != lastSynced -> SyncDecision.Push
+            remote.payload != lastSynced -> SyncDecision.Pull(remote.payload)
+            else -> SyncDecision.None
         }
     }
 }

@@ -3,6 +3,7 @@ package app.beingmuslim.android.ui
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import app.beingmuslim.android.account.SignedInUserStore
 import app.beingmuslim.android.citycatalog.BundledCityCatalog
 import app.beingmuslim.android.citycatalog.City
 import app.beingmuslim.android.citycatalog.CityCatalog
@@ -105,6 +106,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val tasbihStore = TasbihStore(application)
     private val reminderStore = ReminderStore(application)
     private val reminderScheduler = ReminderScheduler(application)
+    private val accountState = SignedInUserStore(application)
     private val syncState = SyncStateStore(application)
     private val sync = SyncCoordinator(AppwriteSyncService(application), syncState)
     private val _state = MutableStateFlow<AppUiState>(AppUiState.Loading)
@@ -116,12 +118,17 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private var reminders = ReminderPreferences()
     private var rolloverJob: Job? = null
     private var syncJob: Job? = null
+    private var syncRequestedWhileLoading = false
     private var timesRequest = 0
     private val remindersUpdate = Mutex()
 
     init {
         viewModelScope.launch {
             val loaded = withContext(Dispatchers.IO) {
+                // Load both small preference files here so the sync trigger's
+                // reads on the main thread never touch disk.
+                accountState.warmUp()
+                syncState.warmUp()
                 runCatching { BundledCityCatalog.load(getApplication<Application>().assets) }.getOrNull()
             }
             if (loaded == null) {
@@ -133,13 +140,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             reminders = reminderStore.load()
             val stored = store.load()
             if (stored == null) {
+                syncRequestedWhileLoading = false
                 _state.value = AppUiState.Setup(loaded)
             } else {
                 showTimes(stored, loaded)
-                // The account may already hold settings; the first composition
-                // runs before this load finishes, so ask again now that there is
-                // a selection to reconcile.
-                requestSync(0)
+                // The app may have asked to sync before this load finished.
+                if (syncRequestedWhileLoading) {
+                    syncRequestedWhileLoading = false
+                    requestSync(0)
+                }
             }
             // Re-schedule on launch only when the queue is empty, so a reminder
             // the OS has deferred is not cancelled and lost by opening the app.
@@ -214,16 +223,20 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
      * has not saved.
      */
     fun refreshTimes() {
-        requestSync(0)
         if (_state.value !is AppUiState.Times) return
         showStoredSelection()
     }
 
-    /** Shows the times for the selection the user already had. */
+    /** Shows the times for the selection the user already had, then reconciles. */
     private fun showStoredSelection() {
         val loaded = catalog ?: return
         val current = selection ?: return
-        viewModelScope.launch { showTimes(current, loaded) }
+        viewModelScope.launch {
+            showTimes(current, loaded)
+            // Returning to the times is also when a pull deferred by the
+            // settings screen, or by a long background, can be retried.
+            requestSync(0)
+        }
     }
 
     /** Opens the qibla for the city the user already chose. */
@@ -276,11 +289,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /** Leaves the counter, keeping it, and shows the times again. */
-    fun dismissTasbih() {
-        val loaded = catalog ?: return
-        val current = selection ?: return
-        viewModelScope.launch { showTimes(current, loaded) }
-    }
+    fun dismissTasbih() = showStoredSelection()
 
     /** One more count, stored so it survives a restart. */
     fun countTasbih() = updateTasbih(tasbih.counted())
@@ -312,7 +321,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
      * when the app appears and when the user returns to the foreground; it is
      * best-effort, so a signed-out or offline device behaves exactly as before.
      */
-    fun syncNow() = requestSync(0)
+    fun syncNow() {
+        // The first composition can run before the catalog and stored choice
+        // are loaded; replay the request once they are.
+        if (_state.value is AppUiState.Loading) {
+            syncRequestedWhileLoading = true
+            return
+        }
+        requestSync(0)
+    }
 
     /**
      * Runs one sync attempt unless there is nothing to sync yet. Attempts are
@@ -324,7 +341,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         // The settings screen holds unsaved edits; applying a pull under them
         // would discard work the user has not chosen to keep.
         if (_state.value is AppUiState.Settings) return
-        val userId = syncState.signedInUserId() ?: return
+        val userId = accountState.signedInUserId() ?: return
         val local = currentPayload() ?: return
         syncJob?.cancel()
         syncJob = viewModelScope.launch {
@@ -366,11 +383,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             ?.let { tag -> Language.entries.firstOrNull { it.tag == tag } }
         val settings = remote.settings.copy(language = language?.tag ?: currentLanguage().tag)
         val next = current.withSynced(settings)
-        store.save(next)
-        // The canonical in-memory selection must move with the stored one, even
-        // when the screen on top is not the times screen: the next screen shown
-        // and the next sync both read it.
+        // Move the canonical in-memory selection first: this runs on the main
+        // thread, so a settings screen cannot open on the old values between the
+        // check above and this assignment.
         selection = next
+        store.save(next)
         // A pulled method or offset moves reminder times just as an edited one
         // does in applySelection.
         if (next.settings != current.settings || next.offsets != current.offsets) {

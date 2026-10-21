@@ -34,19 +34,15 @@ class SyncCoordinator(
         val lastSynced = if (firstSync) null else state.lastSyncedPayload(userId)
         val remote = quietly { readRemote(userId) } ?: RemoteState.Unavailable
 
-        when (SyncPolicy.decide(firstSync, local, remote, lastSynced)) {
-            SyncAction.PUSH -> {
+        when (val decision = SyncPolicy.decide(firstSync, local, remote, lastSynced)) {
+            SyncDecision.Push -> {
                 write(userId, local)
                 SyncOutcome.Unchanged
             }
 
-            SyncAction.PULL -> when (remote) {
-                is RemoteState.Present -> SyncOutcome.Apply(remote.payload)
-                // The policy only asks for a pull when a payload is present.
-                else -> SyncOutcome.Unchanged
-            }
+            is SyncDecision.Pull -> SyncOutcome.Apply(decision.payload)
 
-            SyncAction.NONE -> SyncOutcome.Unchanged
+            SyncDecision.None -> SyncOutcome.Unchanged
         }
     }
 

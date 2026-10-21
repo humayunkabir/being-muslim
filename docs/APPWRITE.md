@@ -148,9 +148,19 @@ the function is live once the activated deployment is ready.
 | Execution without a session but with a forged `x-appwrite-user-id` header | `401`, no row; the executor drops the client-supplied header |
 | User and row deleted afterwards | `204`, `204`; table back to 0 rows |
 
-The Android client path is compiled and its payload/conflict tests pass; the
-two-device handover is covered by the contract and those tests, not by a second
-physical device.
+**Two-session handover, same user** (two independent authenticated sessions, so
+two server clients), verified 2026-10-21 and cleaned up:
+
+| Action | Result |
+|---|---|
+| A writes method KARACHI, total 10; B reads | `10`, KARACHI |
+| B writes method UMM_AL_QURA, total 20; A reads | `20`, UMM_AL_QURA |
+| A writes total 30, then B writes total 40; A reads | `40` — the later write wins |
+
+The Android client path is compiled and its payload/conflict tests pass. The
+handover has not been exercised on two physical devices; the pair of sessions
+above verifies the shared row and the last-write-wins ordering the app relies
+on.
 
 ## Platforms
 

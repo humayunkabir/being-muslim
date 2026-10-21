@@ -22,7 +22,7 @@ class SyncPolicyTest {
     @Test
     fun theFirstSyncAdoptsWhatTheAccountAlreadyHas() {
         assertEquals(
-            SyncAction.PULL,
+            SyncDecision.Pull(other),
             SyncPolicy.decide(
                 firstSync = true,
                 local = local,
@@ -35,7 +35,7 @@ class SyncPolicyTest {
     @Test
     fun theFirstSyncSeedsAnEmptyAccount() {
         assertEquals(
-            SyncAction.PUSH,
+            SyncDecision.Push,
             SyncPolicy.decide(true, local, RemoteState.Empty, lastSynced = null),
         )
     }
@@ -43,7 +43,7 @@ class SyncPolicyTest {
     @Test
     fun theFirstSyncLeavesAnUnreachableAccountAlone() {
         assertEquals(
-            SyncAction.NONE,
+            SyncDecision.None,
             SyncPolicy.decide(true, local, RemoteState.Unavailable, lastSynced = null),
         )
     }
@@ -51,11 +51,11 @@ class SyncPolicyTest {
     @Test
     fun aNewerPayloadIsNeverOverwritten() {
         assertEquals(
-            SyncAction.NONE,
+            SyncDecision.None,
             SyncPolicy.decide(true, local, RemoteState.Unsupported, lastSynced = null),
         )
         assertEquals(
-            SyncAction.NONE,
+            SyncDecision.None,
             SyncPolicy.decide(false, local, RemoteState.Unsupported, lastSynced = other),
         )
     }
@@ -63,7 +63,7 @@ class SyncPolicyTest {
     @Test
     fun anUnsyncedLocalChangeIsUploaded() {
         assertEquals(
-            SyncAction.PUSH,
+            SyncDecision.Push,
             SyncPolicy.decide(false, local, RemoteState.Present(other), lastSynced = other),
         )
     }
@@ -73,7 +73,7 @@ class SyncPolicyTest {
         // The write may be the first thing to succeed when connectivity returns;
         // failing it leaves the local state and marker untouched.
         assertEquals(
-            SyncAction.PUSH,
+            SyncDecision.Push,
             SyncPolicy.decide(false, local, RemoteState.Unavailable, lastSynced = other),
         )
     }
@@ -81,7 +81,7 @@ class SyncPolicyTest {
     @Test
     fun anUnchangedDeviceAdoptsAnotherDevicesChange() {
         assertEquals(
-            SyncAction.PULL,
+            SyncDecision.Pull(local),
             SyncPolicy.decide(false, other, RemoteState.Present(local), lastSynced = other),
         )
     }
@@ -89,7 +89,7 @@ class SyncPolicyTest {
     @Test
     fun anUnchangedDeviceWithTheSamePayloadDoesNothing() {
         assertEquals(
-            SyncAction.NONE,
+            SyncDecision.None,
             SyncPolicy.decide(false, local, RemoteState.Present(local), lastSynced = local),
         )
     }
@@ -97,7 +97,7 @@ class SyncPolicyTest {
     @Test
     fun anUnchangedDeviceRestoresAnEmptyAccount() {
         assertEquals(
-            SyncAction.PUSH,
+            SyncDecision.Push,
             SyncPolicy.decide(false, local, RemoteState.Empty, lastSynced = local),
         )
     }
@@ -105,7 +105,7 @@ class SyncPolicyTest {
     @Test
     fun anUnchangedDeviceDoesNothingWhileTheServiceIsUnreachable() {
         assertEquals(
-            SyncAction.NONE,
+            SyncDecision.None,
             SyncPolicy.decide(false, local, RemoteState.Unavailable, lastSynced = local),
         )
     }

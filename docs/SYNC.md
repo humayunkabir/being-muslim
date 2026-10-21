@@ -152,5 +152,11 @@ its scopes, and the verification evidence.
 `SyncCodecTest` covers the payload's exact shape, the absence of city/location
 and timestamps, version rejection, unknown values, offset clamping, and the
 language field. `SyncPolicyTest` covers every conflict-rule decision above,
-including an unreachable service and a newer payload. Both are ordinary JVM
-tests in `apps/android/app/src/test/kotlin/app/beingmuslim/android/sync/`.
+including an unreachable service and a newer payload. `SyncCoordinatorTest`
+covers failure swallowing and marker bookkeeping. `SyncMergeTest` covers the
+pull merge: city preserved, settings adopted, and the tasbih label/target kept.
+All are ordinary JVM tests in
+`apps/android/app/src/test/kotlin/app/beingmuslim/android/sync/`.
+
+A two-session server verification of the shared row and last-write-wins
+ordering is recorded in `APPWRITE.md`.

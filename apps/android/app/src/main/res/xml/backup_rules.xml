@@ -19,11 +19,14 @@
 
   Appwrite keeps the signed-in session in "myCookie" preferences. It is a
   credential, so it is excluded from backup and transfer; the user signs in on
-  the new device instead of carrying the session across.
+  the new device instead of carrying the session across. The remembered account
+  id is excluded too, so a restored device never syncs against an identity it
+  has not signed into.
 -->
 <full-backup-content>
     <exclude domain="sharedpref" path="being_muslim_tasbih.xml" />
     <exclude domain="sharedpref" path="being_muslim_sync.xml" />
+    <exclude domain="sharedpref" path="being_muslim_account.xml" />
     <exclude domain="sharedpref" path="being_muslim_reminders.xml" />
     <exclude domain="sharedpref" path="myCookie.xml" />
     <exclude domain="sharedpref" path="myCookie_secure.xml" />

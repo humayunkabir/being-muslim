@@ -3,6 +3,8 @@ package app.beingmuslim.android.sync
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * The sync bookkeeping the coordinator needs: which account was last synced,
@@ -19,30 +21,18 @@ interface SyncState {
 }
 
 /**
- * What this device knows about its sync account, stored beside the local data:
- * which account is signed in, and the payload last exchanged with the server.
- * The last-synced payload is what makes "changed on this device" answerable
- * without a transmitted timestamp (`docs/SYNC.md`).
+ * The payload this device last exchanged with its account, stored beside the
+ * local data. It is what makes "changed on this device" answerable without a
+ * transmitted timestamp (`docs/SYNC.md`). The signed-in account itself lives in
+ * [app.beingmuslim.android.account.SignedInUserStore], so this store changes
+ * only when sync does.
  *
- * None of these values is a credential or devotional content.
+ * None of these values is a credential.
  */
 class SyncStateStore(context: Context) : SyncState {
 
     private val preferences: SharedPreferences =
         context.applicationContext.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
-
-    /**
-     * The signed-in account, remembered after a successful check or sign-in so
-     * local changes can attempt a push without a network round-trip first.
-     * Cleared on sign-out and on a positive "no session" answer.
-     */
-    fun signedInUserId(): String? = preferences.getString(SIGNED_IN_USER, null)
-
-    fun setSignedInUserId(userId: String?) {
-        preferences.edit {
-            if (userId == null) remove(SIGNED_IN_USER) else putString(SIGNED_IN_USER, userId)
-        }
-    }
 
     /** The account whose payload this device last exchanged, or null before its first sync. */
     override fun syncedUserId(): String? = preferences.getString(SYNCED_USER, null)
@@ -62,9 +52,13 @@ class SyncStateStore(context: Context) : SyncState {
         }
     }
 
+    /** Loads the file off the main thread so the sync trigger's read is in-memory. */
+    suspend fun warmUp() = withContext(Dispatchers.IO) {
+        preferences.all
+    }
+
     private companion object {
         const val PREFERENCES_NAME = "being_muslim_sync"
-        const val SIGNED_IN_USER = "signed_in_user"
         const val SYNCED_USER = "synced_user"
         const val LAST_SETTINGS = "last_settings"
         const val LAST_TOTAL = "last_total"
