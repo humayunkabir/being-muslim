@@ -1,9 +1,8 @@
 package app.beingmuslim.android.report
 
 /**
- * The report backend seam, so the screen can be exercised without a network.
- * A failure is ordinary: the caller keeps the report on screen and offers a
- * retry rather than losing it (`docs/PRODUCT_REQUIREMENTS.md` §2.1).
+ * The report backend seam. A failure is ordinary: the caller keeps the report on
+ * screen and offers a retry rather than losing it (`docs/PRODUCT_REQUIREMENTS.md` §2.1).
  */
 interface ProblemReportService {
 

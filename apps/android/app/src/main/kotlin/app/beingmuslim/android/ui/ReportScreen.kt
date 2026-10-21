@@ -26,6 +26,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import app.beingmuslim.android.R
 import app.beingmuslim.android.prayer.Prayer
+import app.beingmuslim.android.report.CALCULATION_LIBRARY
 import app.beingmuslim.android.report.ProblemReport
 
 /**
@@ -132,6 +133,16 @@ fun ReportScreen(
                     offsetsSummary(report) ?: stringResource(R.string.report_attached_offsets_none),
                 ),
             )
+            SummaryLine(
+                stringResource(R.string.report_attached_hijri_shift, report.hijriDayShift),
+            )
+            SummaryLine(
+                stringResource(
+                    R.string.report_attached_app,
+                    report.appVersion,
+                    CALCULATION_LIBRARY,
+                ),
+            )
             // Dates and raw times are the day records the report carries.
             val context = LocalContext.current
             report.days.today?.let { day ->
@@ -166,12 +177,21 @@ fun ReportScreen(
                 onValueChange = onNoteChange,
                 label = { Text(stringResource(R.string.report_note_label)) },
                 supportingText = {
-                    Text(
-                        stringResource(
-                            R.string.report_note_help,
-                            ProblemReport.MAX_NOTE_LENGTH,
-                        ),
-                    )
+                    Column {
+                        Text(
+                            stringResource(
+                                R.string.report_note_help,
+                                ProblemReport.MAX_NOTE_LENGTH,
+                            ),
+                        )
+                        Text(
+                            stringResource(
+                                R.string.report_note_count,
+                                report.note.length,
+                                ProblemReport.MAX_NOTE_LENGTH,
+                            ),
+                        )
+                    }
                 },
                 minLines = 3,
                 enabled = canEdit,

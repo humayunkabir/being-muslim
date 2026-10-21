@@ -264,12 +264,15 @@
     <string name="report_attached_high_latitude">High-latitude rule: %1$s</string>
     <string name="report_attached_offsets">Your adjustments: %1$s</string>
     <string name="report_attached_offsets_none">none</string>
+    <string name="report_attached_hijri_shift">Hijri day shift: %1$d</string>
+    <string name="report_attached_app">App: %1$s, calculation library: %2$s</string>
     <string name="report_offset_item">%1$s %2$s</string>
     <string name="report_attached_today">Today: %1$s (%2$s)</string>
     <string name="report_attached_tomorrow">Tomorrow: %1$s (%2$s)</string>
     <string name="report_privacy">Only the inputs shown above, the app and calculation-library versions, your Hijri day shift, the calculated times for those dates, and anything you type below are sent. No account, name, email, device details or location history is included.</string>
     <string name="report_note_label">What looks wrong? (optional)</string>
     <string name="report_note_help">Say which time looks wrong and what you expected. Do not include personal details. Maximum length: %1$d.</string>
+    <string name="report_note_count">%1$d / %2$d</string>
     <string name="report_send">Send report</string>
     <string name="report_sending">Sending…</string>
     <string name="report_retry">Try sending again</string>

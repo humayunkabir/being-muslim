@@ -248,12 +248,15 @@
     <string name="report_attached_high_latitude">উচ্চ অক্ষাংশের নিয়ম: %1$s</string>
     <string name="report_attached_offsets">আপনার সমন্বয়: %1$s</string>
     <string name="report_attached_offsets_none">নেই</string>
+    <string name="report_attached_hijri_shift">হিজরি দিনের সমন্বয়: %1$d</string>
+    <string name="report_attached_app">অ্যাপ: %1$s, হিসাবের লাইব্রেরি: %2$s</string>
     <string name="report_offset_item">%1$s %2$s</string>
     <string name="report_attached_today">আজ: %1$s (%2$s)</string>
     <string name="report_attached_tomorrow">আগামীকাল: %1$s (%2$s)</string>
     <string name="report_privacy">শুধু উপরে দেখানো ইনপুট, অ্যাপ ও হিসাবের লাইব্রেরির সংস্করণ, আপনার হিজরি দিনের সমন্বয়, সেই তারিখগুলোর হিসাব করা সময় এবং নিচে আপনি যা লেখেন তা পাঠানো হয়। কোনো অ্যাকাউন্ট, নাম, ইমেইল, ডিভাইসের তথ্য বা অবস্থানের ইতিহাস পাঠানো হয় না।</string>
     <string name="report_note_label">কী ভুল মনে হচ্ছে? (ঐচ্ছিক)</string>
     <string name="report_note_help">কোন সময়টি ভুল মনে হচ্ছে এবং আপনি কী আশা করেছিলেন তা লিখুন। ব্যক্তিগত তথ্য লিখবেন না। সর্বোচ্চ দৈর্ঘ্য: %1$d।</string>
+    <string name="report_note_count">%1$d / %2$d</string>
     <string name="report_send">রিপোর্ট পাঠান</string>
     <string name="report_sending">পাঠানো হচ্ছে…</string>
     <string name="report_retry">আবার পাঠানোর চেষ্টা করুন</string>

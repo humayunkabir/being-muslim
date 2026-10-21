@@ -262,7 +262,11 @@ any caller and stores the report with no read permission for anyone.
 - Row security is **on**; the table grants **no** table-level permissions.
 - Created rows carry `permissions: []`, so only the administrative key can read
   them. There is no client read path, and no report is tied to a user id — a
-  guest and a signed-in caller are stored alike.
+  guest and a signed-in caller are stored alike. The app sends reports with a
+  guest client even when the user is signed in, so the function's execution
+  record is not tied to the account either.
+- Rows have no automatic expiry: the operator deletes a report once the problem
+  it describes is resolved (`docs/PRIVACY.md`).
 - The function validates an allowlist before storing anything. Unknown keys at
   the top level or inside the city, parameters, adjustments, offsets or day
   objects are rejected, as are out-of-range values, a malformed `date`, a note
@@ -290,7 +294,7 @@ for a body outside the allowlist; `413` for a body over the limit; `502
 {"message":"Report not sent"}` when the row cannot be created, so the app keeps
 the report on screen and offers a retry. The app sends the report only when the
 user taps **Send report**; being offline is not an error it hides — the screen
-says a connection is needed and keeps the report for a retry.
+says a connection is needed and keeps the report on screen for a retry.
 
 Because reporting works signed out, this is an unauthenticated write path by
 necessity. Abuse is bounded by the platform's per-project rate limit and the

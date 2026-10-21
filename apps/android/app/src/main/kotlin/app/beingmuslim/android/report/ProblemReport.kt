@@ -12,6 +12,12 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
+ * The calculation engine recorded with every report: a fix in the library can
+ * move a time without the app version changing.
+ */
+internal val CALCULATION_LIBRARY: String = "adhan ${BuildConfig.ADHAN_VERSION}"
+
+/**
  * One user-initiated problem report about a calculated time
  * (`docs/PRODUCT_REQUIREMENTS.md` §2.1, §5). It holds the inputs that reproduce
  * the result — city and coordinates, method and its parameters, the juristic and
@@ -54,9 +60,9 @@ object ProblemReportCodec {
     fun encode(report: ProblemReport): String = JSONObject().apply {
         put("version", VERSION)
         put("appVersion", report.appVersion)
-        // The calculation engine's version travels too: a fix in the library can
-        // change a time without the app version changing.
-        put("library", "adhan ${BuildConfig.ADHAN_VERSION}")
+        // The calculation engine's version travels too, so a fix in the library
+        // can be told apart from a change in the app.
+        put("library", CALCULATION_LIBRARY)
         put("date", report.date.toString())
         put("city", JSONObject().apply {
             put("name", report.city.name)
